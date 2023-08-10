@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net7.0</TargetFramework>
+    <Authors>DarkTidePlayer</Authors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="discord.net" Version="2.4.0" />
+    <PackageReference Include="Discord.Net.Interactions" Version="3.11.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LeagueStatusBot.Common\LeagueStatusBot.Common.csproj" />
+    <ProjectReference Include="..\LeagueStatusBot.RPGEngine\LeagueStatusBot.RPGEngine.csproj" />
+  </ItemGroup>
+
+</Project>
