@@ -15,30 +15,30 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
         public void AddPartyMember(ulong discordId, string name)
         {
-            var player = new Player(name, discordId);
+            var player = new Player(discordId, name);
             AddPartyMember(player);
         }
 
         public void AddPartyMember(Being being)
         {
-            Members.Add(being);
-
             being.Killed += OnMemberKilled;
             being.ActionPerformed += OnMemberActionPerformed;
             being.DamageTaken += OnMemberDamageTaken;
+
+            Members.Add(being);
         }
         private void OnMemberKilled(object? sender, EventArgs e)
         {
             var being = sender as Being;
             if (being == null) return;
 
-            PartyMemberDeath?.Invoke(this, $"{being.Name} has died.");
-
             being.Killed -= OnMemberKilled;
             being.ActionPerformed -= OnMemberActionPerformed;
             being.DamageTaken -= OnMemberDamageTaken;
 
             Members.Remove(being);
+
+            PartyMemberDeath?.Invoke(this, $"- {being.Name} has been slain!.\n");
         }
         private void OnMemberActionPerformed(object? sender, string e)
         {
@@ -48,7 +48,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             PartyEvent?.Invoke(this, e);
         }
 
-        private void OnMemberDamageTaken(object sender, string e)
+        private void OnMemberDamageTaken(object? sender, string e)
         {
             var being = sender as Being;
             if (being == null) return;

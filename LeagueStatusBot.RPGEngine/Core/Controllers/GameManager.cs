@@ -1,10 +1,5 @@
 ﻿using LeagueStatusBot.RPGEngine.Core.Engine;
 using LeagueStatusBot.RPGEngine.Core.Events;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LeagueStatusBot.RPGEngine.Core.Controllers
 {
@@ -15,82 +10,74 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         public bool IsGameStarted() => CurrentEncounter == null ? false : true;
 
         public event EventHandler GameStarted;
-        public event EventHandler GameEnded;
+        public event EventHandler<string?> GameEnded;
 
         public event EventHandler<string> GameEvent;
         public event EventHandler<string> GameDeath;
         public event EventHandler<string> TurnStartPlayer;
         public event EventHandler<string> TurnStartEnemy;
-
-        public void StartGame()
+        public event EventHandler RoundEnded;
+        public async Task StartGameAsync(Dictionary<ulong, string> partyMembers)
         {
-            this.SpawnEncounter();
-            // Initialization logic
+            Party party = new Party();
+
+            foreach (var member in partyMembers)
+            {
+                var player = new Player(member.Key, member.Value);
+
+                party.AddPartyMember(player);
+            }
+
+            CurrentEncounter = new Encounter
+            {
+                PlayerParty = party,
+                EncounterParty = GenerateMonsters()
+            };
+
             GameStarted?.Invoke(this, EventArgs.Empty);
+
+            await Task.Delay(2000);
+
+            await SpawnEncounterAsync();
+            // Initialization logic
         }
 
         public void EndGame()
         {
             // Cleanup and end logic
-            GameEnded?.Invoke(this, EventArgs.Empty);
+            
         }
 
-        public void SpawnEncounter()
+        private async Task SpawnEncounterAsync()
         {
-            CurrentEncounter = new Encounter
-            {
-                EncounterParty = GenerateMonsters(),
-                PlayerParty = GeneratePlayers() // This can be changed to select an active party
-            };
 
             CurrentEncounter.EncounterEnded += OnEncounterEnded;
             CurrentEncounter.PlayerTurnStarted += OnPlayerTurnStarted;
             CurrentEncounter.TurnStarted += OnTurnStarted;
             CurrentEncounter.PartyDeath += OnPartyMemberDeath;
             CurrentEncounter.PartyAction += OnPartyAction;
+            CurrentEncounter.RoundEnded += OnRoundEnded;
 
             Console.WriteLine("Spawned");
 
-            CurrentEncounter.StartEncounter();
-
-            
-        }
-
-        public void JoinParty(ulong discordId, string name)
-        {
-            Player player = new Player(name, discordId);
-
-            CurrentEncounter?.PlayerParty.AddPartyMember(player);
-        }
-
-        public void LeaveParty(Player player)
-        {
+            await CurrentEncounter.StartEncounterAsync();
         }
 
         private Party GenerateMonsters()
         {
             // Logic to generate monsters for an encounter
             var party = new Party();
-            party.AddPartyMember(new Enemy("Goblin"));
-            party.AddPartyMember(new Enemy("Warlord"));
+            party.AddPartyMember(new Enemy("Bragore the Wretched"));
+            party.AddPartyMember(new Enemy("Lord Tusker"));
 
-            return party;
-        }
-
-        private Party GeneratePlayers()
-        {
-            // Logic to generate monsters for an encounter
-            var party = new Party();
-            party.AddPartyMember(new Player("James The Slayer", 331308445166731266));
-            party.AddPartyMember(new Player("Chris The Bard", 331308445166731266));
             return party;
         }
 
         private void OnEncounterEnded(object sender, EventArgs e)
         {
-            EventHistory.Add(CurrentEncounter.VictoryResult);
+            GameEnded?.Invoke(sender, CurrentEncounter?.VictoryResult);
+            
             CurrentEncounter = null;
-            GameEnded?.Invoke(sender, e);
         }
 
         private void OnPlayerTurnStarted(object sender, string e)
@@ -115,6 +102,12 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             GameEvent?.Invoke(sender, e);
         }
 
+        private void OnRoundEnded(object sender, EventArgs e)
+        {
+            RoundEnded?.Invoke(sender, e);
+
+            EventHistory.Clear();
+        }
 
 
     }

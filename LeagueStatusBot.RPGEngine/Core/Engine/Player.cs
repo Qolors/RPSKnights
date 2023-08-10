@@ -9,7 +9,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
     public class Player : Being
     {
         public ulong DiscordId { get; set; }
-        public Player(string name, ulong discordId)
+        public Player(ulong discordId, string name)
         {
             Name = name;
             DiscordId = discordId;

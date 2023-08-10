@@ -15,7 +15,14 @@ namespace LeagueStatusBot.Services
         private Timer timer;
         private GameManager gameManager;
         private DiscordSocketClient client;
-        public List<ulong> Members { get; set; } = new List<ulong>();
+
+        public bool IsLobbyOpen { get; set; } = false;
+
+        private const ulong GUILD_ID = 402652836606771202;
+        private const ulong CHANNEL_ID = 702684769200111716;
+        private const int LOBBY_DURATION = 1000 * 60 * 2;
+        private const int FINAL_MINUTE_DURATION = 1000 * 60;
+        public Dictionary<ulong, string> Members { get; set; } = new();
 
         public GameControllerService(DiscordSocketClient client)
         {
@@ -31,34 +38,80 @@ namespace LeagueStatusBot.Services
             gameManager.GameEnded += OnGameEnded;
             gameManager.GameEvent += OnGameEvent;
             gameManager.GameDeath += OnGameDeath;
+            gameManager.RoundEnded += OnRoundEnded;
 
         }
 
         private async Task SetupTimer()
         {
-            timer = new Timer(10000);
+            timer = new Timer(LOBBY_DURATION - FINAL_MINUTE_DURATION);
+            timer.Elapsed += OnLobbyOpen;
+            timer.AutoReset = false;
+            timer.Start();
+        }
+
+        private async void OnLobbyOpen(object sender, ElapsedEventArgs e)
+        {
+            timer.Dispose();
+
+            await SendChannelMessage("**An adventure is starting in 60 seconds...**\n */join to join the adventure*\n");
+
+            IsLobbyOpen = true;
+
+            timer = new Timer(FINAL_MINUTE_DURATION); // Set for the final minute
             timer.Elapsed += OnTimerElapsed;
             timer.AutoReset = false;
             timer.Start();
         }
 
-        public void AddMember(ulong id)
+        private async void OnTimerElapsed(object sender, ElapsedEventArgs e)
         {
-            Members.Add(id);
-        }
-
-        private void OnTimerElapsed(object sender, ElapsedEventArgs e)
-        {
+            IsLobbyOpen = false;
             timer.Dispose();
-            gameManager.StartGame();
-        }
-        private void OnGameStarted(object sender, EventArgs e)
-        {
+
+            if (Members.Any())
+            {
+                await gameManager.StartGameAsync(Members);
+            }
+
+            Members.Clear();
         }
 
-        private async void OnGameEnded(object sender, EventArgs e)
+        public async void JoinLobby(ulong id, string name)
         {
-            await SendEventHistoryAsync();
+            if (Members.ContainsKey(id))
+            {
+                await SendChannelMessage("You are already in the party!");
+            }
+            else
+            {
+                Members.Add(id, name);
+            }
+        }
+        private async void OnGameStarted(object sender, EventArgs e)
+        {
+            string battleBeginString = "__Battle Has Started!__\n";
+
+            battleBeginString += "The Enemy:\n";
+
+            foreach (var member in gameManager.CurrentEncounter.EncounterParty.Members)
+            {
+                battleBeginString += $"- **{member.Name}**  Hit Points: {member.MaxHitPoints}\n";
+            }
+
+            battleBeginString += "The Heroic Party:\n";
+
+            foreach (var member in gameManager.CurrentEncounter.PlayerParty.Members)
+            {
+                battleBeginString += $"- **{member.Name}**  Hit Points: {member.MaxHitPoints}\n";
+            }
+
+            await SendChannelMessage(battleBeginString);
+        }
+
+        private async void OnGameEnded(object sender, string e)
+        {
+            await SendChannelMessage($"**{e}**");
         }
 
         private void OnGameEvent(object sender, string e)
@@ -71,24 +124,23 @@ namespace LeagueStatusBot.Services
             
         }
 
+        private async void OnRoundEnded(object sender, EventArgs e)
+        {
+            await SendEventHistoryAsync();
+        }
+
         private async Task SendEventHistoryAsync()
         {
-            ulong guildId = 402652836606771202;
-            ulong channelId = 702684769200111716;
+            var channel = client.GetGuild(GUILD_ID).GetTextChannel(CHANNEL_ID);
 
-            var channel = client.GetGuild(guildId).GetTextChannel(channelId);
+            await channel.SendMessageAsync("```csharp\n" + string.Join("\n", gameManager.EventHistory) + "\n```");
+        }
 
-            // You can either send the whole history as one big message:
-            // await channel.SendMessageAsync(string.Join("\n", _gameManager.EventHistory));
+        private async Task SendChannelMessage(string message)
+        {
+            var channel = client.GetGuild(GUILD_ID).GetTextChannel(CHANNEL_ID);
 
-            // Or you can chunk it if you're concerned about hitting message length limits:
-            const int chunkSize = 10; // send in chunks of 10 events, for example
-            for (int i = 0; i < gameManager.EventHistory.Count; i += chunkSize)
-            {
-                var chunk = gameManager.EventHistory.Skip(i).Take(chunkSize);
-                string result = "```csharp\n" + string.Join("\n", chunk) + "```";
-                await channel.SendMessageAsync(result);
-            }
+            await channel?.SendMessageAsync(message);
         }
     }
 }

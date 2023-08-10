@@ -27,6 +27,7 @@ namespace LeagueStatusBot.Services
 
             await _handler.AddModuleAsync<LeagueModule>(_services);
             await _handler.AddModuleAsync<MiscellaneousModule>(_services);
+            await _handler.AddModuleAsync<RPGModule>(_services);
 
             _client.InteractionCreated += HandleInteractionAsync;
         }

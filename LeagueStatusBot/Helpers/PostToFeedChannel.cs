@@ -44,5 +44,15 @@ namespace LeagueStatusBot.Helpers
 
             await client.GetGuild(guildId).GetTextChannel(channelId).SendMessageAsync(update);
         }
+
+        public static async Task SendChannelMessage(string message, DiscordSocketClient client)
+        {
+            ulong guildId = 402652836606771202;
+            ulong channelId = 702684769200111716;
+
+            var channel = client.GetGuild(guildId).GetTextChannel(channelId);
+
+            await channel?.SendMessageAsync(message);
+        }
     }
 }

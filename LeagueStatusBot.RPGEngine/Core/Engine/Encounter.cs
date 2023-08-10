@@ -4,8 +4,8 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 {
     public class Encounter
     {
-        public Party EncounterParty { get; set; }
-        public Party PlayerParty { get; set; }
+        public Party? EncounterParty { get; set; }
+        public Party? PlayerParty { get; set; }
         public bool IsEncounterActive { get; private set; }
         private Queue<Being> TurnQueue { get; set; }
         public Being CurrentTurn { get; private set; }
@@ -17,26 +17,26 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public event EventHandler TurnStarted;
         public event EventHandler<string> PlayerTurnStarted;
         public event EventHandler TurnEnded;
+        public event EventHandler RoundEnded;
 
         public event EventHandler<string> PartyAction;
         public event EventHandler<string> PartyDeath;
 
-        public void StartEncounter()
+        public async Task StartEncounterAsync()
         {
             IsEncounterActive = true;
 
             SetTurnOrder();
 
             PlayerParty.PartyEvent += OnPartyAction;
-            EncounterParty.PartyEvent += OnPartyAction;
             PlayerParty.PartyMemberDeath += OnPartyMemberDeath;
-            EncounterParty.PartyMemberDeath += OnPartyMemberDeath;
 
-            Console.WriteLine("Started Encounter");
+            EncounterParty.PartyEvent += OnPartyAction;
+            EncounterParty.PartyMemberDeath += OnPartyMemberDeath;
 
             EncounterStarted?.Invoke(this, EventArgs.Empty);
 
-            ProcessTurn();
+            await ProcessTurnAsync();
         }
 
         private void SetTurnOrder()
@@ -48,31 +48,40 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             );
         }
 
-        public void ProcessTurn()
+        private async Task ProcessTurnAsync()
         {
             while (IsEncounterActive)
             {
                 if (TurnQueue.Count == 0)
                 {
+                    RoundEnded?.Invoke(this, EventArgs.Empty);
                     SetTurnOrder();  // Reorder and reset the queue for the next round.
+                    await Task.Delay(3000);
                 }
 
                 CurrentTurn = TurnQueue.Dequeue();
 
                 // Ensure the current being has a target.
-                if (CurrentTurn.Target == null)
+                if (CurrentTurn.IsAlive)
                 {
-                    AssignTargetFor(CurrentTurn);
-                }
+                    // Check if the target is dead. If yes, reassign a new target.
+                    if (CurrentTurn.Target == null || !CurrentTurn.Target.IsAlive)
+                    {
+                        AssignTargetFor(CurrentTurn);
+                    }
 
-                if (CurrentTurn.IsAlive && CurrentTurn.Target != null)
-                {
-                    CurrentTurn.AttackTarget();
+                    // Now check if the target is valid and attack.
+                    if (CurrentTurn.Target != null)
+                    {
+                        CurrentTurn.AttackTarget();
+                    }
                 }
 
                 // Check if any of the parties are defeated.
                 if (!PlayerParty.IsAlive || !EncounterParty.IsAlive)
                 {
+                    RoundEnded?.Invoke(this, EventArgs.Empty);
+                    await Task.Delay(3000);
                     EndEncounter();
                     return;
                 }
@@ -119,11 +128,11 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         {
             if (PlayerParty.IsAlive)
             {
-                VictoryResult = "Humans Win!";
+                VictoryResult = "Your Party has won!";
             }
             else if (EncounterParty.IsAlive)
             {
-                VictoryResult = "Evil Wins!";
+                VictoryResult = "Your Party has been defeated..";
             }
         }
     }

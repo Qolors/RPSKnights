@@ -26,7 +26,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         {
             HitPoints -= damage;
 
-            DamageTaken?.Invoke(this, $"{Name} took {damage} damage. HP is Now {this.HitPoints}");
+            DamageTaken?.Invoke(this, $"- {Name} took {damage} damage. HP is Now ({this.HitPoints}/{this.MaxHitPoints})\n");
 
             if (!IsAlive) Killed?.Invoke(this, EventArgs.Empty);
         }
@@ -34,12 +34,10 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public virtual void AttackTarget()
         {
             if (Target == null) return;
-            
-            //Chosen Attack <-- We can Build a Skill System here
 
-            ActionPerformed?.Invoke(this, $"{Name} attacked {Target.Name} for 1 damage.");
+            ActionPerformed?.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: Attacked {Target.Name}!");
 
-            Target.TakeDamage(1); // <-- We can Build a custom Modifier here
+            Target.TakeDamage(1);
         }
 
         public virtual void SetTarget(Being target)
