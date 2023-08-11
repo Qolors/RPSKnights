@@ -1,3 +1,6 @@
-Simulate 4 Players vs X Monsters
 Add Turn-Based Component Messages
 Decide random time intervals and add persistent adventure spawn timer
+Handle message stream to print per turn
+Add Round Summary <-- Implement this with the turn-based message components
+Add /Bonk for command list
+Add /ask for ChatGPT integration

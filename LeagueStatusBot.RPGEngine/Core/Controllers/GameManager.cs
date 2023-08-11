@@ -11,7 +11,6 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
         public event EventHandler GameStarted;
         public event EventHandler<string?> GameEnded;
-
         public event EventHandler<string> GameEvent;
         public event EventHandler<string> GameDeath;
         public event EventHandler<string> TurnStartPlayer;
@@ -69,6 +68,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             var party = new Party();
             party.AddPartyMember(new Enemy("Bragore the Wretched"));
             party.AddPartyMember(new Enemy("Lord Tusker"));
+            party.AddPartyMember(new Enemy("D the Lone Bumbis"));
 
             return party;
         }

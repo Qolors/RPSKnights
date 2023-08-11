@@ -71,6 +71,9 @@ namespace LeagueStatusBot.Services
 
             if (Members.Any())
             {
+                //ADDING MEMBERS TO PARTY TO TEST
+                Members.Add(402652836696745202, "Chris Minion1");
+                Members.Add(402122836606771202, "Chris Minion2");
                 await gameManager.StartGameAsync(Members);
             }
 
