@@ -14,10 +14,12 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
         public event EventHandler EncounterStarted;
         public event EventHandler EncounterEnded;
-        public event EventHandler TurnStarted;
-        public event EventHandler<string> PlayerTurnStarted;
+
+        public event EventHandler<Being> TurnStarted;
         public event EventHandler TurnEnded;
+
         public event EventHandler RoundEnded;
+        public event EventHandler RoundStarted;
 
         public event EventHandler<string> PartyAction;
         public event EventHandler<string> PartyDeath;
@@ -25,8 +27,6 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public async Task StartEncounterAsync()
         {
             IsEncounterActive = true;
-
-            SetTurnOrder();
 
             PlayerParty.PartyEvent += OnPartyAction;
             PlayerParty.PartyMemberDeath += OnPartyMemberDeath;
@@ -36,7 +36,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
             EncounterStarted?.Invoke(this, EventArgs.Empty);
 
-            await ProcessTurnAsync();
+            await ProcessRoundAsync();
         }
 
         private void SetTurnOrder()
@@ -48,44 +48,72 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             );
         }
 
-        private async Task ProcessTurnAsync()
+        private async Task ProcessRoundAsync()
         {
+            SetTurnOrder();
+
             while (IsEncounterActive)
             {
                 if (TurnQueue.Count == 0)
                 {
                     RoundEnded?.Invoke(this, EventArgs.Empty);
-                    SetTurnOrder();  // Reorder and reset the queue for the next round.
-                    await Task.Delay(3000);
+                    SetTurnOrder();
+                    await Task.Delay(5000);
                 }
 
                 CurrentTurn = TurnQueue.Dequeue();
 
-                // Ensure the current being has a target.
-                if (CurrentTurn.IsAlive)
+                if (CurrentTurn.IsHuman)
                 {
-                    // Check if the target is dead. If yes, reassign a new target.
-                    if (CurrentTurn.Target == null || !CurrentTurn.Target.IsAlive)
-                    {
-                        AssignTargetFor(CurrentTurn);
-                    }
-
-                    // Now check if the target is valid and attack.
-                    if (CurrentTurn.Target != null)
-                    {
-                        CurrentTurn.AttackTarget();
-                    }
+                    await StartTurnTimerAsync();
                 }
+                else
+                {
+                    await StartTurnTimerAsyncMon();
+                }
+
+                await ProcessTurnAsync();
 
                 // Check if any of the parties are defeated.
                 if (!PlayerParty.IsAlive || !EncounterParty.IsAlive)
                 {
                     RoundEnded?.Invoke(this, EventArgs.Empty);
-                    await Task.Delay(3000);
+                    await Task.Delay(5000);
                     EndEncounter();
                     return;
                 }
             }
+        }
+
+        private async Task StartTurnTimerAsync()
+        {
+            TurnStarted?.Invoke(this, CurrentTurn);
+
+            await Task.Delay(12000);
+        }
+
+        private async Task StartTurnTimerAsyncMon()
+        {
+            await Task.Delay(3000);
+        }
+
+        private async Task ProcessTurnAsync()
+        {
+            if (CurrentTurn.IsAlive)
+            {
+                if (CurrentTurn.Target == null || !CurrentTurn.Target.IsAlive)
+                {
+                    AssignTargetFor(CurrentTurn);
+                }
+
+                // Now check if the target is valid and attack.
+                if (CurrentTurn.Target != null)
+                {
+                    CurrentTurn.AttackTarget();
+                }
+            }
+
+            TurnEnded?.Invoke(this, EventArgs.Empty);
         }
 
         private void AssignTargetFor(Being being)

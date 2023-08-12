@@ -1,5 +1,7 @@
 ﻿
+using Discord;
 using Discord.WebSocket;
+using LeagueStatusBot.Common.Models;
 using LeagueStatusBot.Helpers;
 using LeagueStatusBot.RPGEngine.Core.Controllers;
 using System;
@@ -22,6 +24,9 @@ namespace LeagueStatusBot.Services
         private const ulong CHANNEL_ID = 702684769200111716;
         private const int LOBBY_DURATION = 1000 * 60 * 2;
         private const int FINAL_MINUTE_DURATION = 1000 * 60;
+
+        public ulong TurnRequestMessageId { get; set; } = 0;
+        public ulong TurnEvenHistoryMessagedId { get; set; } = 0;
         public Dictionary<ulong, string> Members { get; set; } = new();
 
         public GameControllerService(DiscordSocketClient client)
@@ -36,9 +41,15 @@ namespace LeagueStatusBot.Services
 
             gameManager.GameStarted += OnGameStarted;
             gameManager.GameEnded += OnGameEnded;
+
             gameManager.GameEvent += OnGameEvent;
             gameManager.GameDeath += OnGameDeath;
+
             gameManager.RoundEnded += OnRoundEnded;
+            gameManager.RoundStarted += OnRoundStarted;
+
+            gameManager.TurnStarted += OnTurnStarted;
+            gameManager.TurnEnded += OnTurnEnded;
 
         }
 
@@ -72,8 +83,6 @@ namespace LeagueStatusBot.Services
             if (Members.Any())
             {
                 //ADDING MEMBERS TO PARTY TO TEST
-                Members.Add(402652836696745202, "Chris Minion1");
-                Members.Add(402122836606771202, "Chris Minion2");
                 await gameManager.StartGameAsync(Members);
             }
 
@@ -129,14 +138,43 @@ namespace LeagueStatusBot.Services
 
         private async void OnRoundEnded(object sender, EventArgs e)
         {
-            await SendEventHistoryAsync();
+            
         }
 
-        private async Task SendEventHistoryAsync()
+        private async void OnRoundStarted(object sender, EventArgs e)
+        {
+           
+        }
+
+        private async void OnTurnStarted(object sender, PlayerTurnRequest e)
+        {
+           await SendTurnRequest(e);
+        }
+
+        private async void OnTurnEnded(object sender, List<string> e)
+        {
+           await SendEventHistoryAsync(e);
+        }
+
+        private async Task SendEventHistoryAsync(List<string> turnEvents)
         {
             var channel = client.GetGuild(GUILD_ID).GetTextChannel(CHANNEL_ID);
 
-            await channel.SendMessageAsync("```csharp\n" + string.Join("\n", gameManager.EventHistory) + "\n```");
+            if (TurnEvenHistoryMessagedId == 0)
+            {
+                var eventMessage = await channel.SendMessageAsync("```csharp\n" + string.Join("\n", turnEvents) + "\n```");
+                TurnEvenHistoryMessagedId = eventMessage.Id;
+            }
+            else
+            {
+                var console = await channel.GetMessageAsync(TurnEvenHistoryMessagedId);
+
+                await channel.ModifyMessageAsync(TurnEvenHistoryMessagedId, m => 
+                {
+                    m.Content = ("```csharp\n" + string.Join("\n", turnEvents) + "\n```");
+                });
+            }
+            
         }
 
         private async Task SendChannelMessage(string message)
@@ -144,6 +182,52 @@ namespace LeagueStatusBot.Services
             var channel = client.GetGuild(GUILD_ID).GetTextChannel(CHANNEL_ID);
 
             await channel?.SendMessageAsync(message);
+        }
+
+        private async Task SendTurnRequest(PlayerTurnRequest player)
+        {
+            var channel = client.GetGuild(GUILD_ID).GetTextChannel(CHANNEL_ID);
+
+            var builder = new ComponentBuilder()
+                .WithButton("Perform Turn Actions", "perform-actions");
+
+            if (TurnRequestMessageId == 0)
+            {
+                var consoleBlock = await channel?.SendMessageAsync("```csharp\n \n```");
+                var newMessage = await channel?.SendMessageAsync($"Turn Started for **@{player.Name}**. You have 12 seconds to decide your actions.", components: builder.Build());
+
+                TurnRequestMessageId = newMessage.Id;
+                TurnEvenHistoryMessagedId = consoleBlock.Id;
+            }
+            else
+            {
+                await channel.ModifyMessageAsync(TurnRequestMessageId, m =>
+                {
+                    m.Content = $"Turn Started for **@{player.Name}**. You have1 12 seconds to decide your actions.";
+                    m.Components = builder.Build();
+                });
+            }
+
+            
+
+            
+        }
+
+        public PlayerTurnRequest ReceiveRequest(ulong id)
+        {
+            PlayerTurnRequest playerTurnRequest = gameManager.CheckIfActivePlayer(id);
+
+            return playerTurnRequest;
+        }
+
+        public async void SetPlayerTarget(PlayerTurnRequest playerTurnRequest, string name)
+        {
+            gameManager.SetPlayerTarget(playerTurnRequest.UserId, name);
+        }
+
+        public List<string> GetEnemies()
+        {
+            return gameManager.GetEnemyPartyNames();
         }
     }
 }

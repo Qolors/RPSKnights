@@ -102,10 +102,17 @@ namespace LeagueStatusBot.Services
             var timeSinceLastRun = DateTime.UtcNow - lastRunTime.Value;
             var initialDelay = (24 * 60 * 60 * 1000) - timeSinceLastRun.TotalMilliseconds;
 
-            if (initialDelay < 0) initialDelay = 0;
-
-            _timer.Interval = initialDelay;
-            _timer.Elapsed += (s, e) => { _timer.Interval = 24 * 60 * 60 * 1000; };
+            if (initialDelay <= 0)
+            {
+                Task.Run(() => PingApiEndpoint());
+                _timer.Interval = 24 * 60 * 60 * 1000;
+            }
+            else
+            {
+                _timer.Interval = initialDelay;
+                _timer.Elapsed += (s, e) => { _timer.Interval = 24 * 60 * 60 * 1000; };
+            }
+            
         }
     }
 }

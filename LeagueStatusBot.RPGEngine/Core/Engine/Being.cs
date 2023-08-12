@@ -12,7 +12,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public int Attack { get; set; }
         public int Defense { get; set; }
         public int HitPoints { get; set; }
-
+        public ulong DiscordId { get; set; }
         public int MaxHitPoints { get; set; }
         public bool IsHuman { get; set; } = false;
         public bool IsAlive => HitPoints > 0;

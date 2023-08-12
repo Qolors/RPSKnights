@@ -35,7 +35,8 @@ public class CommandHandlingService
         if (rawMessage is not SocketUserMessage {Source: MessageSource.User} message) 
             return;
 
-        if (message.Channel.Id == 702684769200111716 && message.Author.Id != 331308445166731266)
+        if ((message.Channel.Id == 702684769200111716 || message.Channel.Id == 958560743517720597) && 
+            message.Author.Id != 331308445166731266)
         {
             SocketGuild guild = ((SocketGuildChannel)message.Channel).Guild;
             IEmote emote = guild.Emotes.First(e => e.Name == "chris");

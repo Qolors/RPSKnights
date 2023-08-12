@@ -2,7 +2,10 @@
 using Discord.Interactions;
 using Discord.WebSocket;
 using LeagueStatusBot.Modules;
+using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -12,6 +15,7 @@ namespace LeagueStatusBot.Services
     {
         private readonly DiscordSocketClient _client;
         private readonly InteractionService _handler;
+        private GameControllerService gameControllerService;
         private readonly IServiceProvider _services;
 
         public InteractionHandlerService(DiscordSocketClient client, InteractionService handler, IServiceProvider services)
@@ -19,6 +23,7 @@ namespace LeagueStatusBot.Services
             _client = client;
             _handler = handler;
             _services = services;
+            gameControllerService = _services.GetRequiredService<GameControllerService>();
         }
 
         public async Task InitializeAsync()
@@ -30,6 +35,8 @@ namespace LeagueStatusBot.Services
             await _handler.AddModuleAsync<RPGModule>(_services);
 
             _client.InteractionCreated += HandleInteractionAsync;
+            _client.ButtonExecuted += HandleButtonAsync;
+            _client.SelectMenuExecuted += HandleSelectMenuAsync;
         }
 
         private async Task ReadyAsync()
@@ -73,5 +80,100 @@ namespace LeagueStatusBot.Services
                     await interaction.GetOriginalResponseAsync().ContinueWith(async (msg) => await msg.Result.DeleteAsync());
             }
         }
+
+        private async Task HandleButtonAsync(SocketMessageComponent component)
+        {
+            switch(component.Data.CustomId)
+            {
+                case "perform-actions":
+                    await HandleTurnActionAsync(component);
+                    break;
+
+                case "attack":
+                    break;
+
+                case "defend":
+                    break;
+
+                case "skill1":
+                    break;
+
+                case "skill2":
+                    break;
+
+                default:
+                    break;
+            }
+
+        }
+
+        private async Task HandleSelectMenuAsync(SocketMessageComponent args)
+        {
+            switch (args.Data.CustomId)
+            {
+                case "target-select":
+                    await HandleTargetSelectAsync(args, args.Data.Values.First());
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        private async Task HandleTargetSelectAsync(SocketMessageComponent args, string target)
+        {
+            var playerTurn = gameControllerService.ReceiveRequest(args.User.Id);
+
+            if (playerTurn == null)
+            {
+                await args.RespondAsync("It is not your turn!", ephemeral: true);
+            }
+            else
+            {
+                gameControllerService.SetPlayerTarget(playerTurn, target);
+
+                await args.UpdateAsync(x =>
+                {
+                    x.Content = $"{playerTurn.Name} Has Targeted {args.Data.Values.First()}";
+                    x.Components = new ComponentBuilder().WithButton("Attack", "attack").WithButton("Defend", "defend").Build();
+                });
+            }
+        }
+
+        private async Task HandleTurnActionAsync(SocketMessageComponent component)
+        {
+            var playerTurn = gameControllerService.ReceiveRequest(component.User.Id);
+
+            if (playerTurn == null)
+            {
+                await component.RespondAsync("It is not your turn!", ephemeral: true);
+            }
+            else
+            {
+                var targetList = new SelectMenuBuilder()
+                    .WithPlaceholder("Select Target")
+                    .WithCustomId("target-select")
+                    .WithMinValues(0)
+                    .WithMaxValues(1);
+
+                foreach (var enemy in gameControllerService.GetEnemies())
+                {
+                    targetList.AddOption(enemy, enemy);
+                }
+
+                var builder = new ComponentBuilder()
+                    .WithSelectMenu(targetList);
+
+                var playerStatus = $"[{component.User.Mention}]: Health - {playerTurn.Health}/{playerTurn.MaxHealth}\nPlease Select Target Enemy";
+
+                await component.UpdateAsync(x =>
+                {
+                    x.Content = playerStatus;
+                    x.Components = builder.Build();
+                });
+            }
+        }
+
+        
     }
 }
