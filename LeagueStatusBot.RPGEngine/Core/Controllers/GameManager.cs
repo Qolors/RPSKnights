@@ -2,6 +2,7 @@
 using LeagueStatusBot.RPGEngine.Core.Engine;
 using System.Linq;
 using LeagueStatusBot.RPGEngine.Core.Events;
+using System.Collections.Immutable;
 
 namespace LeagueStatusBot.RPGEngine.Core.Controllers
 {
@@ -20,7 +21,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         public event EventHandler<PlayerTurnRequest> TurnStarted;
         public event EventHandler<List<string>> TurnEnded;
 
-        public event EventHandler RoundEnded;
+        public event EventHandler<List<string>> RoundEnded;
         public event EventHandler RoundStarted;
         public async Task StartGameAsync(Dictionary<ulong, string> partyMembers)
         {
@@ -41,7 +42,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
             GameStarted?.Invoke(this, EventArgs.Empty);
 
-            await Task.Delay(10000);
+            await Task.Delay(20000);
 
             await SpawnEncounterAsync();
             // Initialization logic
@@ -102,27 +103,26 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
         private void OnPartyMemberDeath(object sender, string e)
         {
-            if (EventHistory.Count >= 10)
-            {
-                EventHistory.RemoveAt(0);
-            }
-            EventHistory.Add(e);
+            //EventHistory.Add(e);
             GameDeath?.Invoke(sender, e);
         }
 
         private void OnPartyAction(object sender, string e)
         {
-            if (EventHistory.Count >= 10)
-            {
-                EventHistory.RemoveAt(0);
-            }
-            EventHistory.Add(e);
+            //EventHistory.Add(e);
             GameEvent?.Invoke(sender, e);
         }
 
         private void OnRoundEnded(object sender, EventArgs e)
         {
-            RoundEnded?.Invoke(sender, e);
+            EventHistory.Clear();
+
+            EventHistory.AddRange(CurrentEncounter.PlayerParty.Members.Select(m => m.Action));
+            EventHistory.AddRange(CurrentEncounter.EncounterParty.Members.Select(m => m.Action));
+
+            RoundEnded?.Invoke(sender, EventHistory);
+
+            EventHistory.Clear();
         }
 
         private void OnRoundStarted(object sender, EventArgs e)
@@ -177,10 +177,17 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             Being? player = CurrentEncounter?.PlayerParty?.Members
                 .FirstOrDefault(player => player.DiscordId == id);
 
-            Being? enemy = CurrentEncounter?.EncounterParty?.Members
-                .FirstOrDefault(e => e.Name == name);
+            player.Action = name;
 
-            player?.SetTarget(enemy);
+        }
+
+        public void UpdatePlayerStats(List<LiveGameData> liveGameData)
+        {
+            if (!CurrentEncounter.IsEncounterActive || liveGameData == null) return;
+
+            Console.WriteLine(liveGameData);
+
+            CurrentEncounter.UpdatePlayerStats(liveGameData);
         }
 
     }

@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using LeagueStatusBot.Modules;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
@@ -37,6 +38,17 @@ namespace LeagueStatusBot.Services
             _client.InteractionCreated += HandleInteractionAsync;
             _client.ButtonExecuted += HandleButtonAsync;
             _client.SelectMenuExecuted += HandleSelectMenuAsync;
+            _client.ModalSubmitted += async modal =>
+            {
+                List<SocketMessageComponentData> components =
+                modal.Data.Components.ToList();
+                string food = components
+                    .First(x => x.CustomId == "action").Value;
+
+                gameControllerService.SetPlayerTargetString(modal.User.Id, food);
+
+                await modal.RespondAsync("Submitted");
+            };
         }
 
         private async Task ReadyAsync()
@@ -150,27 +162,13 @@ namespace LeagueStatusBot.Services
             }
             else
             {
-                var targetList = new SelectMenuBuilder()
-                    .WithPlaceholder("Select Target")
-                    .WithCustomId("target-select")
-                    .WithMinValues(0)
-                    .WithMaxValues(1);
 
-                foreach (var enemy in gameControllerService.GetEnemies())
-                {
-                    targetList.AddOption(enemy, enemy);
-                }
+                var mb = new ModalBuilder()
+                    .WithCustomId("action_menu")
+                    .WithTitle($"What Will {component.User.GlobalName} do?")
+                    .AddTextInput("I Will do this", "action", TextInputStyle.Paragraph);
 
-                var builder = new ComponentBuilder()
-                    .WithSelectMenu(targetList);
-
-                var playerStatus = $"[{component.User.Mention}]: Health - {playerTurn.Health}/{playerTurn.MaxHealth}\nPlease Select Target Enemy";
-
-                await component.UpdateAsync(x =>
-                {
-                    x.Content = playerStatus;
-                    x.Components = builder.Build();
-                });
+                await component.RespondWithModalAsync(mb.Build());
             }
         }
 

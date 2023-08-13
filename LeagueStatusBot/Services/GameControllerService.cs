@@ -7,6 +7,7 @@ using LeagueStatusBot.RPGEngine.Core.Controllers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Timers;
 
@@ -17,6 +18,7 @@ namespace LeagueStatusBot.Services
         private Timer timer;
         private GameManager gameManager;
         private DiscordSocketClient client;
+        private HttpClient webClient;
 
         public bool IsLobbyOpen { get; set; } = false;
 
@@ -33,6 +35,7 @@ namespace LeagueStatusBot.Services
         {
             this.gameManager = new GameManager();
             this.client = client;
+            webClient = new HttpClient();
         }
 
         public async Task InitializeAsync()
@@ -55,7 +58,7 @@ namespace LeagueStatusBot.Services
 
         private async Task SetupTimer()
         {
-            timer = new Timer(LOBBY_DURATION - FINAL_MINUTE_DURATION);
+            timer = new Timer(15000);
             timer.Elapsed += OnLobbyOpen;
             timer.AutoReset = false;
             timer.Start();
@@ -104,11 +107,25 @@ namespace LeagueStatusBot.Services
         {
             string battleBeginString = "__Battle Has Started!__\n";
 
+            battleBeginString += "LOCATION - GENERATE FANTASY WORLD";
+            battleBeginString += "AREA - GENERATE AREA";
+
             battleBeginString += "The Enemy:\n";
 
             foreach (var member in gameManager.CurrentEncounter.EncounterParty.Members)
             {
                 battleBeginString += $"- **{member.Name}**  Hit Points: {member.MaxHitPoints}\n";
+                battleBeginString += "- Player: false";
+                battleBeginString += "- Class: Monster Weapon: Claws\n";
+                battleBeginString += """
+                    Stats:
+                    "strength": 5,
+                    "dexterity": 5,
+                    "constitution": 5,
+                    "intelligence": 10,
+                    "wisdom": 5,
+                    "charisma": 5
+                    """;
             }
 
             battleBeginString += "The Heroic Party:\n";
@@ -116,9 +133,24 @@ namespace LeagueStatusBot.Services
             foreach (var member in gameManager.CurrentEncounter.PlayerParty.Members)
             {
                 battleBeginString += $"- **{member.Name}**  Hit Points: {member.MaxHitPoints}\n";
+                battleBeginString += "- Player: true";
+                battleBeginString += "- Class: Human Weapon: Fists\n";
+                battleBeginString += """
+                    Stats:
+                    "strength": 10,
+                    "dexterity": 10,
+                    "constitution": 10,
+                    "intelligence": 10,
+                    "wisdom": 10,
+                    "charisma": 10
+                    """;
             }
 
-            await SendChannelMessage(battleBeginString);
+            var narrative = await webClient.GetAsync($"http://api:80/NarrativeAssist?prompt={battleBeginString}");
+            var response = await narrative.Content.ReadAsStringAsync();
+
+            await SendChannelMessage(response);
+
         }
 
         private async void OnGameEnded(object sender, string e)
@@ -136,9 +168,20 @@ namespace LeagueStatusBot.Services
             
         }
 
-        private async void OnRoundEnded(object sender, EventArgs e)
+        private async void OnRoundEnded(object sender, List<string> e)
         {
-            
+            var narrative = await webClient.GetAsync($"http://api:80/NarrativeAddOn?prompt={string.Join("\n", e)}");
+            var response = await narrative.Content.ReadAsStringAsync();
+
+            if (response.StartsWith("^GAME^"))
+            {
+                Console.WriteLine("Game Determined Over");
+                return;
+            }
+
+            gameManager.UpdatePlayerStats(PostToFeedChannel.ExtractFromGPT(response));
+
+            await SendEventHistoryAsync(PostToFeedChannel.ExtractTextBeforeHash(response));
         }
 
         private async void OnRoundStarted(object sender, EventArgs e)
@@ -153,10 +196,10 @@ namespace LeagueStatusBot.Services
 
         private async void OnTurnEnded(object sender, List<string> e)
         {
-           await SendEventHistoryAsync(e);
+            
         }
 
-        private async Task SendEventHistoryAsync(List<string> turnEvents)
+        private async Task SendEventHistoryAsync(string turnEvents)
         {
             var channel = client.GetGuild(GUILD_ID).GetTextChannel(CHANNEL_ID);
 
@@ -171,7 +214,7 @@ namespace LeagueStatusBot.Services
 
                 await channel.ModifyMessageAsync(TurnEvenHistoryMessagedId, m => 
                 {
-                    m.Content = ("```csharp\n" + string.Join("\n", turnEvents) + "\n```");
+                    m.Content = string.Join("\n", turnEvents);
                 });
             }
             
@@ -194,7 +237,7 @@ namespace LeagueStatusBot.Services
             if (TurnRequestMessageId == 0)
             {
                 var consoleBlock = await channel?.SendMessageAsync("```csharp\n \n```");
-                var newMessage = await channel?.SendMessageAsync($"Turn Started for **@{player.Name}**. You have 12 seconds to decide your actions.", components: builder.Build());
+                var newMessage = await channel?.SendMessageAsync($"Turn Started for **@{player.Name}**. You have 30 seconds to decide your actions.", components: builder.Build());
 
                 TurnRequestMessageId = newMessage.Id;
                 TurnEvenHistoryMessagedId = consoleBlock.Id;
@@ -203,7 +246,7 @@ namespace LeagueStatusBot.Services
             {
                 await channel.ModifyMessageAsync(TurnRequestMessageId, m =>
                 {
-                    m.Content = $"Turn Started for **@{player.Name}**. You have1 12 seconds to decide your actions.";
+                    m.Content = $"Turn Started for **@{player.Name}**. You have 30 seconds to decide your actions.";
                     m.Components = builder.Build();
                 });
             }
@@ -223,6 +266,11 @@ namespace LeagueStatusBot.Services
         public async void SetPlayerTarget(PlayerTurnRequest playerTurnRequest, string name)
         {
             gameManager.SetPlayerTarget(playerTurnRequest.UserId, name);
+        }
+
+        public async void SetPlayerTargetString(ulong id, string name)
+        {
+            gameManager.SetPlayerTarget(id, name);
         }
 
         public List<string> GetEnemies()

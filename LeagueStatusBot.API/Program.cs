@@ -12,6 +12,7 @@ namespace LeagueStatusBot.API
             builder.Services.AddControllers();
             builder.Services.AddHttpClient<RiotAPIService>();
             builder.Services.AddHttpClient<NasaAPIService>();
+            builder.Services.AddSingleton<ChatGPTService>();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 

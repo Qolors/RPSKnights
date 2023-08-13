@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using LeagueStatusBot.Common.Models;
+using Newtonsoft.Json;
 
 namespace LeagueStatusBot.Helpers
 {
@@ -53,6 +54,34 @@ namespace LeagueStatusBot.Helpers
             var channel = client.GetGuild(guildId).GetTextChannel(channelId);
 
             await channel?.SendMessageAsync(message);
+        }
+
+        public static List<LiveGameData> ExtractFromGPT(string s)
+        {
+            int index = s.IndexOf("#");
+
+            if (index == -1)
+            {
+                return null;
+            }
+
+            string jsonStr = s.Substring(index + 1);
+
+            var liveGameData = JsonConvert.DeserializeObject<List<LiveGameData>>(jsonStr);
+
+            return liveGameData;
+        }
+
+        public static string ExtractTextBeforeHash(string s)
+        {
+            int index = s.IndexOf('#');
+
+            if (index == -1)
+            {
+                return s; // Return the whole string if '#' is not found.
+            }
+
+            return s.Substring(0, index);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using LeagueStatusBot.RPGEngine.Core.Events;
+﻿using LeagueStatusBot.Common.Models;
+using LeagueStatusBot.RPGEngine.Core.Events;
 
 namespace LeagueStatusBot.RPGEngine.Core.Engine
 {
@@ -23,6 +24,33 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
         public event EventHandler<string> PartyAction;
         public event EventHandler<string> PartyDeath;
+
+        public void UpdatePlayerStats(List<LiveGameData> gameData)
+        {
+            foreach (var player in gameData)
+            {
+                if (player == null) continue;
+
+                Console.WriteLine(player.Name);
+                Console.WriteLine(player.HitPoints);
+                Console.WriteLine(player.Player);
+
+                if (player.Player)
+                {
+                    PlayerParty.Members
+                        .Where(p => p.Name.ToLower() == player.Name.ToLower())
+                        .FirstOrDefault()
+                        .HitPoints = player.HitPoints;
+                }
+                else
+                {
+                    EncounterParty.Members
+                        .Where(p => p.Name.ToLower() == player.Name.ToLower())
+                        .FirstOrDefault()
+                        .HitPoints = player.HitPoints;
+                }
+            }
+        }
 
         public async Task StartEncounterAsync()
         {
@@ -51,6 +79,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         private async Task ProcessRoundAsync()
         {
             SetTurnOrder();
+            await Task.Delay(5000);
 
             while (IsEncounterActive)
             {
@@ -58,7 +87,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
                 {
                     RoundEnded?.Invoke(this, EventArgs.Empty);
                     SetTurnOrder();
-                    await Task.Delay(5000);
+                    await Task.Delay(10000);
                 }
 
                 CurrentTurn = TurnQueue.Dequeue();
@@ -89,11 +118,12 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         {
             TurnStarted?.Invoke(this, CurrentTurn);
 
-            await Task.Delay(12000);
+            await Task.Delay(30000);
         }
 
         private async Task StartTurnTimerAsyncMon()
         {
+            
             await Task.Delay(3000);
         }
 
@@ -107,9 +137,10 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
                 }
 
                 // Now check if the target is valid and attack.
-                if (CurrentTurn.Target != null)
+                if (CurrentTurn.Target != null && !CurrentTurn.IsHuman)
                 {
-                    CurrentTurn.AttackTarget();
+                    CurrentTurn.Action = $"I Attack {CurrentTurn.Target.Name}";
+                    //CurrentTurn.AttackTarget();
                 }
             }
 

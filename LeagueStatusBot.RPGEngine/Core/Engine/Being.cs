@@ -14,6 +14,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public int HitPoints { get; set; }
         public ulong DiscordId { get; set; }
         public int MaxHitPoints { get; set; }
+        public string Action { get; set; }
         public bool IsHuman { get; set; } = false;
         public bool IsAlive => HitPoints > 0;
         public Being? Target { get; set; }
@@ -44,6 +45,11 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         {
             // --> WE CAN ADD A DEFENSE MODIFICATION SYSTEM HERE
             this.Target = target;
+        }
+
+        public void SetHp(int hp)
+        {
+            HitPoints = hp;
         }
 
     }
