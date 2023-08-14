@@ -12,6 +12,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public int Attack { get; set; }
         public int Defense { get; set; }
         public int HitPoints { get; set; }
+        public Stats BaseStats { get; set; } = new Stats();
         public ulong DiscordId { get; set; }
         public int MaxHitPoints { get; set; }
         public bool IsHuman { get; set; } = false;
@@ -35,14 +36,21 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         {
             if (Target == null) return;
 
-            ActionPerformed?.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: Attacked {Target.Name}!");
+            int attackRoll = Dice.Roll();
 
-            Target.TakeDamage(1);
+            if (attackRoll > 10)
+            {
+                ActionPerformed?.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: Attacked {Target.Name}!");
+                Target.TakeDamage(1);
+            }
+            else
+            {
+                ActionPerformed?.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: Missed their attack on {Target.Name}!\n");
+            }
         }
 
         public virtual void SetTarget(Being target)
         {
-            // --> WE CAN ADD A DEFENSE MODIFICATION SYSTEM HERE
             this.Target = target;
         }
 

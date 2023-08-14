@@ -102,7 +102,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
         private void OnPartyMemberDeath(object sender, string e)
         {
-            if (EventHistory.Count >= 10)
+            if (EventHistory.Count >= 14)
             {
                 EventHistory.RemoveAt(0);
             }
@@ -112,7 +112,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
         private void OnPartyAction(object sender, string e)
         {
-            if (EventHistory.Count >= 10)
+            if (EventHistory.Count >= 14)
             {
                 EventHistory.RemoveAt(0);
             }
@@ -143,15 +143,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
                 return null;
             }
 
-            return new PlayerTurnRequest
-            {
-                Attack = "Attack",
-                Defend = "Defend",
-                UserId = targetPlayer.DiscordId,
-                MaxHealth = targetPlayer.MaxHitPoints,
-                Health = targetPlayer.HitPoints,
-                Name = targetPlayer.Name,
-            };
+            return BuildTurnRequest(targetPlayer);
         }
 
         public PlayerTurnRequest BuildTurnRequest(Being targetPlayer)

@@ -9,7 +9,6 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public bool IsEncounterActive { get; private set; }
         private Queue<Being> TurnQueue { get; set; }
         public Being CurrentTurn { get; private set; }
-
         public string VictoryResult { get; set; }
 
         public event EventHandler EncounterStarted;

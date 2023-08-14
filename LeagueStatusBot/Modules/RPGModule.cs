@@ -35,7 +35,7 @@ namespace LeagueStatusBot.Modules
 
             await RespondAsync($"You joined the Adventure! :)", ephemeral: true);
 
-            await PostToFeedChannel.SendChannelMessage($"{Context.User.Username} has joined the party! {emoji}", client);
+            await PostToFeedChannel.SendChannelMessage($"- **{Context.User.Username}** has joined the party! {emoji}", client);
         }
     }
 }

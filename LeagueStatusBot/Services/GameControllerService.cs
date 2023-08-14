@@ -23,7 +23,7 @@ namespace LeagueStatusBot.Services
         private const ulong GUILD_ID = 402652836606771202;
         private const ulong CHANNEL_ID = 702684769200111716;
         private const int LOBBY_DURATION = 1000 * 60 * 2;
-        private const int FINAL_MINUTE_DURATION = 1000 * 60;
+        private const int FINAL_MINUTE_DURATION = 1000 * 30;
 
         public ulong TurnRequestMessageId { get; set; } = 0;
         public ulong TurnEvenHistoryMessagedId { get; set; } = 0;
@@ -55,7 +55,7 @@ namespace LeagueStatusBot.Services
 
         private async Task SetupTimer()
         {
-            timer = new Timer(LOBBY_DURATION - FINAL_MINUTE_DURATION);
+            timer = new Timer(10000);
             timer.Elapsed += OnLobbyOpen;
             timer.AutoReset = false;
             timer.Start();
@@ -65,11 +65,11 @@ namespace LeagueStatusBot.Services
         {
             timer.Dispose();
 
-            await SendChannelMessage("**An adventure is starting in 60 seconds...**\n */join to join the adventure*\n");
+            await SendChannelMessage("**An adventure is starting in 30 seconds...**\n */join to join the adventure*\n");
 
             IsLobbyOpen = true;
 
-            timer = new Timer(FINAL_MINUTE_DURATION); // Set for the final minute
+            timer = new Timer(30000); // Set for the final minute
             timer.Elapsed += OnTimerElapsed;
             timer.AutoReset = false;
             timer.Start();
@@ -102,23 +102,29 @@ namespace LeagueStatusBot.Services
         }
         private async void OnGameStarted(object sender, EventArgs e)
         {
-            string battleBeginString = "__Battle Has Started!__\n";
+            string battleBeginString = "**The Battle Has Begun!**\n";
 
-            battleBeginString += "The Enemy:\n";
+            var embed = new EmbedBuilder()
+                .WithTitle("The Player Party")
+                .WithDescription("The Players recollect themselves as they land from the drop.");
 
-            foreach (var member in gameManager.CurrentEncounter.EncounterParty.Members)
-            {
-                battleBeginString += $"- **{member.Name}**  Hit Points: {member.MaxHitPoints}\n";
-            }
-
-            battleBeginString += "The Heroic Party:\n";
 
             foreach (var member in gameManager.CurrentEncounter.PlayerParty.Members)
             {
-                battleBeginString += $"- **{member.Name}**  Hit Points: {member.MaxHitPoints}\n";
+                embed.AddField(f => f.WithName(member.Name).WithValue($"- Hit Points: {member.MaxHitPoints}\n - Class: Fighter").WithIsInline(false));
             }
 
-            await SendChannelMessage(battleBeginString);
+            var embed2 = new EmbedBuilder()
+                .WithTitle("The Enemy Party")
+                .WithDescription("Nostrils flaring, teeth gritting, these monsters came for blood..");
+                
+
+            foreach (var member in gameManager.CurrentEncounter.EncounterParty.Members)
+            {
+                embed2.AddField(f => f.WithName(member.Name).WithValue($"- Hit Points: {member.MaxHitPoints}\n - Class: Monster").WithIsInline(false));
+            }
+
+            await SendChannelMessage(battleBeginString, new Embed[] { embed.Build(), embed2.Build() });
         }
 
         private async void OnGameEnded(object sender, string e)
@@ -177,11 +183,19 @@ namespace LeagueStatusBot.Services
             
         }
 
-        private async Task SendChannelMessage(string message)
+        private async Task SendChannelMessage(string message, Embed[] embeds = null)
         {
             var channel = client.GetGuild(GUILD_ID).GetTextChannel(CHANNEL_ID);
 
-            await channel?.SendMessageAsync(message);
+            if (embeds != null)
+            {
+                await channel?.SendMessageAsync(message, embeds: embeds);
+            }
+            else
+            {
+                await channel?.SendMessageAsync(message);
+            }
+            
         }
 
         private async Task SendTurnRequest(PlayerTurnRequest player)
@@ -191,10 +205,13 @@ namespace LeagueStatusBot.Services
             var builder = new ComponentBuilder()
                 .WithButton("Perform Turn Actions", "perform-actions");
 
+            var mentionName = channel.GetUser(player.UserId);
+
             if (TurnRequestMessageId == 0)
             {
                 var consoleBlock = await channel?.SendMessageAsync("```csharp\n \n```");
-                var newMessage = await channel?.SendMessageAsync($"Turn Started for **@{player.Name}**. You have 12 seconds to decide your actions.", components: builder.Build());
+
+                var newMessage = await channel?.SendMessageAsync($"Turn Started for **{mentionName.Mention}**. You have 12 seconds to decide your actions.", components: builder.Build());
 
                 TurnRequestMessageId = newMessage.Id;
                 TurnEvenHistoryMessagedId = consoleBlock.Id;
@@ -203,14 +220,10 @@ namespace LeagueStatusBot.Services
             {
                 await channel.ModifyMessageAsync(TurnRequestMessageId, m =>
                 {
-                    m.Content = $"Turn Started for **@{player.Name}**. You have1 12 seconds to decide your actions.";
+                    m.Content = $"Turn Started for **@{mentionName.Mention}**. You have 12 seconds to decide your actions.";
                     m.Components = builder.Build();
                 });
             }
-
-            
-
-            
         }
 
         public PlayerTurnRequest ReceiveRequest(ulong id)
