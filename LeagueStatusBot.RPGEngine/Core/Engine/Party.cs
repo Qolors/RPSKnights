@@ -10,12 +10,18 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
     {
         public event EventHandler<string> PartyMemberDeath;
         public event EventHandler<string> PartyEvent;
+        public event EventHandler<string> PartyMemberEffectApplied;
+        public event EventHandler<string> PartyMemberEffectRemoved;
         public List<Being> Members { get; set; } = new List<Being>();
         public bool IsAlive => Members.Any(m => m.IsAlive);
 
         public void AddPartyMember(ulong discordId, string name)
         {
             var player = new Player(discordId, name);
+
+            player.DiscordId = discordId;
+            player.Name = name;
+
             AddPartyMember(player);
         }
 
@@ -24,6 +30,8 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             being.Killed += OnMemberKilled;
             being.ActionPerformed += OnMemberActionPerformed;
             being.DamageTaken += OnMemberDamageTaken;
+            being.EffectApplied += OnMemberEffectApplied;
+            being.EffectRemoved += OnMemberEffectRemoved;
 
             Members.Add(being);
         }
@@ -54,6 +62,16 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             if (being == null) return;
 
             PartyEvent?.Invoke(this, e);
+        }
+
+        private void OnMemberEffectApplied(object sender, string e)
+        {
+            PartyMemberEffectApplied?.Invoke(this, e);
+        }
+
+        private void OnMemberEffectRemoved(object sender, string e)
+        {
+            PartyMemberEffectRemoved?.Invoke(this, e);
         }
 
     }

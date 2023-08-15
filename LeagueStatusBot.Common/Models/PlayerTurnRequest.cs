@@ -14,5 +14,6 @@ namespace LeagueStatusBot.Common.Models
         public ulong UserId { get; set; }
         public string Attack { get; set; }
         public string Defend { get; set; }
+        public bool IsHuman { get; set; }
     }
 }

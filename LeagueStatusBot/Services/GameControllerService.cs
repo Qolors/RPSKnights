@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using LeagueStatusBot.Common.Models;
 using LeagueStatusBot.Helpers;
 using LeagueStatusBot.RPGEngine.Core.Controllers;
+using LeagueStatusBot.RPGEngine.Core.Engine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +25,7 @@ namespace LeagueStatusBot.Services
         private const ulong CHANNEL_ID = 702684769200111716;
         private const int LOBBY_DURATION = 1000 * 60 * 2;
         private const int FINAL_MINUTE_DURATION = 1000 * 30;
+        private const string emoji = "\u2694\uFE0F";
 
         public ulong TurnRequestMessageId { get; set; } = 0;
         public ulong TurnEvenHistoryMessagedId { get; set; } = 0;
@@ -65,7 +67,10 @@ namespace LeagueStatusBot.Services
         {
             timer.Dispose();
 
-            await SendChannelMessage("**An adventure is starting in 30 seconds...**\n */join to join the adventure*\n");
+            var button = new ComponentBuilder()
+                .WithButton("Join Party", "join-party");
+
+            await SendChannelMessage("**An adventure is starting in 30 seconds...**\n", messageComponent: button.Build());
 
             IsLobbyOpen = true;
 
@@ -91,14 +96,8 @@ namespace LeagueStatusBot.Services
 
         public async void JoinLobby(ulong id, string name)
         {
-            if (Members.ContainsKey(id))
-            {
-                await SendChannelMessage("You are already in the party!");
-            }
-            else
-            {
-                Members.Add(id, name);
-            }
+            await SendChannelMessage($"- **{name}** has joined the party! {emoji}");
+            Members.Add(id, name);
         }
         private async void OnGameStarted(object sender, EventArgs e)
         {
@@ -111,7 +110,7 @@ namespace LeagueStatusBot.Services
 
             foreach (var member in gameManager.CurrentEncounter.PlayerParty.Members)
             {
-                embed.AddField(f => f.WithName(member.Name).WithValue($"- Hit Points: {member.MaxHitPoints}\n - Class: Fighter").WithIsInline(false));
+                embed.AddField(f => f.WithName(member.Name).WithValue($"- Hit Points: {member.MaxHitPoints}\n - Class: {member.ClassName}").WithIsInline(false));
             }
 
             var embed2 = new EmbedBuilder()
@@ -121,7 +120,7 @@ namespace LeagueStatusBot.Services
 
             foreach (var member in gameManager.CurrentEncounter.EncounterParty.Members)
             {
-                embed2.AddField(f => f.WithName(member.Name).WithValue($"- Hit Points: {member.MaxHitPoints}\n - Class: Monster").WithIsInline(false));
+                embed2.AddField(f => f.WithName(member.Name).WithValue($"- Hit Points: {member.MaxHitPoints}\n - Class: {member.ClassName}").WithIsInline(false));
             }
 
             await SendChannelMessage(battleBeginString, new Embed[] { embed.Build(), embed2.Build() });
@@ -152,9 +151,10 @@ namespace LeagueStatusBot.Services
            
         }
 
-        private async void OnTurnStarted(object sender, PlayerTurnRequest e)
+        private async void OnTurnStarted(object sender, Being e)
         {
-           await SendTurnRequest(e);
+            if (e.IsHuman)
+                await SendTurnRequest(e);
         }
 
         private async void OnTurnEnded(object sender, List<string> e)
@@ -183,13 +183,17 @@ namespace LeagueStatusBot.Services
             
         }
 
-        private async Task SendChannelMessage(string message, Embed[] embeds = null)
+        private async Task SendChannelMessage(string message, Embed[] embeds = null, MessageComponent messageComponent = null)
         {
             var channel = client.GetGuild(GUILD_ID).GetTextChannel(CHANNEL_ID);
 
             if (embeds != null)
             {
                 await channel?.SendMessageAsync(message, embeds: embeds);
+            }
+            else if (messageComponent != null)
+            {
+                await channel?.SendMessageAsync(message, components: messageComponent);
             }
             else
             {
@@ -198,20 +202,22 @@ namespace LeagueStatusBot.Services
             
         }
 
-        private async Task SendTurnRequest(PlayerTurnRequest player)
+        private async Task SendTurnRequest(Being player)
         {
             var channel = client.GetGuild(GUILD_ID).GetTextChannel(CHANNEL_ID);
 
             var builder = new ComponentBuilder()
-                .WithButton("Perform Turn Actions", "perform-actions");
+                .WithButton("Basic Attack", "basic-attack")
+                .WithButton(player.FirstAbility.Name, "first-ability")
+                .WithButton(player.SecondAbility.Name, "second-ability");
 
-            var mentionName = channel.GetUser(player.UserId);
+            var mentionName = channel.GetUser(player.DiscordId);
 
             if (TurnRequestMessageId == 0)
             {
                 var consoleBlock = await channel?.SendMessageAsync("```csharp\n \n```");
 
-                var newMessage = await channel?.SendMessageAsync($"Turn Started for **{mentionName.Mention}**. You have 12 seconds to decide your actions.", components: builder.Build());
+                var newMessage = await channel?.SendMessageAsync($"Turn Started for **{mentionName.Mention}**", components: builder.Build());
 
                 TurnRequestMessageId = newMessage.Id;
                 TurnEvenHistoryMessagedId = consoleBlock.Id;
@@ -220,22 +226,62 @@ namespace LeagueStatusBot.Services
             {
                 await channel.ModifyMessageAsync(TurnRequestMessageId, m =>
                 {
-                    m.Content = $"Turn Started for **@{mentionName.Mention}**. You have 12 seconds to decide your actions.";
+                    m.Content = $"Turn Started for **@{mentionName.Mention}**.";
                     m.Components = builder.Build();
                 });
             }
         }
 
-        public PlayerTurnRequest ReceiveRequest(ulong id)
+        public async Task HandleActionAsync(SocketMessageComponent component, string attackType)
         {
-            PlayerTurnRequest playerTurnRequest = gameManager.CheckIfActivePlayer(id);
+            var playerTurn = this.ReceiveRequest(component.User.Id);
+
+            if (playerTurn == null)
+            {
+                await component.RespondAsync("It is not your turn!", ephemeral: true);
+            }
+            else
+            {
+                switch (attackType)
+                {
+                    case "basic":
+                        playerTurn.AttackTarget();
+                        break;
+
+                    case "ability1":
+                        playerTurn.ChosenAbility(playerTurn.FirstAbility);
+                        break;
+
+                    case "ability2":
+                        playerTurn.ChosenAbility(playerTurn.SecondAbility);
+                        break;
+
+                    default:
+                        break;
+                }
+
+                await component.UpdateAsync(m =>
+                {
+                    m.Content = $"**{playerTurn.Name} completed turn.**";
+                    m.Components = new ComponentBuilder().Build();
+                });
+
+                gameManager.CurrentEncounter?.RaisePlayerActionChosen(EventArgs.Empty);
+            }
+
+
+        }
+
+        public Being ReceiveRequest(ulong id)
+        {
+            Being playerTurnRequest = gameManager.CheckIfActivePlayer(id);
 
             return playerTurnRequest;
         }
 
-        public async void SetPlayerTarget(PlayerTurnRequest playerTurnRequest, string name)
+        public async void SetPlayerTarget(Being playerTurnRequest, string name)
         {
-            gameManager.SetPlayerTarget(playerTurnRequest.UserId, name);
+            gameManager.SetPlayerTarget(playerTurnRequest, name);
         }
 
         public List<string> GetEnemies()

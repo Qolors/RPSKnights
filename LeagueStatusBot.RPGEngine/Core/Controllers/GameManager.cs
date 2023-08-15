@@ -2,6 +2,7 @@
 using LeagueStatusBot.RPGEngine.Core.Engine;
 using System.Linq;
 using LeagueStatusBot.RPGEngine.Core.Events;
+using LeagueStatusBot.RPGEngine.Data;
 
 namespace LeagueStatusBot.RPGEngine.Core.Controllers
 {
@@ -17,18 +18,23 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         public event EventHandler<string> GameEvent;
         public event EventHandler<string> GameDeath;
 
-        public event EventHandler<PlayerTurnRequest> TurnStarted;
+        public event EventHandler<Being> TurnStarted;
         public event EventHandler<List<string>> TurnEnded;
 
         public event EventHandler RoundEnded;
         public event EventHandler RoundStarted;
+
         public async Task StartGameAsync(Dictionary<ulong, string> partyMembers)
         {
             Party party = new Party();
 
             foreach (var member in partyMembers)
             {
-                var player = new Player(member.Key, member.Value);
+                var player = ClassFactory.CreateAdventurer();
+
+                player.IsHuman = true;
+                player.DiscordId = member.Key;
+                player.Name = member.Value;
 
                 party.AddPartyMember(player);
             }
@@ -41,10 +47,9 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
             GameStarted?.Invoke(this, EventArgs.Empty);
 
-            await Task.Delay(10000);
+            await Task.Delay(5000);
 
             await SpawnEncounterAsync();
-            // Initialization logic
         }
 
         public void EndGame()
@@ -66,6 +71,9 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
             CurrentEncounter.RoundEnded += OnRoundEnded;
             CurrentEncounter.RoundStarted += OnRoundStarted;
+
+            CurrentEncounter.PartyMemberEffect += OnPartyEffect;
+            CurrentEncounter.PartyMemberEffectRemoval += OnPartyEffectRemoval;
 
             Console.WriteLine("Spawned");
 
@@ -92,7 +100,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
         private void OnTurnStarted(object sender, Being e)
         {
-            TurnStarted?.Invoke(sender, this.BuildTurnRequest(e));
+            TurnStarted?.Invoke(sender, e);
         }
 
         private void OnTurnEnded(object sender, EventArgs e)
@@ -120,6 +128,26 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             GameEvent?.Invoke(sender, e);
         }
 
+        private void OnPartyEffect(object sender, string e)
+        {
+            if (EventHistory.Count >= 14)
+            {
+                EventHistory.RemoveAt(0);
+            }
+            EventHistory.Add(e);
+            GameEvent?.Invoke(sender, e);
+        }
+
+        private void OnPartyEffectRemoval(object sender, string e)
+        {
+            if (EventHistory.Count >= 14)
+            {
+                EventHistory.RemoveAt(0);
+            }
+            EventHistory.Add(e);
+            GameEvent?.Invoke(sender, e);
+        }
+
         private void OnRoundEnded(object sender, EventArgs e)
         {
             RoundEnded?.Invoke(sender, e);
@@ -130,33 +158,11 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             RoundStarted?.Invoke(sender, e);
         }
 
-        public PlayerTurnRequest? CheckIfActivePlayer(ulong id)
+        public Being? CheckIfActivePlayer(ulong id)
         {
             if (CurrentEncounter?.CurrentTurn.DiscordId != id) return null;
 
-            Being? targetPlayer = CurrentEncounter?
-                .PlayerParty?.Members
-                .FirstOrDefault(player => player.DiscordId == id);
-
-            if (targetPlayer == null)
-            {
-                return null;
-            }
-
-            return BuildTurnRequest(targetPlayer);
-        }
-
-        public PlayerTurnRequest BuildTurnRequest(Being targetPlayer)
-        {
-            return new PlayerTurnRequest
-            {
-                Attack = "Attack",
-                Defend = "Defend",
-                UserId = targetPlayer.DiscordId,
-                MaxHealth = targetPlayer.MaxHitPoints,
-                Health = targetPlayer.HitPoints,
-                Name = targetPlayer.Name,
-            };
+            return CurrentEncounter?.CurrentTurn;
         }
 
         public List<string> GetEnemyPartyNames()
@@ -164,11 +170,8 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             return CurrentEncounter?.EncounterParty?.Members.Select(m => m.Name).ToList() ?? new List<string>();
         }
 
-        public void SetPlayerTarget(ulong id, string name)
+        public void SetPlayerTarget(Being player, string name)
         {
-            Being? player = CurrentEncounter?.PlayerParty?.Members
-                .FirstOrDefault(player => player.DiscordId == id);
-
             Being? enemy = CurrentEncounter?.EncounterParty?.Members
                 .FirstOrDefault(e => e.Name == name);
 

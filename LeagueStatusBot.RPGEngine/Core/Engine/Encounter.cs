@@ -11,6 +11,9 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public Being CurrentTurn { get; private set; }
         public string VictoryResult { get; set; }
 
+        public event EventHandler PlayerActionChosen;
+        private TaskCompletionSource tcsPlayerAction;
+
         public event EventHandler EncounterStarted;
         public event EventHandler EncounterEnded;
 
@@ -22,16 +25,24 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
         public event EventHandler<string> PartyAction;
         public event EventHandler<string> PartyDeath;
+        public event EventHandler<string> PartyMemberEffect;
+        public event EventHandler<string> PartyMemberEffectRemoval;
 
         public async Task StartEncounterAsync()
         {
             IsEncounterActive = true;
 
+            PlayerActionChosen += OnPlayerActionReceived;
+
             PlayerParty.PartyEvent += OnPartyAction;
             PlayerParty.PartyMemberDeath += OnPartyMemberDeath;
+            PlayerParty.PartyMemberEffectApplied += OnPartyMemberEffectApplied;
+            PlayerParty.PartyMemberEffectRemoved += OnPartyMemberEffectRemoved;
 
             EncounterParty.PartyEvent += OnPartyAction;
             EncounterParty.PartyMemberDeath += OnPartyMemberDeath;
+            EncounterParty.PartyMemberEffectApplied += OnPartyMemberEffectApplied;
+            EncounterParty.PartyMemberEffectRemoved += OnPartyMemberEffectRemoved;
 
             EncounterStarted?.Invoke(this, EventArgs.Empty);
 
@@ -51,53 +62,30 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         {
             SetTurnOrder();
 
+            _ = LoopLogic();
+
+            _ = TakeTurn();
+        }
+
+        private async Task LoopLogic()
+        {
             while (IsEncounterActive)
             {
-                if (TurnQueue.Count == 0)
-                {
-                    RoundEnded?.Invoke(this, EventArgs.Empty);
-                    SetTurnOrder();
-                    await Task.Delay(5000);
-                }
-
-                CurrentTurn = TurnQueue.Dequeue();
-
-                if (CurrentTurn.IsHuman)
-                {
-                    await StartTurnTimerAsync();
-                }
-                else
-                {
-                    await StartTurnTimerAsyncMon();
-                }
-
-                await ProcessTurnAsync();
-
                 // Check if any of the parties are defeated.
                 if (!PlayerParty.IsAlive || !EncounterParty.IsAlive)
                 {
+                    Console.WriteLine("Party Died - Ending Game");
                     RoundEnded?.Invoke(this, EventArgs.Empty);
-                    await Task.Delay(5000);
                     EndEncounter();
                     return;
                 }
+                await Task.Delay(1000);
             }
-        }
-
-        private async Task StartTurnTimerAsync()
-        {
-            TurnStarted?.Invoke(this, CurrentTurn);
-
-            await Task.Delay(12000);
-        }
-
-        private async Task StartTurnTimerAsyncMon()
-        {
-            await Task.Delay(3000);
         }
 
         private async Task ProcessTurnAsync()
         {
+            await Task.Delay(3000);
             if (CurrentTurn.IsAlive)
             {
                 if (CurrentTurn.Target == null || !CurrentTurn.Target.IsAlive)
@@ -112,7 +100,9 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
                 }
             }
 
+
             TurnEnded?.Invoke(this, EventArgs.Empty);
+            await OnTurnEnded(this, EventArgs.Empty); // Directly call the method here
         }
 
         private void AssignTargetFor(Being being)
@@ -144,8 +134,98 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             PartyDeath?.Invoke(sender, e);
         }
 
+        public void OnPartyMemberEffectApplied(object? sender, string e)
+        {
+            PartyMemberEffect?.Invoke(sender, e);
+        }
+
+        public void OnPartyMemberEffectRemoved(object? sender, string e)
+        {
+            PartyMemberEffectRemoval?.Invoke(sender, e);
+        }
+
+        private async Task TakeTurn()
+        {
+            CurrentTurn = TurnQueue.Dequeue();
+
+            TurnStarted?.Invoke(this, CurrentTurn);
+
+            if (CurrentTurn.IsHuman)
+            {
+                await ProcessHumanTurn();
+            }
+            else
+            {
+                await ProcessNonHumanTurn();
+            }
+        }
+
+        public async Task OnTurnEnded(object? sender, EventArgs e)
+        {
+            if (TurnQueue.Count == 0)
+            {
+                RoundEnded?.Invoke(this, EventArgs.Empty);
+                
+                SetTurnOrder();
+
+                foreach (var being in TurnQueue)
+                {
+                    being.ProcessEndOfRound();
+                }
+            }
+
+            CurrentTurn = TurnQueue.Dequeue();
+
+            TurnStarted?.Invoke(this, CurrentTurn);
+
+            if (CurrentTurn.IsHuman)
+            {
+                await ProcessHumanTurn();
+            }
+            else
+            {
+                await ProcessNonHumanTurn();
+            }
+        }
+
+        private async Task ProcessHumanTurn()
+        {
+            tcsPlayerAction = new TaskCompletionSource();
+
+            var timeout = Task.Delay(TimeSpan.FromSeconds(30));
+            var completedTask = await Task.WhenAny(tcsPlayerAction.Task, timeout);
+
+            if (completedTask == timeout)
+            {
+                TurnEnded?.Invoke(this, EventArgs.Empty);
+                await OnTurnEnded(this, EventArgs.Empty); // Directly call the method here
+            }
+            else if (completedTask == tcsPlayerAction.Task)
+            {
+                TurnEnded?.Invoke(this, EventArgs.Empty);
+                await OnTurnEnded(this, EventArgs.Empty); // Directly call the method here
+            }
+        }
+
+        public void OnPlayerActionReceived(object sender, EventArgs e)
+        {
+            tcsPlayerAction?.SetResult();
+        }
+
+        private async Task ProcessNonHumanTurn()
+        {
+            await ProcessTurnAsync();
+            await OnTurnEnded(this, EventArgs.Empty);
+        }
+
+        public void RaisePlayerActionChosen(EventArgs e)
+        {
+            PlayerActionChosen?.Invoke(this, e);
+        }
+
         public void EndEncounter()
         {
+            PlayerActionChosen -= OnPlayerActionReceived;
             IsEncounterActive = false;
             DetermineRewards();
             EncounterEnded?.Invoke(this, EventArgs.Empty);

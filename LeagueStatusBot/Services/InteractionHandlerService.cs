@@ -85,20 +85,20 @@ namespace LeagueStatusBot.Services
         {
             switch(component.Data.CustomId)
             {
-                case "perform-actions":
-                    await HandleTurnActionAsync(component);
+                case "join-party":
+                    await HandleJoinParty(component);
                     break;
 
-                case "attack":
+                case "basic-attack":
+                    await HandleTurnActionAsync(component, "basic");
                     break;
 
-                case "defend":
+                case "first-ability":
+                    await HandleTurnActionAsync(component, "ability1");
                     break;
 
-                case "skill1":
-                    break;
-
-                case "skill2":
+                case "second-ability":
+                    await HandleTurnActionAsync(component, "ability2");
                     break;
 
                 default:
@@ -112,7 +112,7 @@ namespace LeagueStatusBot.Services
             switch (args.Data.CustomId)
             {
                 case "target-select":
-                    await HandleTargetSelectAsync(args, args.Data.Values.First());
+                    await HandleTargetSelectAsync(args);
                     break;
 
                 default:
@@ -120,7 +120,7 @@ namespace LeagueStatusBot.Services
             }
         }
 
-        private async Task HandleTargetSelectAsync(SocketMessageComponent args, string target)
+        private async Task HandleTargetSelectAsync(SocketMessageComponent args)
         {
             var playerTurn = gameControllerService.ReceiveRequest(args.User.Id);
 
@@ -130,17 +130,33 @@ namespace LeagueStatusBot.Services
             }
             else
             {
-                gameControllerService.SetPlayerTarget(playerTurn, target);
+                string selectedTarget = args.Data.Values.First().Split("&")[0];
+                string selectedAttack = args.Data.Values.First().Split("&")[1];
 
-                await args.UpdateAsync(x =>
-                {
-                    x.Content = $"{playerTurn.Name} Has Targeted {args.Data.Values.First()}";
-                    x.Components = new ComponentBuilder().WithButton("Attack", "attack").WithButton("Defend", "defend").Build();
-                });
+                gameControllerService.SetPlayerTarget(playerTurn, selectedTarget);
+
+                await gameControllerService.HandleActionAsync(args, selectedAttack);
             }
         }
 
-        private async Task HandleTurnActionAsync(SocketMessageComponent component)
+        private async Task HandleJoinParty(SocketMessageComponent args)
+        {
+            if (!gameControllerService.IsLobbyOpen)
+            {
+                await args.RespondAsync("There is no lobby open!", ephemeral: true);
+            }
+            else if (gameControllerService.Members.ContainsKey(args.User.Id))
+            {
+                await args.RespondAsync("You are already in the party!", ephemeral: true);
+            }
+            else
+            {
+                gameControllerService.JoinLobby(args.User.Id, args.User.GlobalName);
+                await args.DeferAsync(ephemeral: true);
+            }
+        }
+
+        private async Task HandleTurnActionAsync(SocketMessageComponent component, string attack)
         {
             var playerTurn = gameControllerService.ReceiveRequest(component.User.Id);
 
@@ -158,13 +174,13 @@ namespace LeagueStatusBot.Services
 
                 foreach (var enemy in gameControllerService.GetEnemies())
                 {
-                    targetList.AddOption(enemy, enemy);
+                    targetList.AddOption(enemy, enemy + "&" + attack);
                 }
 
                 var builder = new ComponentBuilder()
                     .WithSelectMenu(targetList);
 
-                var playerStatus = $"[{component.User.Mention}]: Health - {playerTurn.Health}/{playerTurn.MaxHealth}\nPlease Select Target Enemy";
+                var playerStatus = $"[{component.User.Mention}]: Health - {playerTurn.HitPoints}/{playerTurn.MaxHitPoints}\n";
 
                 await component.UpdateAsync(x =>
                 {
@@ -173,6 +189,8 @@ namespace LeagueStatusBot.Services
                 });
             }
         }
+
+        
 
         
     }

@@ -10,4 +10,10 @@
     <ProjectReference Include="..\LeagueStatusBot.Common\LeagueStatusBot.Common.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Data\ClassesBaseStats.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
