@@ -14,15 +14,13 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
         public event EventHandler GameStarted;
         public event EventHandler<string?> GameEnded;
-
         public event EventHandler<string> GameEvent;
         public event EventHandler<string> GameDeath;
-
         public event EventHandler<Being> TurnStarted;
         public event EventHandler<List<string>> TurnEnded;
-
         public event EventHandler RoundEnded;
         public event EventHandler RoundStarted;
+        private Random Random { get; set; } = new Random();
 
         public async Task StartGameAsync(Dictionary<ulong, string> partyMembers)
         {
@@ -30,7 +28,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
             foreach (var member in partyMembers)
             {
-                var player = ClassFactory.CreateAdventurer();
+                var player = this.AssignRandomClass();
 
                 player.IsHuman = true;
                 player.DiscordId = member.Key;
@@ -52,9 +50,19 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             await SpawnEncounterAsync();
         }
 
-        public void EndGame()
+        public Being AssignRandomClass()
         {
-            // Cleanup and end logic
+            switch (Random.Next(0, 3))
+            {
+                case 0:
+                    return ClassFactory.CreateVagabond();
+                case 1:
+                    return ClassFactory.CreateApprentice();
+                case 2:
+                    return ClassFactory.CreateAdventurer();
+                default:
+                    return ClassFactory.CreateAdventurer();
+            }
         }
 
         private async Task SpawnEncounterAsync()
@@ -103,6 +111,8 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             CurrentEncounter.RoundStarted -= OnRoundStarted;
             CurrentEncounter.PartyMemberEffect -= OnPartyEffect;
             CurrentEncounter.PartyMemberEffectRemoval -= OnPartyEffectRemoval;
+
+            EventHistory.Clear();
 
             CurrentEncounter = null;
         }
@@ -171,12 +181,29 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             return CurrentEncounter?.EncounterParty?.Members.Select(m => m.Name).ToList() ?? new List<string>();
         }
 
+        public List<string> GetPlayerPartyNames()
+        {
+            return CurrentEncounter?.PlayerParty?.Members.Select(m => m.Name).ToList() ?? new List<string>();
+        }
+
         public void SetPlayerTarget(Being player, string name)
         {
             Being? enemy = CurrentEncounter?.EncounterParty?.Members
                 .FirstOrDefault(e => e.Name == name);
 
-            player?.SetTarget(enemy);
+            if (enemy == null)
+            {
+                Being? ally = CurrentEncounter?.PlayerParty?.Members
+                    .FirstOrDefault(a => a.Name == name);
+
+                player?.SetTarget(ally);
+            }
+            else
+            {
+                player?.SetTarget(enemy);
+            }
+
+            
         }
 
     }

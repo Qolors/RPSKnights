@@ -33,9 +33,19 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
         public event EventHandler Killed;
 
-        public virtual float ChosenAttack(float strAdRatio = 1.0f)
+        public virtual float BasicAttack(float strAdRatio = 1.0f)
         {
-            return (1 + 0.1f * this.BaseStats.Strength) * strAdRatio;
+            float dmg = 0.1f;
+
+            foreach(Effect effect in ActiveEffects)
+            {
+                if (effect.Type == EffectType.BasicDamageBoost)
+                {
+                    dmg = effect.ModifierAmount;
+                }
+            }
+
+            return (1 + dmg * this.BaseStats.Strength) * strAdRatio;
         }
 
         public virtual void ChosenAbility(Ability ability)
@@ -46,7 +56,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
             if (abilityDmg == 0) return;
 
-            this.Target?.TakeDamage(abilityDmg, DamageType.Normal);
+            this.Target?.TakeDamage(abilityDmg, ability.DamageType);
         }
 
         public virtual void TakeDamage(float enemyDamageRoll, DamageType dmgType)
@@ -62,7 +72,6 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
                 }
             }
 
-
             // Get the defense multiplier - a value between 0 (no defense) to 1 (full defense)
             float defenseMultiplier = this.DefenseModifier() / 100f;
             // Reduce the damage by the defense multiplier
@@ -77,6 +86,20 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             if (HitPoints < 0) HitPoints = 0;
 
             DamageTaken?.Invoke(this, $"- {Name} took {finalDmgRound} damage. HP is Now ({this.HitPoints}/{this.MaxHitPoints})\n");
+
+            if (!IsAlive) Killed?.Invoke(this, EventArgs.Empty);
+        }
+
+        public virtual void TakeEffectDamage(float effectDamage, EffectType effectType)
+        {
+
+            if (effectType == EffectType.Bleed)
+            {
+                float finalDmg = MaxHitPoints * effectDamage;
+                int finalDmgRound = 1 + Convert.ToInt32(finalDmg);
+                HitPoints -= finalDmgRound;
+                DamageTaken?.Invoke(this, $"- {Name} bled for {finalDmgRound} damage. HP is Now ({this.HitPoints}/{this.MaxHitPoints})\n");
+            }
 
             if (!IsAlive) Killed?.Invoke(this, EventArgs.Empty);
         }
@@ -103,7 +126,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             if (Target == null) return;
 
             //TODO --> WEAPON SYSTEM SHOULD REPLACE DAMAGE CALCULATIONS
-            float attackRoll = this.ChosenAttack();
+            float attackRoll = this.BasicAttack();
 
             ActionPerformed?.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: Attacked {Target.Name}!");
 
@@ -113,7 +136,12 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public void AddEffect(Effect effect)
         {
             ActiveEffects.Add(effect);
-            EffectApplied?.Invoke(this, $"{Name} applied {effect.Name} for {effect.Duration} round!\n");
+            EffectApplied?.Invoke(this, $"{Name} has {effect.Name} applied for {effect.Duration} round!\n");
+        }
+
+        public void AddDelayedEffect(Effect effect)
+        {
+            ActiveEffects.Add(effect);
         }
 
         public void RemoveEffect(Effect effect)
@@ -126,12 +154,38 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         {
             for (int i = ActiveEffects.Count - 1; i >= 0; i--)
             {
-                ActiveEffects[i].Duration--;
-
-                if (ActiveEffects[i].Duration <= 0)
+                if (ActiveEffects[i].BufferDuration > 0)
                 {
-                    EffectRemoved?.Invoke(this, $"{Name}'s {ActiveEffects[i].Name} wore off..\n");
-                    ActiveEffects.RemoveAt(i);
+                    ActiveEffects[i].BufferDuration--;
+
+                    if (ActiveEffects[i].BufferDuration == 0)
+                    {
+                        EffectApplied?.Invoke(this, $"{Name} has {ActiveEffects[i].Name} applied for {ActiveEffects[i].Duration} round!\n");
+                    }
+                }
+                else
+                {
+                    TakeEffectDamage(ActiveEffects[i].ModifierAmount, ActiveEffects[i].Type);
+
+                    ActiveEffects[i].Duration--;
+
+                    if (ActiveEffects[i].Duration <= 0)
+                    {
+                        EffectRemoved?.Invoke(this, $"{Name}'s {ActiveEffects[i].Name} wore off..\n");
+                        ActiveEffects.RemoveAt(i);
+                    }
+                }
+            }
+
+            if (IsHuman)
+            {
+                if (FirstAbility.Cooldown > 0)
+                {
+                    FirstAbility.Cooldown--;
+                }
+                if (SecondAbility.Cooldown > 0)
+                {
+                    SecondAbility.Cooldown--;
                 }
             }
         }

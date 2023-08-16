@@ -10,6 +10,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
     {
         None,
         DamageReduction,
+        BasicDamageBoost,
         DamageBoost,
         Bleed,
         Poison,

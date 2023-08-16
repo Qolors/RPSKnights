@@ -16,6 +16,8 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         Ice,
         Earth,
         Fire,
-        Water
+        Water,
+        Arcane,
+        Heal
     }
 }

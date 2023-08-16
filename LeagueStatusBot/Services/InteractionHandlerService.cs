@@ -2,6 +2,7 @@
 using Discord.Interactions;
 using Discord.WebSocket;
 using LeagueStatusBot.Modules;
+using LeagueStatusBot.RPGEngine.Core.Engine;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.ComponentModel;
@@ -172,9 +173,36 @@ namespace LeagueStatusBot.Services
                     .WithMinValues(0)
                     .WithMaxValues(1);
 
-                foreach (var enemy in gameControllerService.GetEnemies())
+                DamageType dmgType;
+
+                switch (attack)
                 {
-                    targetList.AddOption(enemy, enemy + "&" + attack);
+                    case "ability1":
+                        dmgType = playerTurn.FirstAbility.DamageType;
+                        break;
+
+                    case "ability2":
+                        dmgType = playerTurn.SecondAbility.DamageType;
+                        break;
+
+                    default:
+                        dmgType = DamageType.Normal;
+                        break;
+                }
+
+                if (dmgType == DamageType.Heal)
+                {
+                    foreach (var ally in gameControllerService.GetAllies())
+                    {
+                        targetList.AddOption(ally, ally + "&" + attack);
+                    }
+                }
+                else
+                {
+                    foreach (var enemy in gameControllerService.GetEnemies())
+                    {
+                        targetList.AddOption(enemy, enemy + "&" + attack);
+                    }
                 }
 
                 var builder = new ComponentBuilder()

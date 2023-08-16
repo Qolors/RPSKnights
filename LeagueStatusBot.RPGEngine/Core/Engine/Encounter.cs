@@ -96,7 +96,10 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
                 // Now check if the target is valid and attack.
                 if (CurrentTurn.Target != null)
                 {
-                    CurrentTurn.AttackTarget();
+                    if (!CurrentTurn.ActiveEffects.Any(a => a.Type == EffectType.Stun))
+                    {
+                        CurrentTurn.AttackTarget();
+                    }
                 }
             }
 
@@ -170,6 +173,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
                 foreach (var being in TurnQueue)
                 {
+                    Console.WriteLine($"Processing {being.Name}");
                     being.ProcessEndOfRound();
                 }
             }
@@ -236,8 +240,12 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             EncounterParty.PartyMemberEffectApplied -= OnPartyMemberEffectApplied;
             EncounterParty.PartyMemberEffectRemoved -= OnPartyMemberEffectRemoved;
 
-            IsEncounterActive = false;
             DetermineRewards();
+
+            IsEncounterActive = false;
+            PlayerParty = null;
+            EncounterParty = null;
+
             EncounterEnded?.Invoke(this, EventArgs.Empty);
         }
 

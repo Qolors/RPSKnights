@@ -53,6 +53,9 @@ namespace LeagueStatusBot.Services
 
             gameManager.TurnStarted += OnTurnStarted;
             gameManager.TurnEnded += OnTurnEnded;
+
+            TurnEvenHistoryMessagedId = 0;
+            TurnRequestMessageId = 0;
         }
 
         private async Task SetupTimer()
@@ -65,8 +68,8 @@ namespace LeagueStatusBot.Services
 
         private double GetRandomInterval()
         {
-            const double twoMinutesInMilliseconds = 120000; // 2 minutes
-            const double oneMinuteInMilliseconds = 180000;   // 1 minute
+            const double twoMinutesInMilliseconds = 480000; // 2 minutes
+            const double oneMinuteInMilliseconds = 300000;   // 1 minute
             return twoMinutesInMilliseconds + random.NextDouble() * oneMinuteInMilliseconds;
         }
 
@@ -79,6 +82,8 @@ namespace LeagueStatusBot.Services
 
             await PostToFeedChannel.SendChannelMessage("**An adventure is starting in 30 seconds...**\n", client, messageComponent: button.Build());
 
+            TurnEvenHistoryMessagedId = 0;
+            TurnRequestMessageId = 0;
             IsLobbyOpen = true;
 
             timer = new Timer(30000); // Set for the final minute
@@ -92,7 +97,7 @@ namespace LeagueStatusBot.Services
             IsLobbyOpen = false;
             timer.Dispose();
 
-            if (Members.Any())
+            if (Members.Any()) 
             {
                 await gameManager.StartGameAsync(Members);
             }
@@ -191,7 +196,6 @@ namespace LeagueStatusBot.Services
                     m.Content = ("```csharp\n" + string.Join("\n", turnEvents) + "\n```");
                 });
             }
-            
         }
 
         private async Task SendTurnRequest(Being player)
@@ -200,14 +204,27 @@ namespace LeagueStatusBot.Services
 
             var currentUser = channel.GetUser(player.DiscordId);
 
+            bool isFirst = false;
+            bool isSecond = false;
+
+            if (player.FirstAbility.Cooldown > 0)
+            {
+                isFirst = true;
+            }
+
+            if (player.SecondAbility.Cooldown > 0)
+            {
+                isSecond = true;
+            }
+
             var builder = new ComponentBuilder()
                 .WithButton("Basic Attack", "basic-attack")
-                .WithButton(player.FirstAbility.Name, "first-ability")
-                .WithButton(player.SecondAbility.Name, "second-ability");
+                .WithButton(player.FirstAbility.Name, "first-ability", disabled: isFirst)
+                .WithButton(player.SecondAbility.Name, "second-ability", disabled: isSecond);
 
             var characterSheet = new EmbedBuilder()
-                .AddField($"{player.FirstAbility.Name}", $"{player.FirstAbility.Description}")
-                .AddField($"{player.SecondAbility.Name}", $"{player.SecondAbility.Description}")
+                .AddField($"{player.FirstAbility.Name}", $"{player.FirstAbility.Description}\n- Expected Damage: {player.FirstAbility.ExpectedDamage(player)}")
+                .AddField($"{player.SecondAbility.Name}", $"{player.SecondAbility.Description}\n- Expected Damage: {player.SecondAbility.ExpectedDamage(player)}")
                 .WithThumbnailUrl(currentUser.GetAvatarUrl())
                 .WithTitle(player.Name)
                 .WithDescription($"""
@@ -216,9 +233,8 @@ namespace LeagueStatusBot.Services
                 HP: {player.HitPoints}/{player.MaxHitPoints}
                 
                 Active Effects:
-                {string.Join("\n", player.ActiveEffects)}
+                {string.Join("\n", player.ActiveEffects.Select(x => x.Name))}
                 """);
-                
 
             var mentionName = channel.GetUser(player.DiscordId);
 
@@ -297,6 +313,11 @@ namespace LeagueStatusBot.Services
         public List<string> GetEnemies()
         {
             return gameManager.GetEnemyPartyNames();
+        }
+
+        public List<string> GetAllies()
+        {
+            return gameManager.GetPlayerPartyNames();
         }
     }
 }

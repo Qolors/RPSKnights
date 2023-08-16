@@ -16,8 +16,4 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Data\Classes\NewFolder\" />
-  </ItemGroup>
-
 </Project>

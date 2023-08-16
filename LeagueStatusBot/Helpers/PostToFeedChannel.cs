@@ -67,5 +67,12 @@ namespace LeagueStatusBot.Helpers
             }
 
         }
+
+        public static string GetHealthBar(int currentHealth, int maxHealth)
+        {
+            int barWidth = 20;
+            int healthRatio = (int)((double)(currentHealth / maxHealth) * barWidth);
+            return "**|" + new string('#', healthRatio) + new string(' ', barWidth - healthRatio) + "|**"; // Note the zero-width space in place of ' '.
+        }
     }
 }

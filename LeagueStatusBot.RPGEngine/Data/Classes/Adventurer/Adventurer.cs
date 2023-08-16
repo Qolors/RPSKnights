@@ -14,8 +14,8 @@ namespace LeagueStatusBot.RPGEngine.Data.Classes.Adventurer
             ClassName = "Adventurer";
             FirstAbility = new ParryingStrike();
             SecondAbility = new FirstAid();
-            MaxHitPoints = 10;
-            HitPoints = 10;
+            MaxHitPoints = 20;
+            HitPoints = 20;
 
         }
     }
