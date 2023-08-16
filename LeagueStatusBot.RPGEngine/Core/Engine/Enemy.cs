@@ -14,16 +14,16 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             ClassName = "Enemy";
             Attack = 1;
             Defense = 1;
-            HitPoints = 25;
-            MaxHitPoints = 25;
+            HitPoints = 20;
+            MaxHitPoints = 20;
             BaseStats = new Stats
             {
-                Agility = 8,
-                Charisma = 8,
-                Endurance = 8,
-                Intelligence = 8,
-                Strength = 8,
-                Luck = 8
+                Agility = 5,
+                Charisma = 5,
+                Endurance = 5,
+                Intelligence = 5,
+                Strength = 5,
+                Luck = 5
             };
         }
     }
