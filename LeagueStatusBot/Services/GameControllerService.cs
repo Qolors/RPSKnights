@@ -18,6 +18,7 @@ namespace LeagueStatusBot.Services
         private Timer timer;
         private GameManager gameManager;
         private DiscordSocketClient client;
+        private Random random = new Random();
 
         public bool IsLobbyOpen { get; set; } = false;
 
@@ -35,12 +36,12 @@ namespace LeagueStatusBot.Services
         {
             this.gameManager = new GameManager();
             this.client = client;
+
+            client.Ready += SetupTimer;
         }
 
         public async Task InitializeAsync()
         {
-            client.Ready += SetupTimer;
-
             gameManager.GameStarted += OnGameStarted;
             gameManager.GameEnded += OnGameEnded;
 
@@ -52,7 +53,6 @@ namespace LeagueStatusBot.Services
 
             gameManager.TurnStarted += OnTurnStarted;
             gameManager.TurnEnded += OnTurnEnded;
-
         }
 
         private async Task SetupTimer()
@@ -63,6 +63,13 @@ namespace LeagueStatusBot.Services
             timer.Start();
         }
 
+        private double GetRandomInterval()
+        {
+            const double twoMinutesInMilliseconds = 120000; // 2 minutes
+            const double oneMinuteInMilliseconds = 180000;   // 1 minute
+            return twoMinutesInMilliseconds + random.NextDouble() * oneMinuteInMilliseconds;
+        }
+
         private async void OnLobbyOpen(object sender, ElapsedEventArgs e)
         {
             timer.Dispose();
@@ -70,7 +77,7 @@ namespace LeagueStatusBot.Services
             var button = new ComponentBuilder()
                 .WithButton("Join Party", "join-party");
 
-            await SendChannelMessage("**An adventure is starting in 30 seconds...**\n", messageComponent: button.Build());
+            await PostToFeedChannel.SendChannelMessage("**An adventure is starting in 30 seconds...**\n", client, messageComponent: button.Build());
 
             IsLobbyOpen = true;
 
@@ -87,16 +94,20 @@ namespace LeagueStatusBot.Services
 
             if (Members.Any())
             {
-                //ADDING MEMBERS TO PARTY TO TEST
                 await gameManager.StartGameAsync(Members);
             }
 
             Members.Clear();
+
+            timer = new Timer(GetRandomInterval());
+            timer.Elapsed += OnLobbyOpen;
+            timer.AutoReset = false;
+            timer.Start();
         }
 
         public async void JoinLobby(ulong id, string name)
         {
-            await SendChannelMessage($"- **{name}** has joined the party! {emoji}");
+            await PostToFeedChannel.SendChannelMessage($"- **{name}** has joined the party! {emoji}", client);
             Members.Add(id, name);
         }
         private async void OnGameStarted(object sender, EventArgs e)
@@ -123,12 +134,12 @@ namespace LeagueStatusBot.Services
                 embed2.AddField(f => f.WithName(member.Name).WithValue($"- Hit Points: {member.MaxHitPoints}\n - Class: {member.ClassName}").WithIsInline(false));
             }
 
-            await SendChannelMessage(battleBeginString, new Embed[] { embed.Build(), embed2.Build() });
+            await PostToFeedChannel.SendChannelMessage(battleBeginString, client, new Embed[] { embed.Build(), embed2.Build() });
         }
 
         private async void OnGameEnded(object sender, string e)
         {
-            await SendChannelMessage($"**{e}**");
+            await PostToFeedChannel.SendChannelMessage($"**{e}**", client);
         }
 
         private void OnGameEvent(object sender, string e)
@@ -183,33 +194,31 @@ namespace LeagueStatusBot.Services
             
         }
 
-        private async Task SendChannelMessage(string message, Embed[] embeds = null, MessageComponent messageComponent = null)
-        {
-            var channel = client.GetGuild(GUILD_ID).GetTextChannel(CHANNEL_ID);
-
-            if (embeds != null)
-            {
-                await channel?.SendMessageAsync(message, embeds: embeds);
-            }
-            else if (messageComponent != null)
-            {
-                await channel?.SendMessageAsync(message, components: messageComponent);
-            }
-            else
-            {
-                await channel?.SendMessageAsync(message);
-            }
-            
-        }
-
         private async Task SendTurnRequest(Being player)
         {
             var channel = client.GetGuild(GUILD_ID).GetTextChannel(CHANNEL_ID);
+
+            var currentUser = channel.GetUser(player.DiscordId);
 
             var builder = new ComponentBuilder()
                 .WithButton("Basic Attack", "basic-attack")
                 .WithButton(player.FirstAbility.Name, "first-ability")
                 .WithButton(player.SecondAbility.Name, "second-ability");
+
+            var characterSheet = new EmbedBuilder()
+                .AddField($"{player.FirstAbility.Name}", $"{player.FirstAbility.Description}")
+                .AddField($"{player.SecondAbility.Name}", $"{player.SecondAbility.Description}")
+                .WithThumbnailUrl(currentUser.GetAvatarUrl())
+                .WithTitle(player.Name)
+                .WithDescription($"""
+                Class: {player.ClassName}
+
+                HP: {player.HitPoints}/{player.MaxHitPoints}
+                
+                Active Effects:
+                {string.Join("\n", player.ActiveEffects)}
+                """);
+                
 
             var mentionName = channel.GetUser(player.DiscordId);
 
@@ -226,7 +235,8 @@ namespace LeagueStatusBot.Services
             {
                 await channel.ModifyMessageAsync(TurnRequestMessageId, m =>
                 {
-                    m.Content = $"Turn Started for **@{mentionName.Mention}**.";
+                    m.Content = $"Turn Started for **{mentionName.Mention}**.";
+                    m.Embed = characterSheet.Build();
                     m.Components = builder.Build();
                 });
             }

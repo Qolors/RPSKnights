@@ -39,20 +39,33 @@ namespace LeagueStatusBot.Helpers
 
         public static async Task PostGameUpdate(string update, DiscordSocketClient client)
         {
-            ulong guildId = 402652836606771202;
-            ulong channelId = 702684769200111716;
+            const ulong guildId = 402652836606771202;
+            const ulong channelId = 702684769200111716;
 
             await client.GetGuild(guildId).GetTextChannel(channelId).SendMessageAsync(update);
         }
 
-        public static async Task SendChannelMessage(string message, DiscordSocketClient client)
+
+        public static async Task SendChannelMessage(string message, DiscordSocketClient client, Embed[] embeds = null, MessageComponent messageComponent = null)
         {
-            ulong guildId = 402652836606771202;
-            ulong channelId = 702684769200111716;
+            const ulong GUILD_ID = 402652836606771202;
+            const ulong CHANNEL_ID = 702684769200111716;
 
-            var channel = client.GetGuild(guildId).GetTextChannel(channelId);
+            var channel = client.GetGuild(GUILD_ID).GetTextChannel(CHANNEL_ID);
 
-            await channel?.SendMessageAsync(message);
+            if (embeds != null)
+            {
+                await channel?.SendMessageAsync(message, embeds: embeds);
+            }
+            else if (messageComponent != null)
+            {
+                await channel?.SendMessageAsync(message, components: messageComponent);
+            }
+            else
+            {
+                await channel?.SendMessageAsync(message);
+            }
+
         }
     }
 }

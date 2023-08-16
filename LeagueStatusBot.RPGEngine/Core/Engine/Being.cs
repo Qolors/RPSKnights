@@ -113,13 +113,13 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public void AddEffect(Effect effect)
         {
             ActiveEffects.Add(effect);
-            EffectApplied?.Invoke(this, $"{Name} applied {effect.Name} for {effect.Duration} round!");
+            EffectApplied?.Invoke(this, $"{Name} applied {effect.Name} for {effect.Duration} round!\n");
         }
 
         public void RemoveEffect(Effect effect)
         {
             ActiveEffects.Remove(effect);
-            EffectRemoved?.Invoke(this, $"{Name}'s {effect.Name} wore off..");
+            EffectRemoved?.Invoke(this, $"{Name}'s {effect.Name} wore off..\n");
         }
 
         public void ProcessEndOfRound()
@@ -130,8 +130,8 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
                 if (ActiveEffects[i].Duration <= 0)
                 {
+                    EffectRemoved?.Invoke(this, $"{Name}'s {ActiveEffects[i].Name} wore off..\n");
                     ActiveEffects.RemoveAt(i);
-                    EffectRemoved?.Invoke(this, $"{Name}'s {ActiveEffects[i].Name} wore off..");
                 }
             }
         }

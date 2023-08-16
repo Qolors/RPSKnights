@@ -55,7 +55,6 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         public void EndGame()
         {
             // Cleanup and end logic
-            
         }
 
         private async Task SpawnEncounterAsync()
@@ -94,7 +93,17 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         private void OnEncounterEnded(object sender, EventArgs e)
         {
             GameEnded?.Invoke(sender, CurrentEncounter?.VictoryResult);
-            
+
+            CurrentEncounter.EncounterEnded -= OnEncounterEnded;
+            CurrentEncounter.TurnStarted -= OnTurnStarted;
+            CurrentEncounter.TurnEnded -= OnTurnEnded;
+            CurrentEncounter.PartyDeath -= OnPartyMemberDeath;
+            CurrentEncounter.PartyAction -= OnPartyAction;
+            CurrentEncounter.RoundEnded -= OnRoundEnded;
+            CurrentEncounter.RoundStarted -= OnRoundStarted;
+            CurrentEncounter.PartyMemberEffect -= OnPartyEffect;
+            CurrentEncounter.PartyMemberEffectRemoval -= OnPartyEffectRemoval;
+
             CurrentEncounter = null;
         }
 
@@ -130,20 +139,12 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
         private void OnPartyEffect(object sender, string e)
         {
-            if (EventHistory.Count >= 14)
-            {
-                EventHistory.RemoveAt(0);
-            }
             EventHistory.Add(e);
             GameEvent?.Invoke(sender, e);
         }
 
         private void OnPartyEffectRemoval(object sender, string e)
         {
-            if (EventHistory.Count >= 14)
-            {
-                EventHistory.RemoveAt(0);
-            }
             EventHistory.Add(e);
             GameEvent?.Invoke(sender, e);
         }

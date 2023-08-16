@@ -85,7 +85,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
         private async Task ProcessTurnAsync()
         {
-            await Task.Delay(3000);
+            await Task.Delay(1000);
             if (CurrentTurn.IsAlive)
             {
                 if (CurrentTurn.Target == null || !CurrentTurn.Target.IsAlive)
@@ -226,6 +226,16 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public void EndEncounter()
         {
             PlayerActionChosen -= OnPlayerActionReceived;
+            PlayerParty.PartyEvent -= OnPartyAction;
+            PlayerParty.PartyMemberDeath -= OnPartyMemberDeath;
+            PlayerParty.PartyMemberEffectApplied -= OnPartyMemberEffectApplied;
+            PlayerParty.PartyMemberEffectRemoved -= OnPartyMemberEffectRemoved;
+
+            EncounterParty.PartyEvent -= OnPartyAction;
+            EncounterParty.PartyMemberDeath -= OnPartyMemberDeath;
+            EncounterParty.PartyMemberEffectApplied -= OnPartyMemberEffectApplied;
+            EncounterParty.PartyMemberEffectRemoved -= OnPartyMemberEffectRemoved;
+
             IsEncounterActive = false;
             DetermineRewards();
             EncounterEnded?.Invoke(this, EventArgs.Empty);
