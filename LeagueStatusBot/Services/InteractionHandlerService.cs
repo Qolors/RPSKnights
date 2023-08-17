@@ -5,9 +5,7 @@ using LeagueStatusBot.Modules;
 using LeagueStatusBot.RPGEngine.Core.Engine;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace LeagueStatusBot.Services
@@ -31,7 +29,6 @@ namespace LeagueStatusBot.Services
         {
             _client.Ready += ReadyAsync;
 
-            await _handler.AddModuleAsync<LeagueModule>(_services);
             await _handler.AddModuleAsync<MiscellaneousModule>(_services);
             await _handler.AddModuleAsync<RPGModule>(_services);
 
@@ -152,7 +149,7 @@ namespace LeagueStatusBot.Services
             }
             else
             {
-                gameControllerService.JoinLobby(args.User.Id, args.User.GlobalName);
+                gameControllerService.JoinLobby(args.User.Id, args.User.Username);
                 await args.DeferAsync(ephemeral: true);
             }
         }
@@ -173,22 +170,12 @@ namespace LeagueStatusBot.Services
                     .WithMinValues(0)
                     .WithMaxValues(1);
 
-                DamageType dmgType;
-
-                switch (attack)
+                var dmgType = attack switch
                 {
-                    case "ability1":
-                        dmgType = playerTurn.FirstAbility.DamageType;
-                        break;
-
-                    case "ability2":
-                        dmgType = playerTurn.SecondAbility.DamageType;
-                        break;
-
-                    default:
-                        dmgType = DamageType.Normal;
-                        break;
-                }
+                    "ability1" => playerTurn.FirstAbility.DamageType,
+                    "ability2" => playerTurn.SecondAbility.DamageType,
+                    _ => DamageType.Normal,
+                };
 
                 if (dmgType == DamageType.Heal)
                 {

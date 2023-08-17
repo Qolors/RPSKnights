@@ -61,33 +61,41 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
         public virtual void TakeDamage(float enemyDamageRoll, DamageType dmgType)
         {
-            // This is the damage the enemy will deal, modified by the damage type (0.5x, 1.0x, 1.5x)
-            float modifiedDmg = enemyDamageRoll * DamageMultiplier(dmgType);
+            float modifiedDmg = GetModifiedDamage(enemyDamageRoll, dmgType);
+            ApplyDamage(modifiedDmg);
+        }
 
+        private float GetModifiedDamage(float damage, DamageType dmgType)
+        {
+            float damageWithMultiplier = damage * DamageMultiplier(dmgType);
+            float reducedDamage = ApplyEffects(damageWithMultiplier);
+
+            return reducedDamage * (1 - DefenseModifier() / 100f);
+        }
+
+        private void ApplyDamage(float damage)
+        {
+            int finalDamage = Convert.ToInt32(Math.Max(0, damage));
+
+            HitPoints -= finalDamage;
+
+            if (HitPoints < 0) HitPoints = 0;
+
+            DamageTaken?.Invoke(this, $"- {Name} took {finalDamage} damage. HP is Now ({this.HitPoints}/{this.MaxHitPoints})\n");
+
+            if (!IsAlive) Killed?.Invoke(this, EventArgs.Empty);
+        }
+
+        private float ApplyEffects(float damage)
+        {
             foreach (Effect effect in ActiveEffects)
             {
                 if (effect.Type == EffectType.DamageReduction)
                 {
-                    modifiedDmg *= (1 - effect.ModifierAmount);
+                    damage *= (1 - effect.ModifierAmount);
                 }
             }
-
-            // Get the defense multiplier - a value between 0 (no defense) to 1 (full defense)
-            float defenseMultiplier = this.DefenseModifier() / 100f;
-            // Reduce the damage by the defense multiplier
-            float finalDmg = modifiedDmg * (1 - defenseMultiplier);
-
-            finalDmg = Math.Max(0, finalDmg);
-
-            int finalDmgRound = Convert.ToInt32(finalDmg);
-
-            HitPoints -= finalDmgRound;
-
-            if (HitPoints < 0) HitPoints = 0;
-
-            DamageTaken?.Invoke(this, $"- {Name} took {finalDmgRound} damage. HP is Now ({this.HitPoints}/{this.MaxHitPoints})\n");
-
-            if (!IsAlive) Killed?.Invoke(this, EventArgs.Empty);
+            return damage;
         }
 
         public virtual void TakeEffectDamage(float effectDamage, EffectType effectType)

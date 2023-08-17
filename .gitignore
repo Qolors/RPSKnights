@@ -395,4 +395,5 @@ FodyWeavers.xsd
 .idea/
 *.sln.iml
 
-
+#databases
+game.db
