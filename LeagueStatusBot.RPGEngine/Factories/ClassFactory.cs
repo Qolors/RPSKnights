@@ -1,9 +1,9 @@
 ﻿using LeagueStatusBot.RPGEngine.Core.Engine;
-using LeagueStatusBot.RPGEngine.Data.Classes.Adventurer;
-using LeagueStatusBot.RPGEngine.Data.Classes.Apprentice;
-using LeagueStatusBot.RPGEngine.Data.Classes.Vagabond;
+using LeagueStatusBot.RPGEngine.Factories.Classes.Adventurer;
+using LeagueStatusBot.RPGEngine.Factories.Classes.Apprentice;
+using LeagueStatusBot.RPGEngine.Factories.Classes.Vagabond;
 
-namespace LeagueStatusBot.RPGEngine.Data
+namespace LeagueStatusBot.RPGEngine.Factories
 {
     public static class ClassFactory
     {

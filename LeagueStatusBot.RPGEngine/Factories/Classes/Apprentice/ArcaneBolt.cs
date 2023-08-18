@@ -1,6 +1,6 @@
 ﻿using LeagueStatusBot.RPGEngine.Core.Engine;
 
-namespace LeagueStatusBot.RPGEngine.Data.Classes.Apprentice
+namespace LeagueStatusBot.RPGEngine.Factories.Classes.Apprentice
 {
     public class ArcaneBolt : Ability
     {

@@ -1,6 +1,6 @@
 ﻿
 
-using LeagueStatusBot.RPGEngine.Data.Models;
+using LeagueStatusBot.Common.Models;
 
 namespace LeagueStatusBot.RPGEngine.Data.Entities
 {

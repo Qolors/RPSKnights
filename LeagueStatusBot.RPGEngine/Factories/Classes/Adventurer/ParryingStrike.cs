@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LeagueStatusBot.RPGEngine.Data.Classes.Adventurer
+namespace LeagueStatusBot.RPGEngine.Factories.Classes.Adventurer
 {
     public class ParryingStrike : Ability
     {

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
 
 namespace LeagueStatusBot.RPGEngine.Core.Engine
 {
@@ -10,15 +6,20 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
     {
         public string Name { get; set; }
         public string ClassName { get; set; }
-        public int Attack { get; set; }
-        public int Defense { get; set; }
+        public Item Weapon { get; set; }
+        public Item Helm { get; set; }
+        public Item Chest { get; set; }
+        public Item Gloves { get; set; }
+        public Item Boots { get; set; }
+        public Item Legs { get; set; }
+        public List<Item> Inventory { get; set; }
         public int HitPoints { get; set; }
         public int MaxHitPoints { get; set; }
         public Stats BaseStats { get; set; } = new Stats();
         public ulong DiscordId { get; set; }
         public Ability FirstAbility { get; set; }
         public Ability SecondAbility { get; set; }
-        public virtual float ArmorClassValue { get; } = 0.1f;
+        public virtual float ArmorClassValue { get; set; } = 0.1f;
         public virtual DamageType Vulnerability { get; set; } = DamageType.Normal;
         public virtual DamageType Resistance { get; set; } = DamageType.Normal;
         public List<Effect> ActiveEffects { get; set; } = new List<Effect>();

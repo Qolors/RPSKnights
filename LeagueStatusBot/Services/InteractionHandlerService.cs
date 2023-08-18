@@ -142,10 +142,17 @@ namespace LeagueStatusBot.Services
             if (!gameControllerService.IsLobbyOpen)
             {
                 await args.RespondAsync("There is no lobby open!", ephemeral: true);
+                return;
+            }
+            else if (!gameControllerService.CheckIfPlayerExists(args.User.Id))
+            {
+                await args.RespondAsync("You don't have a character created! /roll to create a character.", ephemeral: true);
+                return;
             }
             else if (gameControllerService.Members.ContainsKey(args.User.Id))
             {
                 await args.RespondAsync("You are already in the party!", ephemeral: true);
+                return;
             }
             else
             {

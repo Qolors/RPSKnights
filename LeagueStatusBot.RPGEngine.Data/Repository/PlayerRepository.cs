@@ -1,12 +1,6 @@
-﻿using LeagueStatusBot.RPGEngine.Data.Contexts;
+﻿using LeagueStatusBot.Common.Models;
+using LeagueStatusBot.RPGEngine.Data.Contexts;
 using LeagueStatusBot.RPGEngine.Data.Entities;
-using LeagueStatusBot.RPGEngine.Data.Models;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LeagueStatusBot.RPGEngine.Data.Repository
 {
@@ -22,7 +16,7 @@ namespace LeagueStatusBot.RPGEngine.Data.Repository
         {
             return dbContext
                 .Set<BeingEntity>()
-                .Find(key) != null;
+                .Any(e => e.DiscordId == key);
         }
 
         public BeingEntity? GetBeingByDiscordId(ulong key)
@@ -49,6 +43,23 @@ namespace LeagueStatusBot.RPGEngine.Data.Repository
             player.Agility = agility;
 
             dbContext.SaveChanges();
+        }
+
+        public bool AddPlayerByDiscordId(BeingEntity beingEntity)
+        {
+            Console.WriteLine("Seeing if Exists");
+
+            if (Exists(beingEntity.DiscordId))
+            {
+                return false;
+            }
+
+            Console.WriteLine("Adding after found none");
+            
+            dbContext.Beings.Add(beingEntity);
+            dbContext.SaveChanges();
+
+            return true;
         }
 
         public bool DeletePlayerByDiscordId(ulong discordId)

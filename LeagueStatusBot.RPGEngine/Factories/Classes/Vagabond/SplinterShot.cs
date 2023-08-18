@@ -1,6 +1,6 @@
 ﻿using LeagueStatusBot.RPGEngine.Core.Engine;
 
-namespace LeagueStatusBot.RPGEngine.Data.Classes.Vagabond
+namespace LeagueStatusBot.RPGEngine.Factories.Classes.Vagabond
 {
     public class SplinterShot : Ability
     {

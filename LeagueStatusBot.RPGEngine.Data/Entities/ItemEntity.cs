@@ -1,9 +1,4 @@
-﻿using LeagueStatusBot.RPGEngine.Data.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using LeagueStatusBot.Common.Models;
 
 namespace LeagueStatusBot.RPGEngine.Data.Entities
 {

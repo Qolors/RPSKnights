@@ -1,10 +1,6 @@
-﻿using LeagueStatusBot.RPGEngine.Data.Contexts;
+﻿using LeagueStatusBot.Common.Models;
+using LeagueStatusBot.RPGEngine.Data.Contexts;
 using LeagueStatusBot.RPGEngine.Data.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LeagueStatusBot.RPGEngine.Data.Repository
 {
@@ -39,28 +35,49 @@ namespace LeagueStatusBot.RPGEngine.Data.Repository
             return true;
         }
 
-        public ItemEntity GenerateRandomItem()
+        public ItemEntity GenerateRandomWeapon()
         {
-            var randomEffectId = GetRandomEffectId();
+            var randomEffectId = GetRandomEffect();
+
+            string[] weaponNames = new string[]
+            {
+                "Sword of",
+                "Axe of",
+                "Mace of",
+            };
+
+            //random selection from weaponNames
+            var random = new Random();
+            var randomWeaponName = weaponNames[random.Next(weaponNames.Length)];
 
             var newItem = new ItemEntity
             {
-                ItemName = $"Generated Item {Guid.NewGuid()}",
-                ItemType = /* Assign appropriate ItemType */,
-                Rarity = /* Assign appropriate ItemRarity */,
-                ItemEffect = randomEffectId
+                ItemName = $"{randomWeaponName} {randomEffectId.EffectName}",
+                ItemType = ItemType.Weapon,
+                Rarity = ItemRarity.Enchanted,
+                ItemEffect = randomEffectId.EffectId
             };
 
             return AddItem(newItem);
         }
 
-        private int GetRandomEffectId()
+        public ItemEntity? GetItemFromEntityId(int id)
         {
-            var effects = _context.EffectEntities.ToList();
+            return _context.Items.FirstOrDefault(x => x.ItemId == id);
+        }
+
+        private ItemEffectEntity GetRandomEffect()
+        {
+            var effects = _context.ItemEffects.ToList();
             var random = new Random();
             var randomEffect = effects[random.Next(effects.Count)];
 
-            return randomEffect.EffectId;
+            return randomEffect;
+        }
+
+        public ItemEffectEntity GetEffectById(int id)
+        {
+            return _context.ItemEffects.FirstOrDefault(x => x.EffectId == id);
         }
     }
 

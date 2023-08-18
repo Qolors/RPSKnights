@@ -12,8 +12,6 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         {
             Name = name;
             DiscordId = discordId;
-            Attack = 1;
-            Defense = 1;
             HitPoints = 10;
             MaxHitPoints = 10;
             IsHuman = true;

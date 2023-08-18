@@ -46,7 +46,7 @@ namespace LeagueStatusBot.Helpers
         }
 
 
-        public static async Task SendChannelMessage(string message, DiscordSocketClient client, Embed[] embeds = null, MessageComponent messageComponent = null)
+        public static async Task SendChannelMessage(string message, DiscordSocketClient client, Embed[] embeds = null, MessageComponent messageComponent = null, bool eph = false)
         {
             const ulong GUILD_ID = 402652836606771202;
             const ulong CHANNEL_ID = 702684769200111716;

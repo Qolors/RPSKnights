@@ -2,7 +2,7 @@
 using LeagueStatusBot.RPGEngine.Core.Engine;
 using System.Linq;
 using LeagueStatusBot.RPGEngine.Core.Events;
-using LeagueStatusBot.RPGEngine.Data;
+using LeagueStatusBot.RPGEngine.Factories;
 
 namespace LeagueStatusBot.RPGEngine.Core.Controllers
 {
@@ -22,19 +22,13 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         public event EventHandler RoundStarted;
         private Random Random { get; set; } = new Random();
 
-        public async Task StartGameAsync(Dictionary<ulong, string> partyMembers)
+        public async Task StartGameAsync(List<Being> beings)
         {
             Party party = new Party();
 
-            foreach (var member in partyMembers)
+            foreach(var being in beings)
             {
-                var player = this.AssignRandomClass();
-
-                player.IsHuman = true;
-                player.DiscordId = member.Key;
-                player.Name = member.Value;
-
-                party.AddPartyMember(player);
+                party.AddPartyMember(being);
             }
 
             CurrentEncounter = new Encounter

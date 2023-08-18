@@ -5,7 +5,10 @@ using Discord;
 using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
+using LeagueStatusBot.RPGEngine.Data.Contexts;
+using LeagueStatusBot.RPGEngine.Data.Repository;
 using LeagueStatusBot.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace LeagueStatusBot;
@@ -73,7 +76,13 @@ public class Startup
             .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
             .AddSingleton<InteractionHandlerService>()
             .AddSingleton<NasaSchedulerService>()
+            .AddDbContext<GameDbContext>(options =>
+            {
+                options.UseSqlite("Data Source=/app/game.db");
+            })
             .AddSingleton<GameControllerService>()
+            .AddSingleton<PlayerRepository>()
+            .AddSingleton<ItemRepository>()
             .BuildServiceProvider();
     }
 }

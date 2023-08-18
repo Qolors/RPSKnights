@@ -5,13 +5,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LeagueStatusBot.RPGEngine.Data.Classes.Apprentice
+namespace LeagueStatusBot.RPGEngine.Factories.Classes.Apprentice
 {
     public class Apprentice : Being
     {
         public Apprentice()
         {
             ClassName = "Apprentice";
+            ArmorClassValue = 0.1f;
             MaxHitPoints = 18;
             HitPoints = 18;
             FirstAbility = new ArcaneBolt();

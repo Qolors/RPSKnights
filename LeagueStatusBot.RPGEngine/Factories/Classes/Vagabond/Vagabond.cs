@@ -1,12 +1,13 @@
 ﻿using LeagueStatusBot.RPGEngine.Core.Engine;
 
-namespace LeagueStatusBot.RPGEngine.Data.Classes.Vagabond
+namespace LeagueStatusBot.RPGEngine.Factories.Classes.Vagabond
 {
     public class Vagabond : Being
     {
         public Vagabond()
         {
             ClassName = "Vagabond";
+            ArmorClassValue = 0.15f;
             FirstAbility = new FallBack();
             SecondAbility = new SplinterShot();
             MaxHitPoints = 20;

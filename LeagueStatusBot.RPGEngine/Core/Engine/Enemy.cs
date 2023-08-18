@@ -12,8 +12,6 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         {
             Name = name;
             ClassName = "Enemy";
-            Attack = 1;
-            Defense = 1;
             HitPoints = 20;
             MaxHitPoints = 20;
             BaseStats = new Stats

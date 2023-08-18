@@ -1,15 +1,15 @@
 ﻿
 using Discord;
 using Discord.WebSocket;
-using LeagueStatusBot.Common.Models;
-using LeagueStatusBot.Helpers;
-using LeagueStatusBot.RPGEngine.Core.Controllers;
-using LeagueStatusBot.RPGEngine.Core.Engine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
+using LeagueStatusBot.Helpers;
+using LeagueStatusBot.RPGEngine.Core.Controllers;
+using LeagueStatusBot.RPGEngine.Core.Engine;
+using LeagueStatusBot.RPGEngine.Data.Repository;
 
 namespace LeagueStatusBot.Services
 {
@@ -18,6 +18,9 @@ namespace LeagueStatusBot.Services
         private Timer timer;
         private GameManager gameManager;
         private DiscordSocketClient client;
+        private PlayerRepository playerRepository;
+        private ItemRepository itemRepository;
+
         private Random random = new Random();
 
         public bool IsLobbyOpen { get; set; } = false;
@@ -32,8 +35,10 @@ namespace LeagueStatusBot.Services
         public ulong TurnEvenHistoryMessagedId { get; set; } = 0;
         public Dictionary<ulong, string> Members { get; set; } = new();
 
-        public GameControllerService(DiscordSocketClient client)
+        public GameControllerService(DiscordSocketClient client, PlayerRepository playerRepository, ItemRepository itemRepository)
         {
+            this.playerRepository = playerRepository;
+            this.itemRepository = itemRepository;
             this.gameManager = new GameManager();
             this.client = client;
 
@@ -99,7 +104,13 @@ namespace LeagueStatusBot.Services
 
             if (Members.Any()) 
             {
-                await gameManager.StartGameAsync(Members);
+                var playerList = new List<Being>();
+                foreach (var member in Members)
+                {
+                    playerList.Add(Mapper.BeingEntityToDomainModel(playerRepository.GetBeingByDiscordId(member.Key)));
+                }
+
+                await gameManager.StartGameAsync(playerList);
             }
 
             Members.Clear();
@@ -115,6 +126,12 @@ namespace LeagueStatusBot.Services
             await PostToFeedChannel.SendChannelMessage($"- **{name}** has joined the party! {emoji}", client);
             Members.Add(id, name);
         }
+
+        public bool CheckIfPlayerExists(ulong id)
+        {
+            return playerRepository.Exists(id);
+        }
+
         private async void OnGameStarted(object sender, EventArgs e)
         {
             string battleBeginString = "**The Battle Has Begun!**\n";
@@ -294,8 +311,6 @@ namespace LeagueStatusBot.Services
 
                 gameManager.CurrentEncounter?.RaisePlayerActionChosen(EventArgs.Empty);
             }
-
-
         }
 
         public Being ReceiveRequest(ulong id)
@@ -318,6 +333,24 @@ namespace LeagueStatusBot.Services
         public List<string> GetAllies()
         {
             return gameManager.GetPlayerPartyNames();
+        }
+
+        public bool AddNewCharacter(ulong id, string name)
+        {
+            var being = gameManager.AssignRandomClass();
+            being.Helm = Mapper.ItemEntityToDomainModel(itemRepository.GenerateRandomWeapon());
+            being.Weapon = Mapper.ItemEntityToDomainModel(itemRepository.GenerateRandomWeapon());
+            being.Chest = Mapper.ItemEntityToDomainModel(itemRepository.GenerateRandomWeapon());
+            being.Gloves = Mapper.ItemEntityToDomainModel(itemRepository.GenerateRandomWeapon());
+            being.Boots = Mapper.ItemEntityToDomainModel(itemRepository.GenerateRandomWeapon());
+            being.Legs = Mapper.ItemEntityToDomainModel(itemRepository.GenerateRandomWeapon());
+            being.Name = name;
+            being.DiscordId = id;
+            being.Inventory = new List<Item>();
+
+            Console.WriteLine("Adding");
+
+            return playerRepository.AddPlayerByDiscordId(Mapper.BeingToEntityModel(being));
         }
     }
 }

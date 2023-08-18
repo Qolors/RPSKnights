@@ -9,10 +9,7 @@ namespace LeagueStatusBot.RPGEngine.Data.Contexts
         public DbSet<ItemEntity> Items { get; set; }
         public DbSet<ItemEffectEntity> ItemEffects { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseSqlite("Data Source=game.db");
-        }
+        public GameDbContext(DbContextOptions<GameDbContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

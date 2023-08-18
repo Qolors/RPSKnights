@@ -1,6 +1,6 @@
 ﻿using LeagueStatusBot.RPGEngine.Core.Engine;
 
-namespace LeagueStatusBot.RPGEngine.Data.Classes.Adventurer
+namespace LeagueStatusBot.RPGEngine.Factories.Classes.Adventurer
 {
     public class FirstAid : Ability
     {
