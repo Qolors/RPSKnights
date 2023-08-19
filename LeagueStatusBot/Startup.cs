@@ -72,14 +72,14 @@ public class Startup
                 DefaultRunMode = Discord.Commands.RunMode.Async,
                 CaseSensitiveCommands = false,
             }))
+            .AddDbContext<GameDbContext>(options =>
+            {
+                options.UseSqlite("Data Source=game.db");
+            })
             .AddSingleton<CommandHandlingService>()
             .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
             .AddSingleton<InteractionHandlerService>()
             .AddSingleton<NasaSchedulerService>()
-            .AddDbContext<GameDbContext>(options =>
-            {
-                options.UseSqlite("Data Source=/app/game.db");
-            })
             .AddSingleton<GameControllerService>()
             .AddSingleton<PlayerRepository>()
             .AddSingleton<ItemRepository>()

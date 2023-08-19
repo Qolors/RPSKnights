@@ -139,25 +139,26 @@ namespace LeagueStatusBot.Services
 
         private async Task HandleJoinParty(SocketMessageComponent args)
         {
+            
+            
+            await args.RespondAsync("There is no lobby open!", ephemeral: true);
+            return;
             if (!gameControllerService.IsLobbyOpen)
             {
                 await args.RespondAsync("There is no lobby open!", ephemeral: true);
-                return;
             }
             else if (!gameControllerService.CheckIfPlayerExists(args.User.Id))
             {
                 await args.RespondAsync("You don't have a character created! /roll to create a character.", ephemeral: true);
-                return;
             }
             else if (gameControllerService.Members.ContainsKey(args.User.Id))
             {
                 await args.RespondAsync("You are already in the party!", ephemeral: true);
-                return;
             }
             else
             {
                 gameControllerService.JoinLobby(args.User.Id, args.User.Username);
-                await args.DeferAsync(ephemeral: true);
+                await args.RespondAsync("You joined", ephemeral: true);
             }
         }
 

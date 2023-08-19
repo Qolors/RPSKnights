@@ -26,7 +26,7 @@ namespace LeagueStatusBot.RPGEngine.Data.Repository
             var item = _context.Items.FirstOrDefault(i => i.ItemId == itemId);
             if (item == null)
             {
-                return false; // Item not found
+                return false;
             }
 
             _context.Items.Remove(item);
@@ -46,7 +46,6 @@ namespace LeagueStatusBot.RPGEngine.Data.Repository
                 "Mace of",
             };
 
-            //random selection from weaponNames
             var random = new Random();
             var randomWeaponName = weaponNames[random.Next(weaponNames.Length)];
 

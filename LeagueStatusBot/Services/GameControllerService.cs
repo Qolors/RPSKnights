@@ -20,9 +20,7 @@ namespace LeagueStatusBot.Services
         private DiscordSocketClient client;
         private PlayerRepository playerRepository;
         private ItemRepository itemRepository;
-
         private Random random = new Random();
-
         public bool IsLobbyOpen { get; set; } = false;
 
         private const ulong GUILD_ID = 402652836606771202;
@@ -41,6 +39,8 @@ namespace LeagueStatusBot.Services
             this.itemRepository = itemRepository;
             this.gameManager = new GameManager();
             this.client = client;
+
+            Mapper.Initialize(this.playerRepository, this.itemRepository);
 
             client.Ready += SetupTimer;
         }
@@ -65,7 +65,7 @@ namespace LeagueStatusBot.Services
 
         private async Task SetupTimer()
         {
-            timer = new Timer(10000);
+            timer = new Timer(20000);
             timer.Elapsed += OnLobbyOpen;
             timer.AutoReset = false;
             timer.Start();
