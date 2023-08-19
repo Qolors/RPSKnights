@@ -74,7 +74,7 @@ public class Startup
             }))
             .AddDbContext<GameDbContext>(options =>
             {
-                options.UseSqlite("Data Source=game.db");
+                options.UseSqlite("Data Source=/app/game.db");
             })
             .AddSingleton<CommandHandlingService>()
             .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))

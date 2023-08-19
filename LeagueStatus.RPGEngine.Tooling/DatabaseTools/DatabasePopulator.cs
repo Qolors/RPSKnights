@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using LeagueStatusBot.RPGEngine.Data.Entities;
 using LeagueStatusBot.RPGEngine.Data.Contexts;
+using Microsoft.EntityFrameworkCore;
 
 namespace LeagueStatusBot.RPGEngine.Tooling.DatabaseTools
 {
@@ -56,8 +57,9 @@ namespace LeagueStatusBot.RPGEngine.Tooling.DatabaseTools
                 Console.WriteLine("Incorrect Format for ItemEntity List");
                 return;
             }
-
-            using var db = new GameDbContext();
+            var optionsBuilder = new DbContextOptionsBuilder<GameDbContext>();
+            optionsBuilder.UseSqlite("Data Source=game.db");
+            using var db = new GameDbContext(optionsBuilder.Options);
 
             db.Items.AddRange(items);
             db.SaveChanges();
@@ -76,7 +78,9 @@ namespace LeagueStatusBot.RPGEngine.Tooling.DatabaseTools
                 return;
             }
 
-            using var db = new GameDbContext();
+            var optionsBuilder = new DbContextOptionsBuilder<GameDbContext>();
+            optionsBuilder.UseSqlite("Data Source=game.db");
+            using var db = new GameDbContext(optionsBuilder.Options);
 
             db.ItemEffects.AddRange(items);
             db.SaveChanges();
@@ -86,7 +90,9 @@ namespace LeagueStatusBot.RPGEngine.Tooling.DatabaseTools
 
         public void SeeItemEffects()
         {
-            using var db = new GameDbContext();
+            var optionsBuilder = new DbContextOptionsBuilder<GameDbContext>();
+            optionsBuilder.UseSqlite("Data Source=game.db");
+            using var db = new GameDbContext(optionsBuilder.Options);
 
             var itemEffects = db.ItemEffects.ToList();
 
@@ -106,7 +112,9 @@ namespace LeagueStatusBot.RPGEngine.Tooling.DatabaseTools
                 return;
             }
 
-            using var db = new GameDbContext();
+            var optionsBuilder = new DbContextOptionsBuilder<GameDbContext>();
+            optionsBuilder.UseSqlite("Data Source=game.db");
+            using var db = new GameDbContext(optionsBuilder.Options);
 
             db.Beings.AddRange(items);
             db.SaveChanges();
