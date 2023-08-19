@@ -352,5 +352,11 @@ namespace LeagueStatusBot.Services
 
             return playerRepository.AddPlayerByDiscordId(Mapper.BeingToEntityModel(being));
         }
+
+        public Being GetCharacterInfo(ulong id)
+        {
+            var beingEntity = playerRepository.GetBeingByDiscordId(id);
+            return Mapper.BeingEntityToDomainModel(beingEntity);
+        }
     }
 }
