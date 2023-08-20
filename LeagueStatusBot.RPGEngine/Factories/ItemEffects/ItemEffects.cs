@@ -13,61 +13,6 @@ namespace LeagueStatusBot.RPGEngine.Factories.ItemEffects
         }
     }
 
-    public class DivineShield : IItemEffect
-    {
-        public int EffectId { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public void Execute(Being being)
-        {
-
-        }
-    }
-
-    public class FortifiedArmor : IItemEffect
-    {
-        public int EffectId { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public void Execute(Being being)
-        {
-
-        }
-    }
-
-    public class QuickMend : IItemEffect
-    {
-        public int EffectId { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public void Execute(Being being)
-        {
-
-        }
-    }
-
-    public class SturdyShielding : IItemEffect
-    {
-        public int EffectId { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public void Execute(Being being)
-        {
-
-        }
-    }
-
-    public class EvasiveCloak : IItemEffect
-    {
-        public int EffectId { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public void Execute(Being being)
-        {
-
-        }
-    }
-
     public class AuraOfThorns : IItemEffect
     {
         public int EffectId { get; set; }
@@ -378,14 +323,6 @@ namespace LeagueStatusBot.RPGEngine.Factories.ItemEffects
     }
 
     public class GuardBreaker : IItemEffect
-    {
-        public int EffectId { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public void Execute(Being being) { }
-    }
-
-    public class ChainLightning : IItemEffect
     {
         public int EffectId { get; set; }
         public string Name { get; set; }

@@ -10,6 +10,7 @@ using LeagueStatusBot.Helpers;
 using LeagueStatusBot.RPGEngine.Core.Controllers;
 using LeagueStatusBot.RPGEngine.Core.Engine;
 using LeagueStatusBot.RPGEngine.Data.Repository;
+using LeagueStatusBot.RPGEngine.Core.Events;
 
 namespace LeagueStatusBot.Services
 {
@@ -134,7 +135,7 @@ namespace LeagueStatusBot.Services
 
         private async void OnGameStarted(object sender, EventArgs e)
         {
-            string battleBeginString = "**The Battle Has Begun!**\n";
+            string battleBeginString = "**The Battle Beings.**\n";
 
             var embed = new EmbedBuilder()
                 .WithTitle("The Player Party")
@@ -169,9 +170,12 @@ namespace LeagueStatusBot.Services
             
         }
 
-        private void OnGameDeath(object sender, string e)
+        private async void OnGameDeath(object sender, CharacterDeathEventArgs e)
         {
-            
+            if (e.IsHuman)
+            {
+                await Task.Run(() => { playerRepository.DeletePlayerByDiscordId(e.CharacterId); });
+            }
         }
 
         private async void OnRoundEnded(object sender, EventArgs e)
@@ -219,7 +223,17 @@ namespace LeagueStatusBot.Services
         {
             var channel = client.GetGuild(GUILD_ID).GetTextChannel(CHANNEL_ID);
 
-            var currentUser = channel.GetUser(player.DiscordId);
+            var currentUser = await client.GetUserAsync(player.DiscordId);
+
+            if (player == null)
+            {
+                throw new NullReferenceException();
+            }
+
+            if (currentUser == null)
+            {
+                throw new NullReferenceException();
+            }
 
             bool isFirst = false;
             bool isSecond = false;
@@ -348,7 +362,7 @@ namespace LeagueStatusBot.Services
             being.DiscordId = id;
             being.Inventory = new List<Item>();
 
-            Console.WriteLine("Adding");
+            Console.WriteLine(being.BaseStats.Luck.ToString());
 
             return playerRepository.AddPlayerByDiscordId(Mapper.BeingToEntityModel(being));
         }

@@ -15,7 +15,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         public event EventHandler GameStarted;
         public event EventHandler<string?> GameEnded;
         public event EventHandler<string> GameEvent;
-        public event EventHandler<string> GameDeath;
+        public event EventHandler<CharacterDeathEventArgs> GameDeath;
         public event EventHandler<Being> TurnStarted;
         public event EventHandler<List<string>> TurnEnded;
         public event EventHandler RoundEnded;
@@ -28,6 +28,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
             foreach(var being in beings)
             {
+                being.IsHuman = true;
                 party.AddPartyMember(being);
             }
 
@@ -121,13 +122,13 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             TurnEnded?.Invoke(sender, EventHistory);
         }
 
-        private void OnPartyMemberDeath(object sender, string e)
+        private void OnPartyMemberDeath(object sender, CharacterDeathEventArgs e)
         {
             if (EventHistory.Count >= 14)
             {
                 EventHistory.RemoveAt(0);
             }
-            EventHistory.Add(e);
+            EventHistory.Add(e.DeathSentence);
             GameDeath?.Invoke(sender, e);
         }
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LeagueStatusBot.RPGEngine.Core.Events;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 {
     public class Party
     {
-        public event EventHandler<string> PartyMemberDeath;
+        public event EventHandler<CharacterDeathEventArgs> PartyMemberDeath;
         public event EventHandler<string> PartyEvent;
         public event EventHandler<string> PartyMemberEffectApplied;
         public event EventHandler<string> PartyMemberEffectRemoved;
@@ -47,7 +48,9 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
             Members.Remove(being);
 
-            PartyMemberDeath?.Invoke(this, $"- {being.Name} has been slain!.\n");
+            CharacterDeathEventArgs charDeath = new(being.DiscordId, $"- {being.Name} has been slain!.\n", being.IsHuman);
+
+            PartyMemberDeath?.Invoke(this, charDeath);
         }
         private void OnMemberActionPerformed(object? sender, string e)
         {

@@ -1,11 +1,14 @@
 ﻿
 
+using LeagueStatusBot.RPGEngine.Factories.ItemEffects;
+
 namespace LeagueStatusBot.RPGEngine.Core.Engine
 {
     public abstract class Being
     {
         public string Name { get; set; }
         public string ClassName { get; set; }
+
         public Item Weapon { get; set; }
         public Item Helm { get; set; }
         public Item Chest { get; set; }
@@ -20,9 +23,13 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public Ability FirstAbility { get; set; }
         public Ability SecondAbility { get; set; }
         public virtual float ArmorClassValue { get; set; } = 0.1f;
+        public float CurrentDamage { get; set; } = 0;
         public virtual DamageType Vulnerability { get; set; } = DamageType.Normal;
         public virtual DamageType Resistance { get; set; } = DamageType.Normal;
         public List<Effect> ActiveEffects { get; set; } = new List<Effect>();
+        public List<string> EffectsLog { get; set; } = new List<string>();
+        public List<IItemEffect> WeaponEffects { get; set; } = new List<IItemEffect>();
+        public List<IItemEffect> ArmorEffects { get; set; } = new List<IItemEffect>();
         public bool IsHuman { get; set; } = false;
         public bool IsAlive => HitPoints > 0;
         public Being? Target { get; set; }
@@ -32,33 +39,56 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public event EventHandler<string> EffectApplied;
         public event EventHandler<string> EffectRemoved;
 
+        public Action<Being, Being> OnTakeDamage;
+        public Action<Being, Being> OnAttackEvent;
+
         public event EventHandler Killed;
 
         public virtual float BasicAttack(float strAdRatio = 1.0f)
         {
+            CurrentDamage = 0;
             float dmg = 0.1f;
 
-            foreach(Effect effect in ActiveEffects)
+            // Effects
+            foreach (Effect effect in ActiveEffects)
             {
                 if (effect.Type == EffectType.BasicDamageBoost)
                 {
-                    dmg = effect.ModifierAmount;
+                    dmg += effect.ModifierAmount;
                 }
             }
 
-            return (1 + dmg * this.BaseStats.Strength) * strAdRatio;
+            if (Weapon?.Effect != null && Target != null)
+            {
+                Weapon.Effect.Execute(Target);
+            }
+
+            // Strength Modifier
+            dmg += BaseStats.Strength * 0.5f;
+
+            CurrentDamage = dmg;
+
+            return dmg * strAdRatio;
         }
+
 
         public virtual void ChosenAbility(Ability ability)
         {
+            // Existing code
             ActionPerformed?.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: Used {ability.Name}!");
 
             float abilityDmg = ability.Activate(this, this.Target);
+
+            if (Weapon?.Effect != null && Target != null)
+            {
+                Weapon.Effect.Execute(Target);
+            }
 
             if (abilityDmg == 0) return;
 
             this.Target?.TakeDamage(abilityDmg, ability.DamageType);
         }
+
 
         public virtual void TakeDamage(float enemyDamageRoll, DamageType dmgType)
         {
@@ -69,7 +99,19 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         private float GetModifiedDamage(float damage, DamageType dmgType)
         {
             float damageWithMultiplier = damage * DamageMultiplier(dmgType);
+
+            // Endurance Modifier
+            float EnduranceReduction = BaseStats.Endurance * 0.1f;
+            damageWithMultiplier -= EnduranceReduction;
+
+            // Effects
             float reducedDamage = ApplyEffects(damageWithMultiplier);
+
+            // Agility (Dodge)
+            if (new Random().NextDouble() < BaseStats.Agility * 0.01)
+            {
+                return 0;
+            }
 
             return reducedDamage * (1 - DefenseModifier() / 100f);
         }
@@ -77,6 +119,12 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         private void ApplyDamage(float damage)
         {
             int finalDamage = Convert.ToInt32(Math.Max(0, damage));
+
+            Helm?.Effect?.Execute(this);
+            Chest?.Effect?.Execute(this);
+            Gloves?.Effect?.Execute(this);
+            Boots?.Effect?.Execute(this);
+            Legs?.Effect?.Execute(this);
 
             HitPoints -= finalDamage;
 
@@ -137,7 +185,18 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             //TODO --> WEAPON SYSTEM SHOULD REPLACE DAMAGE CALCULATIONS
             float attackRoll = this.BasicAttack();
 
-            ActionPerformed?.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: Attacked {Target.Name}!");
+            // Luck Modifier (Critical Hit)
+            if (new Random().NextDouble() < BaseStats.Luck * 0.01)
+            {
+                attackRoll *= 1.5f;
+                ActionPerformed?.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: CRITICAL HIT {Target.Name}!");
+            }
+            else
+            {
+                ActionPerformed?.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: Attacked {Target.Name}!");
+            }
+
+            
 
             Target.TakeDamage(attackRoll, DamageType.Normal);
         }

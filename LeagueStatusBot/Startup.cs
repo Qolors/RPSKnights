@@ -65,6 +65,7 @@ public class Startup
             {
                 MessageCacheSize = 50,
                 LogLevel = LogSeverity.Info,
+                AlwaysDownloadUsers= true,
             }))
             .AddSingleton(new CommandService(new CommandServiceConfig
             {

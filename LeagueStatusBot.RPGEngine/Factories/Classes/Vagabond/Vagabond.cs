@@ -10,8 +10,17 @@ namespace LeagueStatusBot.RPGEngine.Factories.Classes.Vagabond
             ArmorClassValue = 0.15f;
             FirstAbility = new FallBack();
             SecondAbility = new SplinterShot();
-            MaxHitPoints = 20;
-            HitPoints = 20;
+            MaxHitPoints = 30;
+            HitPoints = 30;
+            BaseStats = new()
+            {
+                Agility = 10,
+                Charisma = 10,
+                Luck = 10,
+                Endurance = 12,
+                Strength = 12,
+                Intelligence = 10,
+            };
         }
 
         public override float BasicAttack(float strAdRatio = 1)

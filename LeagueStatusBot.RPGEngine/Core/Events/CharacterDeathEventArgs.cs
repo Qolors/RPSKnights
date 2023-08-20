@@ -6,15 +6,17 @@ using System.Threading.Tasks;
 
 namespace LeagueStatusBot.RPGEngine.Core.Events
 {
-    public class BeingTargetingEventsArgs : EventArgs
+    public class CharacterDeathEventArgs
     {
         public ulong CharacterId { get; set; }
         public string DeathSentence { get; set; }
+        public bool IsHuman { get; set; }
 
-        public BeingTargetingEventsArgs(ulong CharacterId, string DeathSentence)
+        public CharacterDeathEventArgs(ulong CharacterId, string DeathSentence, bool IsHuman)
         {
             this.CharacterId = CharacterId;
             this.DeathSentence = DeathSentence;
+            this.IsHuman = IsHuman;
         }
     }
 }

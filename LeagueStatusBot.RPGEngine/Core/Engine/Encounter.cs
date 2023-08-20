@@ -24,7 +24,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public event EventHandler RoundStarted;
 
         public event EventHandler<string> PartyAction;
-        public event EventHandler<string> PartyDeath;
+        public event EventHandler<CharacterDeathEventArgs> PartyDeath;
         public event EventHandler<string> PartyMemberEffect;
         public event EventHandler<string> PartyMemberEffectRemoval;
 
@@ -132,7 +132,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             PartyAction?.Invoke(sender, e);
         }
 
-        public void OnPartyMemberDeath(object? sender, string e)
+        public void OnPartyMemberDeath(object? sender, CharacterDeathEventArgs e)
         {
             PartyDeath?.Invoke(sender, e);
         }

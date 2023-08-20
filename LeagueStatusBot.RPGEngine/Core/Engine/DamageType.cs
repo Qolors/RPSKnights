@@ -8,6 +8,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 {
     public enum DamageType
     {
+        Magic,
         Normal,
         Slash,
         Crush,

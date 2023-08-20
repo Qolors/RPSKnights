@@ -27,7 +27,7 @@ namespace LeagueStatusBot.Modules
         [SlashCommand("roll", "Roll for a new Character!")]
         public async Task GenerateNewCharacter()
         {
-            await DeferAsync();
+            await DeferAsync(true);
 
             if (gameControllerService.CheckIfPlayerExists(Context.User.Id))
             {
@@ -68,7 +68,7 @@ namespace LeagueStatusBot.Modules
                 _Stats_
                 -     Strength: {player.BaseStats.Strength}
                 -    Endurance: {player.BaseStats.Endurance}
-                -         Luck:
+                -         Luck: {player.BaseStats.Luck}
                 - Intelligence: {player.BaseStats.Intelligence}
                 -     Charisma: {player.BaseStats.Charisma}
                 -      Agility: {player.BaseStats.Agility}
@@ -120,7 +120,7 @@ namespace LeagueStatusBot.Modules
         [SlashCommand("showcharacterinfo", "Show Character Loadout to others")]
         public async Task RevealCharacterInfo()
         {
-            await DeferAsync(true);
+            await DeferAsync();
 
             if (!gameControllerService.CheckIfPlayerExists(Context.User.Id))
             {

@@ -37,6 +37,7 @@ namespace LeagueStatusBot.Helpers
                 Strength = beingEntity.Strength,
             };
 
+            being.DiscordId = beingEntity.DiscordId;
             being.MaxHitPoints = beingEntity.MaxHitPoints;
             being.HitPoints = beingEntity.MaxHitPoints;
             being.Helm = ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(beingEntity.Helm));
@@ -48,6 +49,7 @@ namespace LeagueStatusBot.Helpers
             being.Name = beingEntity.Name;
             being.ClassName = beingEntity.ClassName;
             being.Inventory = new List<Item>();
+            being.ActiveEffects = new List<Effect>();
 
             return being;
 
@@ -70,6 +72,7 @@ namespace LeagueStatusBot.Helpers
                 Luck = being.BaseStats.Luck,
                 Endurance = being.BaseStats.Endurance,
                 Intelligence = being.BaseStats.Intelligence,
+                Charisma = being.BaseStats.Charisma,
                 Agility = being.BaseStats.Agility,
                 MaxHitPoints = being.MaxHitPoints,
                 Inventory = new List<int>()
