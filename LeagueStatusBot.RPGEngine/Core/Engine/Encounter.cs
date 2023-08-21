@@ -27,6 +27,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public event EventHandler<CharacterDeathEventArgs> PartyDeath;
         public event EventHandler<string> PartyMemberEffect;
         public event EventHandler<string> PartyMemberEffectRemoval;
+        public event EventHandler<float> PartyMemberAOEDamageDone;
 
         public async Task StartEncounterAsync()
         {
@@ -35,11 +36,13 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             PlayerActionChosen += OnPlayerActionReceived;
 
             PlayerParty.PartyEvent += OnPartyAction;
+            PlayerParty.PartyMemberAOEDamageDone += OnPartyMemberAOEDamageDone;
             PlayerParty.PartyMemberDeath += OnPartyMemberDeath;
             PlayerParty.PartyMemberEffectApplied += OnPartyMemberEffectApplied;
             PlayerParty.PartyMemberEffectRemoved += OnPartyMemberEffectRemoved;
 
             EncounterParty.PartyEvent += OnPartyAction;
+            EncounterParty.PartyMemberAOEDamageDone += OnPartyMemberAOEDamageDone;
             EncounterParty.PartyMemberDeath += OnPartyMemberDeath;
             EncounterParty.PartyMemberEffectApplied += OnPartyMemberEffectApplied;
             EncounterParty.PartyMemberEffectRemoved += OnPartyMemberEffectRemoved;
@@ -147,6 +150,25 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             PartyMemberEffectRemoval?.Invoke(sender, e);
         }
 
+        public void OnPartyMemberAOEDamageDone(object sender, float e)
+        {
+            Being being = (Being)sender;
+
+            if (PlayerParty.Members.Contains(being))
+            {
+                foreach (var member in EncounterParty.Members)
+                {
+                    if (member.IsAlive && member.Name != being.Name)
+                    {
+                        member.TakeDamage(e, DamageType.Normal);
+                    }
+                    
+                }
+                PartyMemberAOEDamageDone?.Invoke(PlayerParty, e);
+            }
+            //TODO --> IMPLEMENT ENEMY
+        }
+
         private async Task TakeTurn()
         {
             CurrentTurn = TurnQueue.Dequeue();
@@ -234,11 +256,13 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             PlayerParty.PartyMemberDeath -= OnPartyMemberDeath;
             PlayerParty.PartyMemberEffectApplied -= OnPartyMemberEffectApplied;
             PlayerParty.PartyMemberEffectRemoved -= OnPartyMemberEffectRemoved;
+            PlayerParty.PartyMemberAOEDamageDone -= OnPartyMemberAOEDamageDone;
 
             EncounterParty.PartyEvent -= OnPartyAction;
             EncounterParty.PartyMemberDeath -= OnPartyMemberDeath;
             EncounterParty.PartyMemberEffectApplied -= OnPartyMemberEffectApplied;
             EncounterParty.PartyMemberEffectRemoved -= OnPartyMemberEffectRemoved;
+            EncounterParty.PartyMemberAOEDamageDone -= OnPartyMemberAOEDamageDone;
 
             DetermineRewards();
 

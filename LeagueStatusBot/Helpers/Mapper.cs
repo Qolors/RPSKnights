@@ -40,11 +40,11 @@ namespace LeagueStatusBot.Helpers
             being.DiscordId = beingEntity.DiscordId;
             being.MaxHitPoints = beingEntity.MaxHitPoints;
             being.HitPoints = beingEntity.MaxHitPoints;
-            being.Helm = ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(beingEntity.Helm));
-            being.Chest = ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(beingEntity.Chest));
-            being.Gloves = ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(beingEntity.Gloves));
-            being.Boots = ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(beingEntity.Boots));
-            being.Legs = ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(beingEntity.Legs));
+            being.Helm = ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(1));
+            being.Chest = ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(1));
+            being.Gloves = ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(1));
+            being.Boots = ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(1));
+            being.Legs = ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(1));
             being.Weapon = ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(beingEntity.Weapon));
             being.Name = beingEntity.Name;
             being.ClassName = beingEntity.ClassName;

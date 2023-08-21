@@ -9,6 +9,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.Classes.Adventurer
 {
     public class Adventurer : Being
     {
+
         public Adventurer()
         {
             ClassName = "Adventurer";

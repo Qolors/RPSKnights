@@ -13,6 +13,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public event EventHandler<string> PartyEvent;
         public event EventHandler<string> PartyMemberEffectApplied;
         public event EventHandler<string> PartyMemberEffectRemoved;
+        public event EventHandler<float> PartyMemberAOEDamageDone;
         public List<Being> Members { get; set; } = new List<Being>();
         public bool IsAlive => Members.Any(m => m.IsAlive);
         public void AddPartyMember(ulong discordId, string name)
@@ -32,6 +33,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             being.DamageTaken += OnMemberDamageTaken;
             being.EffectApplied += OnMemberEffectApplied;
             being.EffectRemoved += OnMemberEffectRemoved;
+            being.AoeDamagePerformed += OnMemberAOEDamage;
 
             Members.Add(being);
         }
@@ -45,6 +47,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             being.DamageTaken -= OnMemberDamageTaken;
             being.EffectApplied -= OnMemberEffectApplied;
             being.EffectRemoved -= OnMemberEffectRemoved;
+            being.AoeDamagePerformed -= OnMemberAOEDamage;
 
             Members.Remove(being);
 
@@ -70,6 +73,11 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         private void OnMemberEffectRemoved(object sender, string e)
         {
             PartyMemberEffectRemoved?.Invoke(this, e);
+        }
+
+        private void OnMemberAOEDamage(object sender, float e)
+        {
+            PartyMemberAOEDamageDone?.Invoke(sender, e);
         }
 
     }

@@ -86,7 +86,7 @@ namespace LeagueStatusBot.Services
             var button = new ComponentBuilder()
                 .WithButton("Join Party", "join-party");
 
-            await PostToFeedChannel.SendChannelMessage("**An adventure is starting in 30 seconds...**\n", client, messageComponent: button.Build());
+            await PostToFeedChannel.SendPortalMessage("**A Portal has opened..**\n", client, messageComponent: button.Build());
 
             TurnEvenHistoryMessagedId = 0;
             TurnRequestMessageId = 0;
@@ -112,6 +112,10 @@ namespace LeagueStatusBot.Services
                 }
 
                 await gameManager.StartGameAsync(playerList);
+            }
+            else
+            {
+                await PostToFeedChannel.EditOldMessage("The Portal has closed..", client);
             }
 
             Members.Clear();
@@ -251,11 +255,14 @@ namespace LeagueStatusBot.Services
             var builder = new ComponentBuilder()
                 .WithButton("Basic Attack", "basic-attack")
                 .WithButton(player.FirstAbility.Name, "first-ability", disabled: isFirst)
-                .WithButton(player.SecondAbility.Name, "second-ability", disabled: isSecond);
+                .WithButton(player.SecondAbility.Name, "second-ability", disabled: isSecond)
+                .WithButton(player.Weapon.ItemName, "weapon-active", disabled: player.Weapon.Effect.IsUsed);
+
 
             var characterSheet = new EmbedBuilder()
                 .AddField($"{player.FirstAbility.Name}", $"{player.FirstAbility.Description}\n- Expected Damage: {player.FirstAbility.ExpectedDamage(player)}")
                 .AddField($"{player.SecondAbility.Name}", $"{player.SecondAbility.Description}\n- Expected Damage: {player.SecondAbility.ExpectedDamage(player)}")
+                .AddField($"{player.Weapon.ItemName}", $"{player.Weapon.Effect.Description}\n- Expected Damage: ?")
                 .WithThumbnailUrl(currentUser.GetAvatarUrl())
                 .WithTitle(player.Name)
                 .WithDescription($"""
@@ -313,6 +320,10 @@ namespace LeagueStatusBot.Services
                         playerTurn.ChosenAbility(playerTurn.SecondAbility);
                         break;
 
+                    case "weapon-active":
+                        playerTurn.UseWeaponActive();
+                        break;
+
                     default:
                         break;
                 }
@@ -352,12 +363,12 @@ namespace LeagueStatusBot.Services
         public bool AddNewCharacter(ulong id, string name)
         {
             var being = gameManager.AssignRandomClass();
-            being.Helm = Mapper.ItemEntityToDomainModel(itemRepository.GenerateRandomWeapon());
+            being.Helm = Mapper.ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(1));
             being.Weapon = Mapper.ItemEntityToDomainModel(itemRepository.GenerateRandomWeapon());
-            being.Chest = Mapper.ItemEntityToDomainModel(itemRepository.GenerateRandomWeapon());
-            being.Gloves = Mapper.ItemEntityToDomainModel(itemRepository.GenerateRandomWeapon());
-            being.Boots = Mapper.ItemEntityToDomainModel(itemRepository.GenerateRandomWeapon());
-            being.Legs = Mapper.ItemEntityToDomainModel(itemRepository.GenerateRandomWeapon());
+            being.Chest = Mapper.ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(1));
+            being.Gloves = Mapper.ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(1));
+            being.Boots = Mapper.ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(1));
+            being.Legs = Mapper.ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(1));
             being.Name = name;
             being.DiscordId = id;
             being.Inventory = new List<Item>();

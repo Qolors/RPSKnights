@@ -39,19 +39,9 @@ namespace LeagueStatusBot.RPGEngine.Data.Repository
         {
             var randomEffectId = GetRandomEffect();
 
-            string[] weaponNames = new string[]
-            {
-                "Sword of",
-                "Axe of",
-                "Mace of",
-            };
-
-            var random = new Random();
-            var randomWeaponName = weaponNames[random.Next(weaponNames.Length)];
-
             var newItem = new ItemEntity
             {
-                ItemName = $"{randomWeaponName} {randomEffectId.EffectName}",
+                ItemName = randomEffectId.EffectName,
                 ItemType = ItemType.Weapon,
                 Rarity = ItemRarity.Enchanted,
                 ItemEffect = randomEffectId.EffectId
@@ -67,9 +57,10 @@ namespace LeagueStatusBot.RPGEngine.Data.Repository
 
         private ItemEffectEntity GetRandomEffect()
         {
+            int[] numbers = { 2, 3, 4 };
             var effects = _context.ItemEffects.ToList();
             var random = new Random();
-            var randomEffect = effects[random.Next(effects.Count)];
+            var randomEffect = effects[random.Next(2, numbers.Length)];
 
             return randomEffect;
         }

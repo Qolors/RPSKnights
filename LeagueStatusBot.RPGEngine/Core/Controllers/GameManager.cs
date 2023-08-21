@@ -47,6 +47,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
         public Being AssignRandomClass()
         {
+            return ClassFactory.CreateAdventurer();
             switch (Random.Next(0, 3))
             {
                 case 0:

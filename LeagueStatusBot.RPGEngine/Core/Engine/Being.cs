@@ -8,7 +8,6 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
     {
         public string Name { get; set; }
         public string ClassName { get; set; }
-
         public Item Weapon { get; set; }
         public Item Helm { get; set; }
         public Item Chest { get; set; }
@@ -35,18 +34,20 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public Being? Target { get; set; }
 
         public event EventHandler<string> ActionPerformed;
+        public event EventHandler<float> AoeDamagePerformed;
         public event EventHandler<string> DamageTaken;
         public event EventHandler<string> EffectApplied;
         public event EventHandler<string> EffectRemoved;
 
-        public Action<Being, Being> OnTakeDamage;
-        public Action<Being, Being> OnAttackEvent;
+        public Action<Being> OnDamageGiven;
+        public Action<Being> OnDamageTaken;
 
         public event EventHandler Killed;
 
         public virtual float BasicAttack(float strAdRatio = 1.0f)
         {
             CurrentDamage = 0;
+
             float dmg = 0.1f;
 
             // Effects
@@ -58,19 +59,26 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
                 }
             }
 
-            if (Weapon?.Effect != null && Target != null)
-            {
-                Weapon.Effect.Execute(Target);
-            }
-
             // Strength Modifier
-            dmg += BaseStats.Strength * 0.5f;
+            dmg += BaseStats.Strength * 0.2f;
 
-            CurrentDamage = dmg;
+            CurrentDamage =  dmg * strAdRatio;
 
-            return dmg * strAdRatio;
+            OnDamageGiven?.Invoke(this);
+
+            return CurrentDamage;
         }
 
+        public void UseWeaponActive()
+        {
+            CurrentDamage = this.BasicAttack();
+
+            Weapon.Effect.OnExecuteActive(this);
+
+            this.Target?.TakeDamage(CurrentDamage, DamageType.Normal);
+
+            CurrentDamage = 0;
+        }
 
         public virtual void ChosenAbility(Ability ability)
         {
@@ -79,12 +87,9 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
             float abilityDmg = ability.Activate(this, this.Target);
 
-            if (Weapon?.Effect != null && Target != null)
-            {
-                Weapon.Effect.Execute(Target);
-            }
-
             if (abilityDmg == 0) return;
+
+            OnDamageGiven?.Invoke(this);
 
             this.Target?.TakeDamage(abilityDmg, ability.DamageType);
         }
@@ -92,7 +97,14 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
         public virtual void TakeDamage(float enemyDamageRoll, DamageType dmgType)
         {
+            //BEFORE MODIFICATIONS MADE
             float modifiedDmg = GetModifiedDamage(enemyDamageRoll, dmgType);
+            if (modifiedDmg == 0)
+            {
+                ActionPerformed.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: Dodged the attack!");
+                return;
+            }
+            //AFTER MODIFICATIONS MADE
             ApplyDamage(modifiedDmg);
         }
 
@@ -110,6 +122,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             // Agility (Dodge)
             if (new Random().NextDouble() < BaseStats.Agility * 0.01)
             {
+                
                 return 0;
             }
 
@@ -120,11 +133,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         {
             int finalDamage = Convert.ToInt32(Math.Max(0, damage));
 
-            Helm?.Effect?.Execute(this);
-            Chest?.Effect?.Execute(this);
-            Gloves?.Effect?.Execute(this);
-            Boots?.Effect?.Execute(this);
-            Legs?.Effect?.Execute(this);
+            OnDamageTaken?.Invoke(this);
 
             HitPoints -= finalDamage;
 
@@ -163,7 +172,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
         public float DefenseModifier()
         {
-            float rawDefense = this.BaseStats.Endurance + (this.BaseStats.Agility * 2);
+            float rawDefense = this.BaseStats.Endurance * 2;
 
             // Convert rawDefense into a percentage, and cap it between 0 and 100.
             float defensePercentage = Math.Clamp(rawDefense, 0, 100);
@@ -196,9 +205,11 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
                 ActionPerformed?.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: Attacked {Target.Name}!");
             }
 
-            
+            CurrentDamage = attackRoll;
 
-            Target.TakeDamage(attackRoll, DamageType.Normal);
+            OnDamageGiven?.Invoke(this);
+
+            Target.TakeDamage(CurrentDamage, DamageType.Normal);
         }
 
         public void AddEffect(Effect effect)
@@ -256,6 +267,17 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
                     SecondAbility.Cooldown--;
                 }
             }
+        }
+
+        public void DealAOEDamage(float dmg)
+        {
+            ActionPerformed?.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: AOE Hit!");
+            AoeDamagePerformed?.Invoke(this, dmg);
+        }
+
+        public void BroadCast(string effect)
+        {
+            ActionPerformed?.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: activated {effect}!");
         }
 
         public virtual void SetTarget(Being target)

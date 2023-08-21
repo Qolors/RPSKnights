@@ -11,17 +11,17 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public Enemy(string name)
         {
             Name = name;
-            ClassName = "Enemy";
+            ClassName = "Monster";
             HitPoints = 20;
             MaxHitPoints = 20;
             BaseStats = new Stats
             {
-                Agility = 5,
-                Charisma = 5,
-                Endurance = 5,
-                Intelligence = 5,
-                Strength = 5,
-                Luck = 5
+                Agility = 10,
+                Charisma = 10,
+                Endurance = 10,
+                Intelligence = 10,
+                Strength = 10,
+                Luck = 10
             };
         }
     }

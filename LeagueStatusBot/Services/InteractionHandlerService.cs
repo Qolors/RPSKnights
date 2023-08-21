@@ -99,6 +99,10 @@ namespace LeagueStatusBot.Services
                     await HandleTurnActionAsync(component, "ability2");
                     break;
 
+                case "weapon-active":
+                    await HandleTurnActionAsync(component, "weapon-active");
+                    break;
+
                 default:
                     break;
             }
@@ -181,6 +185,7 @@ namespace LeagueStatusBot.Services
                 {
                     "ability1" => playerTurn.FirstAbility.DamageType,
                     "ability2" => playerTurn.SecondAbility.DamageType,
+                    "weapon-active" => DamageType.Normal,
                     _ => DamageType.Normal,
                 };
 

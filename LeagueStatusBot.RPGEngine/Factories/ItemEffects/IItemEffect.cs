@@ -12,6 +12,9 @@ namespace LeagueStatusBot.RPGEngine.Factories.ItemEffects
         public int EffectId { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public void Execute(Being being);
+        public bool IsUsed { get; set; }
+        public void OnExecutePassive(Being being);
+        public void OnExecuteActive(Being being);
+        public void Register(Being being);
     }
 }

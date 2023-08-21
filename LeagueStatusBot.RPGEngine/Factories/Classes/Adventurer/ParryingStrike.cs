@@ -1,9 +1,4 @@
 ﻿using LeagueStatusBot.RPGEngine.Core.Engine;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LeagueStatusBot.RPGEngine.Factories.Classes.Adventurer
 {
@@ -14,6 +9,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.Classes.Adventurer
             Name = "Parrying Strike";
             Description = "A Defensive Strike - Dealing 0.5x Damage, but receive 25% Damage Reduction on Enemy Turns.\n\n - Cooldown: 1 Turn";
             DamageType = DamageType.Normal;
+
         }
 
         public override float Activate(Being user, Being? target)
