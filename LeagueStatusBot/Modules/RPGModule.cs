@@ -137,7 +137,7 @@ namespace LeagueStatusBot.Modules
                 __Stats__
                 -     Strength: {player.BaseStats.Strength}
                 -    Endurance: {player.BaseStats.Endurance}
-                -         Luck:
+                -         Luck: {player.BaseStats.Luck}
                 - Intelligence: {player.BaseStats.Intelligence}
                 -     Charisma: {player.BaseStats.Charisma}
                 -      Agility: {player.BaseStats.Agility}

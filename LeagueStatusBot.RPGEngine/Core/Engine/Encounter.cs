@@ -120,6 +120,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
 
             TurnEnded?.Invoke(this, EventArgs.Empty);
+            await Task.Delay(3000);
             await OnTurnEnded(this, EventArgs.Empty); // Directly call the method here
         }
 
@@ -168,9 +169,10 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
             if (PlayerParty.Members.Contains(being))
             {
-                foreach (var member in EncounterParty.Members)
+                for (int i = 0; i < EncounterParty.Members.Count; i++)
                 {
-                    if (member.IsAlive && member.Name != being.Name)
+                    var member = EncounterParty.Members[i];
+                    if (member != null && member.IsAlive && member.Name != being.Name)
                     {
                         member.TakeDamage(e, DamageType.Normal, being);
                     }
@@ -269,11 +271,13 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             if (completedTask == timeout)
             {
                 TurnEnded?.Invoke(this, EventArgs.Empty);
+                await Task.Delay(3000);
                 await OnTurnEnded(this, EventArgs.Empty); // Directly call the method here
             }
             else if (completedTask == tcsPlayerAction.Task)
             {
                 TurnEnded?.Invoke(this, EventArgs.Empty);
+                await Task.Delay(3000);
                 await OnTurnEnded(this, EventArgs.Empty); // Directly call the method here
             }
         }

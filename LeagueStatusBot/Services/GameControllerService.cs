@@ -11,7 +11,6 @@ using LeagueStatusBot.RPGEngine.Core.Controllers;
 using LeagueStatusBot.RPGEngine.Core.Engine;
 using LeagueStatusBot.RPGEngine.Data.Repository;
 using LeagueStatusBot.RPGEngine.Core.Events;
-using System.Numerics;
 using LeagueStatusBot.Common.Models;
 
 namespace LeagueStatusBot.Services
@@ -44,6 +43,7 @@ namespace LeagueStatusBot.Services
             this.client = client;
 
             Mapper.Initialize(this.playerRepository, this.itemRepository);
+            UrlGetter.Initialize();
 
             client.Ready += SetupTimer;
         }
@@ -76,7 +76,7 @@ namespace LeagueStatusBot.Services
 
         private double GetRandomInterval()
         {
-            const double twoMinutesInMilliseconds = 480000; // 2 minutes
+            const double twoMinutesInMilliseconds = 300000; // 2 minutes
             const double oneMinuteInMilliseconds = 300000;   // 1 minute
             return twoMinutesInMilliseconds + random.NextDouble() * oneMinuteInMilliseconds;
         }
@@ -85,10 +85,7 @@ namespace LeagueStatusBot.Services
         {
             timer.Dispose();
 
-            var button = new ComponentBuilder()
-                .WithButton("Join Party", "join-party");
-
-            await PostToFeedChannel.SendPortalMessage("**A Portal has opened..**\n", client, messageComponent: button.Build());
+            await PostToFeedChannel.SendPortalMessage(client);
 
             TurnEvenHistoryMessagedId = 0;
             TurnRequestMessageId = 0;
@@ -120,19 +117,21 @@ namespace LeagueStatusBot.Services
             else
             {
                 await PostToFeedChannel.EditOldMessage("The Portal has closed..", client);
+
+                timer = new Timer(GetRandomInterval());
+                timer.Elapsed += OnLobbyOpen;
+                timer.AutoReset = false;
+                timer.Start();
             }
 
             Members.Clear();
 
-            timer = new Timer(GetRandomInterval());
-            timer.Elapsed += OnLobbyOpen;
-            timer.AutoReset = false;
-            timer.Start();
+            
         }
 
         public async void JoinLobby(ulong id, string name)
         {
-            await PostToFeedChannel.SendChannelMessage($"- **{name}** has joined the party! {emoji}", client);
+            await PostToFeedChannel.SendChannelMessage($"- **{name}** has entered. {emoji}", client);
             Members.Add(id, name);
         }
 
@@ -152,7 +151,7 @@ namespace LeagueStatusBot.Services
                 var currentUser = client.GetUser(member.DiscordId);
                 var embed = new EmbedBuilder()
                     .WithColor(Color.Blue)
-                    .WithThumbnailUrl(currentUser.GetAvatarUrl())
+                    .WithImageUrl(currentUser.GetAvatarUrl())
                     .WithTitle(member.Name)
                     .AddField($"    Class: - {member.ClassName}", "..")
                     .AddField($"HitPoints: - {member.MaxHitPoints}/{member.MaxHitPoints}", "..")
@@ -165,6 +164,7 @@ namespace LeagueStatusBot.Services
             {
                 var embed = new EmbedBuilder()
                     .WithColor(Color.Red)
+                    .WithImageUrl(UrlGetter.GetMonsterPortrait(member.Name))
                     .WithTitle(member.Name)
                     .AddField($"    Class: - {member.ClassName}", "..")
                     .AddField($"HitPoints: - {member.MaxHitPoints}/{member.MaxHitPoints}", "..")
@@ -195,7 +195,7 @@ namespace LeagueStatusBot.Services
                         .Build();
                     var menu = new SelectMenuBuilder()
                         .WithPlaceholder("Select a Skill")
-                        .WithCustomId("skill-menu")
+                        .WithCustomId("skill-select")
                         .WithMinValues(1)
                         .WithMaxValues(1)
                         .AddOption($"Strength ({member.BaseStats.Strength}) + 1", $"strength&{member.DiscordId}")
@@ -208,12 +208,17 @@ namespace LeagueStatusBot.Services
                         .WithSelectMenu(menu);
 
 
-                    await PostToFeedChannel.SendChannelMessage($"**{member.Name}** has earned themselves a skill point.", client, embeds: new[] { embed }, messageComponent: comp.Build());
+                    await PostToFeedChannel.SendSkillUpMessage($"**{member.Name}** has earned themselves a skill point.", client, embeds: new[] { embed }, messageComponent: comp.Build());
                 }
             }
+
+            timer = new Timer(GetRandomInterval());
+            timer.Elapsed += OnLobbyOpen;
+            timer.AutoReset = false;
+            timer.Start();
         }
 
-        public async void UpdateBeing(Being being, Skill skill)
+        public async Task UpdateBeing(Being being, Skill skill)
         {
             switch (skill)
             {
@@ -236,6 +241,8 @@ namespace LeagueStatusBot.Services
                     being.BaseStats.Intelligence++;
                     break;
             }
+
+            Console.WriteLine("Pushing Update");
 
             await Task.Run(() => playerRepository.UpdatePlayerStats(being.DiscordId, being.BaseStats.Strength, being.BaseStats.Luck, being.BaseStats.Endurance, being.BaseStats.Charisma, being.BaseStats.Intelligence, being.BaseStats.Agility));
 
@@ -267,32 +274,81 @@ namespace LeagueStatusBot.Services
         private async void OnTurnStarted(object sender, Being e)
         {
             if (e.IsHuman)
+            {
                 await SendTurnRequest(e);
+            }
+                
         }
 
-        private async void OnTurnEnded(object sender, List<string> e)
+        private async void OnTurnEnded(object sender, TurnActionsEventArgs e)
         {
            await SendEventHistoryAsync(e);
         }
 
-        private async Task SendEventHistoryAsync(List<string> turnEvents)
+        private async Task SendEventHistoryAsync(TurnActionsEventArgs turnSummary)
         {
+            if (turnSummary.CombatLogs.Count == 0) return;
+
             var channel = client.GetGuild(GUILD_ID).GetTextChannel(CHANNEL_ID);
 
-            if (TurnEvenHistoryMessagedId == 0)
+            if (turnSummary.ActivePlayer.IsHuman)
             {
-                var eventMessage = await channel.SendMessageAsync("```csharp\n" + string.Join("\n", turnEvents) + "\n```");
-                TurnEvenHistoryMessagedId = eventMessage.Id;
+                var user = await client.GetUserAsync(turnSummary.ActivePlayer.DiscordId);
+
+                var attackName = turnSummary.ActionPerformed switch
+                {
+                    ActionPerformed.BasicAttack => UrlGetter.GetAbilityImage("Basic"),
+                    ActionPerformed.FirstAbility => UrlGetter.GetAbilityImage(turnSummary.ActivePlayer.FirstAbility.Name),
+                    ActionPerformed.SecondAbility => UrlGetter.GetAbilityImage(turnSummary.ActivePlayer.SecondAbility.Name),
+                    ActionPerformed.ArmorAbility => UrlGetter.GetAbilityImage(turnSummary.ActivePlayer.Chest.Name),
+                    ActionPerformed.WeaponAbility => UrlGetter.GetAbilityImage(turnSummary.ActivePlayer.Weapon.Effect.Name),
+                };
+
+                var embed = new EmbedBuilder()
+                .WithColor(Color.Red)
+                .WithTitle(turnSummary.CombatLogs[0])
+                .WithThumbnailUrl(user.GetAvatarUrl())
+                .WithImageUrl(attackName)
+                .WithDescription(string.Join("\n", turnSummary.CombatLogs.Skip(1)));
+
+                if (TurnEvenHistoryMessagedId == 0)
+                {
+                    var eventMessage = await channel.SendMessageAsync(embed: embed.Build());
+                    TurnEvenHistoryMessagedId = eventMessage.Id;
+                }
+                else
+                {
+                    await channel.ModifyMessageAsync(TurnRequestMessageId, m =>
+                    {
+                        m.Embed = embed.Build();
+                    });
+                }
             }
             else
             {
-                var console = await channel.GetMessageAsync(TurnEvenHistoryMessagedId);
+                var embed = new EmbedBuilder()
+                .WithColor(Color.Red)
+                .WithTitle(turnSummary.CombatLogs[0])
+                .WithThumbnailUrl(UrlGetter.GetMonsterPortrait(turnSummary.ActivePlayer.Name))
+                .WithImageUrl(UrlGetter.GetAbilityImage("Basic"))
+                .WithDescription(string.Join("\n", turnSummary.CombatLogs.Skip(1)));
 
-                await channel.ModifyMessageAsync(TurnEvenHistoryMessagedId, m => 
+                if (TurnEvenHistoryMessagedId == 0)
                 {
-                    m.Content = ("```csharp\n" + string.Join("\n", turnEvents) + "\n```");
-                });
+                    var eventMessage = await channel.SendMessageAsync(embed: embed.Build());
+                    TurnEvenHistoryMessagedId = eventMessage.Id;
+                }
+                else
+                {
+                    await channel.ModifyMessageAsync(TurnRequestMessageId, m =>
+                    {
+                        m.Embed = embed.Build();
+                    });
+                }
             }
+            
+
+            
         }
 
         private async Task SendTurnRequest(Being player)
@@ -319,6 +375,8 @@ namespace LeagueStatusBot.Services
 
             if (this.ReceiveRequest(player.DiscordId) == null)
             {
+                var attacker = gameManager.CurrentEncounter.CurrentTurn;
+
                 builder
                 .WithButton($"{player.Chest.Name}", "chest-ability", disabled: player.Chest.IsUsed)
                 .WithButton("Take Damage", "take-damage");
@@ -327,14 +385,16 @@ namespace LeagueStatusBot.Services
                 characterSheet
                     .AddField($"{player.Chest.Name}", $"{player.Chest.Description}\n")
                     .WithThumbnailUrl(currentUser.GetAvatarUrl())
-                    .WithTitle($"You are being attacked by {gameManager.CurrentEncounter.CurrentTurn.Name}")
+                    .WithTitle($"{currentUser.Mention} is being attacked by {attacker.Name}")
+                    .WithImageUrl(UrlGetter.GetMonsterPortrait(attacker.Name))
                     .WithDescription($"""
-                Class: {player.ClassName}
+                Class: {attacker.ClassName}
 
-                HP: {player.HitPoints}/{player.MaxHitPoints}
+                 Your HP: {player.HitPoints}/{player.MaxHitPoints}
+                Their HP: {attacker.HitPoints}/{attacker.MaxHitPoints}
                 
-                Active Effects:
-                {string.Join("\n", player.ActiveEffects.Select(x => x.Name))}
+                Their Active Effects:
+                {string.Join("\n", attacker.ActiveEffects.Select(x => x.Name))}
                 """);
             }
             else
@@ -347,9 +407,7 @@ namespace LeagueStatusBot.Services
 
 
                 characterSheet
-                    .AddField($"{player.FirstAbility.Name}", $"{player.FirstAbility.Description}\n- Expected Damage: {player.FirstAbility.ExpectedDamage(player)}")
-                    .AddField($"{player.SecondAbility.Name}", $"{player.SecondAbility.Description}\n- Expected Damage: {player.SecondAbility.ExpectedDamage(player)}")
-                    .AddField($"{player.Weapon.ItemName}", $"{player.Weapon.Effect.Description}\n- {player.Weapon.Effect.PrintPassiveStatus()}")
+                    .AddField($"{player.Weapon.ItemName}", $"{player.Weapon.Effect.PrintPassiveStatus()}")
                     .WithThumbnailUrl(currentUser.GetAvatarUrl())
                     .WithTitle(player.Name)
                     .WithDescription($"""

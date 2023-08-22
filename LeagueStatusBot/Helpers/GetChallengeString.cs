@@ -7,14 +7,6 @@ namespace LeagueStatusBot.Helpers
 {
     public static class GetChallengeString
     {
-        public static string InsertSpacesBeforeCapitals(string input)
-        {
-            if (string.IsNullOrEmpty(input))
-                return string.Empty;
-
-            return Regex.Replace(input, "(?<!^)([A-Z][a-z]|(?<=[a-z])[A-Z])", " $1");
-        }
-
         public static string GetTopChallengesString(List<MatchHistoryModel> matchHistory, string summonerName)
         {
             StringBuilder stringBuilder = new StringBuilder();

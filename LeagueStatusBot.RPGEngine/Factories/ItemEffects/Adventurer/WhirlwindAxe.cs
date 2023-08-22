@@ -47,6 +47,8 @@ namespace LeagueStatusBot.RPGEngine.Factories.ItemEffects.Adventurer
             // Logic to deal AoE damage to all nearby enemies
             being.DealAOEDamage(damage);
 
+            being.LastActionPerformed = Common.Models.ActionPerformed.WeaponAbility;
+
             IsUsed = true;
         }
     }

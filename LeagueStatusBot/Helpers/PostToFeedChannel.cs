@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 using LeagueStatusBot.Common.Models;
 
@@ -69,29 +70,34 @@ namespace LeagueStatusBot.Helpers
 
         }
 
-        public static async Task SendPortalMessage(string message, DiscordSocketClient client, Embed[] embeds = null, MessageComponent messageComponent = null, bool eph = false)
+        public static async Task SendSkillUpMessage(string message, DiscordSocketClient client, Embed[] embeds, MessageComponent messageComponent, bool eph = false)
         {
             const ulong GUILD_ID = 402652836606771202;
             const ulong CHANNEL_ID = 702684769200111716;
 
             var channel = client.GetGuild(GUILD_ID).GetTextChannel(CHANNEL_ID);
 
-            if (embeds != null)
-            {
-                var msg = await channel?.SendMessageAsync(message, embeds: embeds);
-                PortalMessage = msg.Id;
-            }
-            else if (messageComponent != null)
-            {
-                var msg = await channel?.SendMessageAsync(message, components: messageComponent);
-                PortalMessage = msg.Id;
-            }
-            else
-            {
-                var msg = await channel?.SendMessageAsync(message);
-                PortalMessage = msg.Id;
-            }
+            await channel?.SendMessageAsync(message, embeds: embeds, components: messageComponent);
 
+        }
+
+        public static async Task SendPortalMessage(DiscordSocketClient client)
+        {
+            const ulong GUILD_ID = 402652836606771202;
+            const ulong CHANNEL_ID = 702684769200111716;
+
+            var channel = client.GetGuild(GUILD_ID).GetTextChannel(CHANNEL_ID);
+
+            var button = new ComponentBuilder()
+                .WithButton("Join Party", "join-party");
+
+            var embed = new EmbedBuilder()
+                .WithImageUrl(UrlGetter.GetPortalImage())
+                .WithTitle("The Portal Opens..")
+                .WithColor(Color.Green);
+
+            var msg = await channel?.SendMessageAsync(embed: embed.Build(), components: button.Build());
+            PortalMessage = msg.Id;
         }
 
         public static async Task EditOldMessage(string message, DiscordSocketClient client)
@@ -101,7 +107,17 @@ namespace LeagueStatusBot.Helpers
 
             var channel = client.GetGuild(GUILD_ID).GetTextChannel(CHANNEL_ID);
 
-            await channel?.ModifyMessageAsync(PortalMessage, msg => { msg.Content = message; msg.Components = new ComponentBuilder().Build(); });
+            var button = new ComponentBuilder()
+                .WithButton("Join Party", "join-party", disabled: true)
+                .Build();
+
+            var closingEmbed = new EmbedBuilder()
+                .WithTitle("The Portal Closes..")
+                .WithImageUrl(UrlGetter.GetPortalImage())
+                .WithColor(Color.Red)
+                .Build();
+
+            await channel?.ModifyMessageAsync(PortalMessage, msg => { msg.Components = button; msg.Embed = closingEmbed; });
             await Task.Delay(10000);
             await channel?.DeleteMessageAsync(PortalMessage);
         }

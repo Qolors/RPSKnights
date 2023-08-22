@@ -17,7 +17,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         public event EventHandler<string> GameEvent;
         public event EventHandler<CharacterDeathEventArgs> GameDeath;
         public event EventHandler<Being> TurnStarted;
-        public event EventHandler<List<string>> TurnEnded;
+        public event EventHandler<TurnActionsEventArgs> TurnEnded;
         public event EventHandler RoundEnded;
         public event EventHandler RoundStarted;
         private Random Random { get; set; } = new Random();
@@ -120,7 +120,8 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
         private void OnTurnEnded(object sender, EventArgs e)
         {
-            TurnEnded?.Invoke(sender, EventHistory);
+            TurnEnded?.Invoke(sender, new TurnActionsEventArgs(EventHistory, CurrentEncounter.CurrentTurn, CurrentEncounter.CurrentTurn.LastActionPerformed));
+            EventHistory.Clear();
         }
 
         private void OnPartyMemberDeath(object sender, CharacterDeathEventArgs e)
@@ -174,12 +175,26 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
         public List<string> GetEnemyPartyNames()
         {
-            return CurrentEncounter?.EncounterParty?.Members.Select(m => m.Name).ToList() ?? new List<string>();
+            var enemies = new List<string>();
+            foreach (var enemy in CurrentEncounter.EncounterParty.Members)
+            {
+                string selector = $"{enemy.Name} - ({enemy.HitPoints}/{enemy.MaxHitPoints}) HitPoints";
+                enemies.Add(selector);
+            }
+
+            return enemies;
         }
 
         public List<string> GetPlayerPartyNames()
         {
-            return CurrentEncounter?.PlayerParty?.Members.Select(m => m.Name).ToList() ?? new List<string>();
+            var allies = new List<string>();
+            foreach (var ally in CurrentEncounter.PlayerParty.Members)
+            {
+                string selector = $"{ally.Name} - ({ally.HitPoints}/{ally.MaxHitPoints}) HitPoints";
+                allies.Add(selector);
+            }
+
+            return allies;
         }
 
         public void SetPlayerTarget(Being player, string name)

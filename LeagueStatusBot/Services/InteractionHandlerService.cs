@@ -166,6 +166,8 @@ namespace LeagueStatusBot.Services
 
             string skill = text[0];
 
+            Console.WriteLine(skill);
+
             switch (skill)
             {
                 case "strength":
@@ -193,7 +195,11 @@ namespace LeagueStatusBot.Services
                     break;
             }
 
-            await args.RespondAsync("Stats Updated or some shit");
+            await args.UpdateAsync(m =>
+            {
+                m.Content = $"{args.User.Username} leveled up {skill}";
+                m.Components = new ComponentBuilder().Build();
+            });
         }
 
         
@@ -250,14 +256,16 @@ namespace LeagueStatusBot.Services
                 {
                     foreach (var ally in gameControllerService.GetAllies())
                     {
-                        targetList.AddOption(ally, ally + "&" + attack);
+                        var targetName = ally.Split("-")[0].Trim();
+                        targetList.AddOption(ally, targetName + "&" + attack);
                     }
                 }
                 else
                 {
                     foreach (var enemy in gameControllerService.GetEnemies())
                     {
-                        targetList.AddOption(enemy, enemy + "&" + attack);
+                        var targetName = enemy.Split("-")[0].Trim();
+                        targetList.AddOption(enemy, targetName + "&" + attack);
                     }
                 }
 

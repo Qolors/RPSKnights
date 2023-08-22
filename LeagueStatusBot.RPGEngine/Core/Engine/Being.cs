@@ -1,5 +1,6 @@
 ﻿
 
+using LeagueStatusBot.Common.Models;
 using LeagueStatusBot.RPGEngine.Factories.ArmorEffects;
 using LeagueStatusBot.RPGEngine.Factories.ItemEffects;
 using System.Reflection;
@@ -10,6 +11,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
     {
         public string Name { get; set; }
         public string ClassName { get; set; }
+        public ActionPerformed LastActionPerformed { get; set; }
         public Item Weapon { get; set; }
         public IArmorEffect Helm { get; set; }
         public IArmorEffect Chest { get; set; }
@@ -102,6 +104,8 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             Weapon.Effect.OnExecuteActive(this);
 
             this.Target?.TakeDamage(CurrentDamage, DamageType.Normal, this);
+
+            LastActionPerformed = Common.Models.ActionPerformed.WeaponAbility;
 
             CurrentDamage = 0;
         }
@@ -241,6 +245,8 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             CurrentDamage = attackRoll;
 
             OnDamageGiven?.Invoke(this);
+
+            this.LastActionPerformed = Common.Models.ActionPerformed.BasicAttack;
 
             Target.TakeDamage(CurrentDamage, DamageType.Normal, this);
         }

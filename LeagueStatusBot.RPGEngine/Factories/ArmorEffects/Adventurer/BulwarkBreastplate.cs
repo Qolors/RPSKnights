@@ -19,6 +19,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.ArmorEffects.Adventurer
         {
             self.BroadCast("Bulwark Breastplate - nullifying the attack");
             IsUsed = true;
+            self.LastActionPerformed = Common.Models.ActionPerformed.ArmorAbility;
         }
     }
 

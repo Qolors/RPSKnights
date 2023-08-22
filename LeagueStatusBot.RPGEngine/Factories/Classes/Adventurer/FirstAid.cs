@@ -7,13 +7,13 @@ namespace LeagueStatusBot.RPGEngine.Factories.Classes.Adventurer
         public FirstAid() 
         {
             Name = "First Aid";
-            Description = "Heals a target for 50% of your Max Health\n - Cooldown: 2 Turns";
+            Description = "Heals a target for 50% of your Max Health\n - Cooldown: 4 Turns";
             DamageType = DamageType.Heal;
         }
 
         public override float Activate(Being user, Being? target)
         {
-            if((int)(user.MaxHitPoints * 0.5f) > target?.MaxHitPoints)
+            if((int)(user.MaxHitPoints * 0.5f + target?.HitPoints) > target?.MaxHitPoints)
             {
                 target.HitPoints = target.MaxHitPoints;
             }
@@ -22,7 +22,9 @@ namespace LeagueStatusBot.RPGEngine.Factories.Classes.Adventurer
                 target.HitPoints += (int)(user.MaxHitPoints * 0.5f);
             }
 
-            Cooldown = 3;
+            Cooldown = 5;
+
+            user.LastActionPerformed = Common.Models.ActionPerformed.SecondAbility;
 
             return 0.0f;
         }

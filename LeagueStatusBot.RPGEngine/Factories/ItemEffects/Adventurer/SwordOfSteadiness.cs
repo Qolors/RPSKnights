@@ -46,6 +46,8 @@ namespace LeagueStatusBot.RPGEngine.Factories.ItemEffects.Adventurer
             being.BroadCast(this.Name);
             counter = 0; // Reset the counter
 
+            being.LastActionPerformed = Common.Models.ActionPerformed.WeaponAbility;
+
             IsUsed = true;
         }
     }

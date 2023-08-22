@@ -7,7 +7,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.Classes.Adventurer
         public ParryingStrike()
         {
             Name = "Parrying Strike";
-            Description = "A Defensive Strike - Dealing 0.5x Damage, but receive 25% Damage Reduction on Enemy Turns.\n\n - Cooldown: 1 Turn";
+            Description = "A Defensive Strike - Dealing 0.5x Damage, but receive 25% Damage Reduction on Enemy Turns.\n\n - Cooldown: 3 Turns";
             DamageType = DamageType.Normal;
 
         }
@@ -18,18 +18,20 @@ namespace LeagueStatusBot.RPGEngine.Factories.Classes.Adventurer
             {
                 Name = "Parrying Strike - 25% Damage Reduction",
                 Type = EffectType.DamageReduction,
-                Duration = 1,
+                Duration = 2,
                 ModifierAmount = 0.25f
             });
             
-            Cooldown = 2;
+            Cooldown = 4;
 
-            return 1 + (user.BaseStats.Strength * 0.05f);
+            user.LastActionPerformed = Common.Models.ActionPerformed.FirstAbility;
+
+            return (user.BasicAttack() / 2);
         }
 
         public override double ExpectedDamage(Being user)
         {
-            return Math.Round(1 + (double)(user.BaseStats.Strength * 0.05f), 2);
+            return Math.Round((double)(user.BasicAttack() / 2), 2);
         }
     }
 }

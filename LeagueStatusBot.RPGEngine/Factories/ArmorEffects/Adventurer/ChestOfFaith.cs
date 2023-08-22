@@ -16,6 +16,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.ArmorEffects.Adventurer
             float healingAmount = damage * 0.5f;
             self.TakeDamage(damage, DamageType.Normal, target);
             self.HealAOEDamage(healingAmount);
+            self.LastActionPerformed = Common.Models.ActionPerformed.ArmorAbility;
             IsUsed = true;
         }
     }
