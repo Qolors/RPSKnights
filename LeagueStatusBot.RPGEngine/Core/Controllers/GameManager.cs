@@ -13,7 +13,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         public bool IsGameStarted() => CurrentEncounter == null ? false : true;
 
         public event EventHandler GameStarted;
-        public event EventHandler<string?> GameEnded;
+        public event EventHandler<GameEndedEventArgs> GameEnded;
         public event EventHandler<string> GameEvent;
         public event EventHandler<CharacterDeathEventArgs> GameDeath;
         public event EventHandler<Being> TurnStarted;
@@ -29,6 +29,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             foreach(var being in beings)
             {
                 being.IsHuman = true;
+                being.InitializeAbilities();
                 party.AddPartyMember(being);
             }
 
@@ -47,18 +48,15 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
         public Being AssignRandomClass()
         {
+            //TODO --> CURRENTLY ONLY ADVENTURER ACTIVE
             return ClassFactory.CreateAdventurer();
-            switch (Random.Next(0, 3))
+            return Random.Next(0, 3) switch
             {
-                case 0:
-                    return ClassFactory.CreateVagabond();
-                case 1:
-                    return ClassFactory.CreateApprentice();
-                case 2:
-                    return ClassFactory.CreateAdventurer();
-                default:
-                    return ClassFactory.CreateAdventurer();
-            }
+                0 => ClassFactory.CreateVagabond(),
+                1 => ClassFactory.CreateApprentice(),
+                2 => ClassFactory.CreateAdventurer(),
+                _ => ClassFactory.CreateAdventurer(),
+            };
         }
 
         private async Task SpawnEncounterAsync()
@@ -94,9 +92,9 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             return party;
         }
 
-        private void OnEncounterEnded(object sender, EventArgs e)
+        private void OnEncounterEnded(object sender, GameEndedEventArgs e)
         {
-            GameEnded?.Invoke(sender, CurrentEncounter?.VictoryResult);
+            GameEnded?.Invoke(sender, e);
 
             CurrentEncounter.EncounterEnded -= OnEncounterEnded;
             CurrentEncounter.TurnStarted -= OnTurnStarted;
@@ -107,6 +105,8 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             CurrentEncounter.RoundStarted -= OnRoundStarted;
             CurrentEncounter.PartyMemberEffect -= OnPartyEffect;
             CurrentEncounter.PartyMemberEffectRemoval -= OnPartyEffectRemoval;
+
+            
 
             EventHistory.Clear();
 

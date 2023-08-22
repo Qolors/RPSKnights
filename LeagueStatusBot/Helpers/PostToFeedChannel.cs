@@ -101,7 +101,9 @@ namespace LeagueStatusBot.Helpers
 
             var channel = client.GetGuild(GUILD_ID).GetTextChannel(CHANNEL_ID);
 
-            await channel.ModifyMessageAsync(PortalMessage, msg => msg.Content = message);
+            await channel?.ModifyMessageAsync(PortalMessage, msg => { msg.Content = message; msg.Components = new ComponentBuilder().Build(); });
+            await Task.Delay(10000);
+            await channel?.DeleteMessageAsync(PortalMessage);
         }
 
         public static string GetHealthBar(int currentHealth, int maxHealth)

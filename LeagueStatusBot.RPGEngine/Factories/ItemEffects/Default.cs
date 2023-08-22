@@ -17,6 +17,10 @@ namespace LeagueStatusBot.RPGEngine.Factories.ItemEffects
         {
             // Do nothing
         }
+        public string PrintPassiveStatus()
+        {
+            return "This item does nothing.";
+        }
 
         public void OnExecutePassive(Being being)
         {

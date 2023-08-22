@@ -16,12 +16,12 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             MaxHitPoints = 20;
             BaseStats = new Stats
             {
-                Agility = 10,
-                Charisma = 10,
-                Endurance = 10,
+                Agility = 6,
+                Charisma = 6,
+                Endurance = 8,
                 Intelligence = 10,
-                Strength = 10,
-                Luck = 10
+                Strength = 14,
+                Luck = 6
             };
         }
     }

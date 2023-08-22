@@ -85,33 +85,33 @@ namespace LeagueStatusBot.Modules
                 .Build();
 
             var embed2 = new EmbedBuilder()
-                .WithTitle(player.Helm.ItemName)
+                .WithTitle(player.Helm.Name)
                 .WithThumbnailUrl(Context.User.GetDefaultAvatarUrl())
-                .WithDescription(player.Helm.Effect.Description)
+                .WithDescription(player.Helm.Description)
                 .Build();
 
             var embed6 = new EmbedBuilder()
-                .WithTitle(player.Chest.ItemName)
+                .WithTitle(player.Chest.Name)
                 .WithThumbnailUrl(Context.User.GetDefaultAvatarUrl())
-                .WithDescription(player.Chest.Effect.Description)
+                .WithDescription(player.Chest.Description)
                 .Build();
 
             var embed4 = new EmbedBuilder()
-                .WithTitle(player.Gloves.ItemName)
+                .WithTitle(player.Gloves.Name)
                 .WithThumbnailUrl(Context.User.GetDefaultAvatarUrl())
-                .WithDescription(player.Gloves.Effect.Description)
+                .WithDescription(player.Gloves.Description)
                 .Build();
 
             var embed7 = new EmbedBuilder()
-                .WithTitle(player.Legs.ItemName)
+                .WithTitle(player.Legs.Name)
                 .WithThumbnailUrl(Context.User.GetDefaultAvatarUrl())
-                .WithDescription(player.Legs.Effect.Description)
+                .WithDescription(player.Legs.Description)
                 .Build();
 
             var embed5 = new EmbedBuilder()
-                .WithTitle(player.Boots.ItemName)
+                .WithTitle(player.Boots.Name)
                 .WithThumbnailUrl(Context.User.GetDefaultAvatarUrl())
-                .WithDescription(player.Boots.Effect.Description)
+                .WithDescription(player.Boots.Description)
                 .Build();
 
             await FollowupAsync("**Aye..**", embeds: new Embed[] {embed, embed3, embed2, embed6, embed4, embed7, embed5}, ephemeral: true);
@@ -154,33 +154,33 @@ namespace LeagueStatusBot.Modules
                 .Build();
 
             var embed2 = new EmbedBuilder()
-                .WithTitle(player.Helm.ItemName)
+                .WithTitle(player.Helm.Name)
                 .WithThumbnailUrl(Context.User.GetDefaultAvatarUrl())
-                .WithDescription(player.Helm.Effect.Description)
+                .WithDescription(player.Helm.Description)
                 .Build();
 
             var embed6 = new EmbedBuilder()
-                .WithTitle(player.Chest.ItemName)
+                .WithTitle(player.Chest.Name)
                 .WithThumbnailUrl(Context.User.GetDefaultAvatarUrl())
-                .WithDescription(player.Chest.Effect.Description)
+                .WithDescription(player.Chest.Description)
                 .Build();
 
             var embed4 = new EmbedBuilder()
-                .WithTitle(player.Gloves.ItemName)
+                .WithTitle(player.Gloves.Name)
                 .WithThumbnailUrl(Context.User.GetDefaultAvatarUrl())
-                .WithDescription(player.Gloves.Effect.Description)
+                .WithDescription(player.Gloves.Description)
                 .Build();
 
             var embed7 = new EmbedBuilder()
-                .WithTitle(player.Legs.ItemName)
+                .WithTitle(player.Legs.Name)
                 .WithThumbnailUrl(Context.User.GetDefaultAvatarUrl())
-                .WithDescription(player.Legs.Effect.Description)
+                .WithDescription(player.Legs.Description)
                 .Build();
 
             var embed5 = new EmbedBuilder()
-                .WithTitle(player.Boots.ItemName)
+                .WithTitle(player.Boots.Name)
                 .WithThumbnailUrl(Context.User.GetDefaultAvatarUrl())
-                .WithDescription(player.Boots.Effect.Description)
+                .WithDescription(player.Boots.Description)
                 .Build();
 
             await FollowupAsync("**Aye..**", embeds: new Embed[] { embed, embed3, embed2, embed6, embed4, embed7, embed5 }, ephemeral: false);

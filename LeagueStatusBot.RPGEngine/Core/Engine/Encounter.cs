@@ -15,7 +15,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         private TaskCompletionSource tcsPlayerAction;
 
         public event EventHandler EncounterStarted;
-        public event EventHandler EncounterEnded;
+        public event EventHandler<GameEndedEventArgs> EncounterEnded;
 
         public event EventHandler<Being> TurnStarted;
         public event EventHandler TurnEnded;
@@ -40,12 +40,14 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             PlayerParty.PartyMemberDeath += OnPartyMemberDeath;
             PlayerParty.PartyMemberEffectApplied += OnPartyMemberEffectApplied;
             PlayerParty.PartyMemberEffectRemoved += OnPartyMemberEffectRemoved;
+            PlayerParty.PartyMemberAOEHealDone += OnPartyMemberAOEHealDone;
 
             EncounterParty.PartyEvent += OnPartyAction;
             EncounterParty.PartyMemberAOEDamageDone += OnPartyMemberAOEDamageDone;
             EncounterParty.PartyMemberDeath += OnPartyMemberDeath;
             EncounterParty.PartyMemberEffectApplied += OnPartyMemberEffectApplied;
             EncounterParty.PartyMemberEffectRemoved += OnPartyMemberEffectRemoved;
+            EncounterParty.PartyMemberAOEHealDone += OnPartyMemberAOEHealDone;
 
             EncounterStarted?.Invoke(this, EventArgs.Empty);
 
@@ -101,7 +103,17 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
                 {
                     if (!CurrentTurn.ActiveEffects.Any(a => a.Type == EffectType.Stun))
                     {
-                        CurrentTurn.AttackTarget();
+                        if (CurrentTurn.Target.IsHuman && CurrentTurn.Target.AnyArmorUnused())
+                        {
+                            TurnStarted?.Invoke(this, CurrentTurn.Target);
+                            await ProcessDefenseTurn();
+                            CurrentTurn.AttackTarget();
+                        }
+                        else
+                        {
+                            CurrentTurn.AttackTarget();
+                        }
+                        
                     }
                 }
             }
@@ -160,13 +172,46 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
                 {
                     if (member.IsAlive && member.Name != being.Name)
                     {
-                        member.TakeDamage(e, DamageType.Normal);
+                        member.TakeDamage(e, DamageType.Normal, being);
                     }
                     
                 }
                 PartyMemberAOEDamageDone?.Invoke(PlayerParty, e);
             }
             //TODO --> IMPLEMENT ENEMY
+        }
+
+        public void OnPartyMemberAOEHealDone(object sender, float e)
+        {
+            Being being = (Being)sender;
+
+            if (PlayerParty.Members.Contains(being))
+            {
+                foreach (var member in PlayerParty.Members)
+                {
+                    if (member.IsAlive && member.Name != being.Name)
+                    {
+                        member.Heal(e);
+                    }
+                }
+            }
+        }
+
+        public async Task ProcessDefenseTurn()
+        {
+            tcsPlayerAction = new TaskCompletionSource();
+
+            var timeout = Task.Delay(TimeSpan.FromSeconds(30));
+            var completedTask = await Task.WhenAny(tcsPlayerAction.Task, timeout);
+
+            if (completedTask == timeout)
+            {
+                
+            }
+            else if (completedTask == tcsPlayerAction.Task)
+            {
+                
+            }
         }
 
         private async Task TakeTurn()
@@ -270,7 +315,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             PlayerParty = null;
             EncounterParty = null;
 
-            EncounterEnded?.Invoke(this, EventArgs.Empty);
+            
         }
 
         private void DetermineRewards()
@@ -278,10 +323,12 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             if (PlayerParty.IsAlive)
             {
                 VictoryResult = "Your Party has won!";
+                EncounterEnded?.Invoke(this, new GameEndedEventArgs(PlayerParty.Members, true));
             }
             else if (EncounterParty.IsAlive)
             {
                 VictoryResult = "Your Party has been defeated..";
+                EncounterEnded?.Invoke(this, new GameEndedEventArgs(PlayerParty.Members, false));
             }
         }
     }

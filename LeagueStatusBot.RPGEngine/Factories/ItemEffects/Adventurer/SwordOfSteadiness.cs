@@ -14,7 +14,10 @@ namespace LeagueStatusBot.RPGEngine.Factories.ItemEffects.Adventurer
         public string Description { get; set; } = "After three consecutive turns without taking damage, your next attack is a guaranteed super critical.";
         public bool IsUsed { get; set; } = false;
         private int counter = 0;
-
+        public string PrintPassiveStatus()
+        {
+            return $"Current Consecutive Turns Without Taking Damage: {counter}/3";
+        }
         public void Register(Being being)
         {
             being.OnDamageGiven += OnExecutePassive;

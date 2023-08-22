@@ -50,6 +50,18 @@ namespace LeagueStatusBot.RPGEngine.Data.Repository
             return AddItem(newItem);
         }
 
+        public ArmorEffectEntity GenerateRandomChestArmor()
+        {
+            var randomEffect = GetRandomArmorEffect();
+            return randomEffect;
+
+        }
+
+        public ArmorEffectEntity? GetArmorFromId(int id)
+        {
+            return _context.ArmorEffects.FirstOrDefault(x => x.EffectId == id);
+        }
+
         public ItemEntity? GetItemFromEntityId(int id)
         {
             return _context.Items.FirstOrDefault(x => x.ItemId == id);
@@ -57,11 +69,18 @@ namespace LeagueStatusBot.RPGEngine.Data.Repository
 
         private ItemEffectEntity GetRandomEffect()
         {
-            int[] numbers = { 2, 3, 4 };
             var effects = _context.ItemEffects.ToList();
             var random = new Random();
-            var randomEffect = effects[random.Next(2, numbers.Length)];
+            var randomEffect = effects[random.Next(1, effects.Count)];
 
+            return randomEffect;
+        }
+
+        private ArmorEffectEntity GetRandomArmorEffect()
+        {
+            var effects = _context.ArmorEffects.ToList();
+            var random = new Random();
+            var randomEffect = effects[random.Next(1, effects.Count)];
             return randomEffect;
         }
 

@@ -3,6 +3,8 @@ using LeagueStatusBot.RPGEngine.Factories;
 using LeagueStatusBot.RPGEngine.Data.Entities;
 using LeagueStatusBot.RPGEngine.Data.Repository;
 using System.Collections.Generic;
+using LeagueStatusBot.RPGEngine.Factories.ArmorEffects;
+using System;
 
 namespace LeagueStatusBot.Helpers
 {
@@ -11,12 +13,14 @@ namespace LeagueStatusBot.Helpers
         private static PlayerRepository playerRepository;
         private static ItemRepository itemRepository;
         private static ItemEffectFactory itemEffectFactory;
+        private static ArmorEffectFactory armorEffectFactory;
 
         public static void Initialize(PlayerRepository playerRepo, ItemRepository itemRepo)
         {
             playerRepository = playerRepo;
             itemRepository = itemRepo;
             itemEffectFactory = new ItemEffectFactory();
+            armorEffectFactory = new ArmorEffectFactory();
         }
         public static Being BeingEntityToDomainModel(this BeingEntity beingEntity)
         {
@@ -40,11 +44,11 @@ namespace LeagueStatusBot.Helpers
             being.DiscordId = beingEntity.DiscordId;
             being.MaxHitPoints = beingEntity.MaxHitPoints;
             being.HitPoints = beingEntity.MaxHitPoints;
-            being.Helm = ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(1));
-            being.Chest = ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(1));
-            being.Gloves = ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(1));
-            being.Boots = ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(1));
-            being.Legs = ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(1));
+            being.Helm = ArmorEffectEntityToDomainModel(itemRepository.GetArmorFromId(beingEntity.Helm));
+            being.Chest = ArmorEffectEntityToDomainModel(itemRepository.GetArmorFromId(beingEntity.Chest));
+            being.Gloves = ArmorEffectEntityToDomainModel(itemRepository.GetArmorFromId(beingEntity.Gloves));
+            being.Boots = ArmorEffectEntityToDomainModel(itemRepository.GetArmorFromId(beingEntity.Boots));
+            being.Legs = ArmorEffectEntityToDomainModel(itemRepository.GetArmorFromId(beingEntity.Legs));
             being.Weapon = ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(beingEntity.Weapon));
             being.Name = beingEntity.Name;
             being.ClassName = beingEntity.ClassName;
@@ -61,11 +65,11 @@ namespace LeagueStatusBot.Helpers
             {
                 DiscordId = being.DiscordId,
                 Weapon = being.Weapon.ItemId,
-                Helm = being.Helm.ItemId,
-                Chest = being.Chest.ItemId,
-                Gloves = being.Gloves.ItemId,
-                Boots = being.Boots.ItemId,
-                Legs = being.Legs.ItemId,
+                Helm = being.Helm.EffectId,
+                Chest = being.Chest.EffectId,
+                Gloves = being.Gloves.EffectId,
+                Boots = being.Boots.EffectId,
+                Legs = being.Legs.EffectId,
                 Name = being.Name,
                 ClassName = being.ClassName,
                 Strength = being.BaseStats.Strength,
@@ -79,6 +83,25 @@ namespace LeagueStatusBot.Helpers
             };
 
             return beingEntity;
+        }
+
+        public static IArmorEffect ArmorEffectEntityToDomainModel(this ArmorEffectEntity armorEntity)
+        {
+            Console.WriteLine(armorEntity.Name);
+            Console.WriteLine(armorEntity.EffectId.ToString());
+            return armorEffectFactory.GetEffect(armorEntity.EffectId);
+        }
+
+        public static ArmorEffectEntity ArmorToArmorEntity(this IArmorEffect armorEffect)
+        {
+            Console.WriteLine(armorEffect.EffectId.ToString());
+            return new ArmorEffectEntity
+            {
+                Description = armorEffect.Description,
+                EffectFor = armorEffect.EffectFor,
+                EffectId = armorEffect.EffectId,
+                Name = armorEffect.Name,
+            };
         }
 
         public static ItemEntity ItemToEntityModel(this Item item)

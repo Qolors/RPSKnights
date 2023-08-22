@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using LeagueStatusBot.Common.Models;
 using LeagueStatusBot.Modules;
 using LeagueStatusBot.RPGEngine.Core.Engine;
 using Microsoft.Extensions.DependencyInjection;
@@ -103,6 +104,14 @@ namespace LeagueStatusBot.Services
                     await HandleTurnActionAsync(component, "weapon-active");
                     break;
 
+                case "chest-ability":
+                    await HandleDefenseActionAsync(component, "chest-ability");
+                    break;
+
+                case "take-damage":
+                    await HandleDefenseActionAsync(component, "take-damage");
+                    break;
+
                 default:
                     break;
             }
@@ -115,6 +124,10 @@ namespace LeagueStatusBot.Services
             {
                 case "target-select":
                     await HandleTargetSelectAsync(args);
+                    break;
+
+                case "skill-select":
+                    await HandleSkillSelectAsync(args);
                     break;
 
                 default:
@@ -140,6 +153,50 @@ namespace LeagueStatusBot.Services
                 await gameControllerService.HandleActionAsync(args, selectedAttack);
             }
         }
+
+        private async Task HandleSkillSelectAsync(SocketMessageComponent args)
+        {
+            var text = args.Data.Values.First().Split("&");
+            _ = ulong.TryParse(text[1], out ulong discId);
+            if (discId != args.User.Id)
+            {
+                await args.RespondAsync("Not for you!", ephemeral: true);
+                return;
+            }
+
+            string skill = text[0];
+
+            switch (skill)
+            {
+                case "strength":
+                    gameControllerService.UpdateBeing(gameControllerService.GetCharacterInfo(args.User.Id), Skill.Strength);
+                    break;
+
+                case "agility":
+                    gameControllerService.UpdateBeing(gameControllerService.GetCharacterInfo(args.User.Id), Skill.Agility);
+                    break;
+
+                case "intelligence":
+                    gameControllerService.UpdateBeing(gameControllerService.GetCharacterInfo(args.User.Id), Skill.Intelligence);
+                    break;
+
+                case "luck":
+                    gameControllerService.UpdateBeing(gameControllerService.GetCharacterInfo(args.User.Id), Skill.Luck);
+                    break;
+
+                case "endurance":
+                    gameControllerService.UpdateBeing(gameControllerService.GetCharacterInfo(args.User.Id), Skill.Endurance);
+                    break;
+
+                case "charisma":
+                    gameControllerService.UpdateBeing(gameControllerService.GetCharacterInfo(args.User.Id), Skill.Charisma);
+                    break;
+            }
+
+            await args.RespondAsync("Stats Updated or some shit");
+        }
+
+        
 
         private async Task HandleJoinParty(SocketMessageComponent args)
         {
@@ -217,8 +274,14 @@ namespace LeagueStatusBot.Services
             }
         }
 
-        
+        private async Task HandleDefenseActionAsync(SocketMessageComponent component, string attack)
+        {
+            await gameControllerService.HandleDefenseAsync(component, attack);
+        }
 
-        
+
+
+
+
     }
 }

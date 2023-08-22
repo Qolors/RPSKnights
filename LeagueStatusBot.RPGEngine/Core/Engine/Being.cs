@@ -1,6 +1,8 @@
 ﻿
 
+using LeagueStatusBot.RPGEngine.Factories.ArmorEffects;
 using LeagueStatusBot.RPGEngine.Factories.ItemEffects;
+using System.Reflection;
 
 namespace LeagueStatusBot.RPGEngine.Core.Engine
 {
@@ -9,11 +11,12 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public string Name { get; set; }
         public string ClassName { get; set; }
         public Item Weapon { get; set; }
-        public Item Helm { get; set; }
-        public Item Chest { get; set; }
-        public Item Gloves { get; set; }
-        public Item Boots { get; set; }
-        public Item Legs { get; set; }
+        public IArmorEffect Helm { get; set; }
+        public IArmorEffect Chest { get; set; }
+        public IArmorEffect Gloves { get; set; }
+        public IArmorEffect Boots { get; set; }
+        public IArmorEffect Legs { get; set; }
+        public IArmorEffect ActiveDefenseItem { get; set; } = null;
         public List<Item> Inventory { get; set; }
         public int HitPoints { get; set; }
         public int MaxHitPoints { get; set; }
@@ -35,6 +38,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
         public event EventHandler<string> ActionPerformed;
         public event EventHandler<float> AoeDamagePerformed;
+        public event EventHandler<float> AoeHealPerformed;
         public event EventHandler<string> DamageTaken;
         public event EventHandler<string> EffectApplied;
         public event EventHandler<string> EffectRemoved;
@@ -43,6 +47,28 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public Action<Being> OnDamageTaken;
 
         public event EventHandler Killed;
+
+        public bool AnyArmorUnused()
+        {
+            var properties = GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+            foreach (var prop in properties)
+            {
+                if (prop.PropertyType == typeof(IArmorEffect))
+                {
+                    var armorEffect = (IArmorEffect)prop.GetValue(this);
+                    if (armorEffect != null && !armorEffect.IsUsed)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        public void InitializeAbilities()
+        {
+            Weapon.Effect.Register(this);
+        }
 
         public virtual float BasicAttack(float strAdRatio = 1.0f)
         {
@@ -75,7 +101,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
             Weapon.Effect.OnExecuteActive(this);
 
-            this.Target?.TakeDamage(CurrentDamage, DamageType.Normal);
+            this.Target?.TakeDamage(CurrentDamage, DamageType.Normal, this);
 
             CurrentDamage = 0;
         }
@@ -91,11 +117,11 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
             OnDamageGiven?.Invoke(this);
 
-            this.Target?.TakeDamage(abilityDmg, ability.DamageType);
+            this.Target?.TakeDamage(abilityDmg, ability.DamageType, this);
         }
 
 
-        public virtual void TakeDamage(float enemyDamageRoll, DamageType dmgType)
+        public virtual void TakeDamage(float enemyDamageRoll, DamageType dmgType, Being enemy)
         {
             //BEFORE MODIFICATIONS MADE
             float modifiedDmg = GetModifiedDamage(enemyDamageRoll, dmgType);
@@ -105,7 +131,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
                 return;
             }
             //AFTER MODIFICATIONS MADE
-            ApplyDamage(modifiedDmg);
+            ApplyDamage(modifiedDmg, enemy);
         }
 
         private float GetModifiedDamage(float damage, DamageType dmgType)
@@ -129,11 +155,18 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             return reducedDamage * (1 - DefenseModifier() / 100f);
         }
 
-        private void ApplyDamage(float damage)
+        private void ApplyDamage(float damage, Being enemy)
         {
             int finalDamage = Convert.ToInt32(Math.Max(0, damage));
 
             OnDamageTaken?.Invoke(this);
+
+            if (ActiveDefenseItem != null)
+            {
+                ActiveDefenseItem.ActivateArmor(this, enemy, finalDamage);
+                ActiveDefenseItem = null;
+                return;
+            }
 
             HitPoints -= finalDamage;
 
@@ -156,7 +189,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             return damage;
         }
 
-        public virtual void TakeEffectDamage(float effectDamage, EffectType effectType)
+        public virtual void TakeEffect(float effectDamage, EffectType effectType)
         {
 
             if (effectType == EffectType.Bleed)
@@ -209,7 +242,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
             OnDamageGiven?.Invoke(this);
 
-            Target.TakeDamage(CurrentDamage, DamageType.Normal);
+            Target.TakeDamage(CurrentDamage, DamageType.Normal, this);
         }
 
         public void AddEffect(Effect effect)
@@ -244,7 +277,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
                 }
                 else
                 {
-                    TakeEffectDamage(ActiveEffects[i].ModifierAmount, ActiveEffects[i].Type);
+                    TakeEffect(ActiveEffects[i].ModifierAmount, ActiveEffects[i].Type);
 
                     ActiveEffects[i].Duration--;
 
@@ -273,6 +306,18 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         {
             ActionPerformed?.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: AOE Hit!");
             AoeDamagePerformed?.Invoke(this, dmg);
+        }
+
+        public void HealAOEDamage(float dmg)
+        {
+            AoeHealPerformed?.Invoke(this, dmg);
+        }
+
+        public void Heal(float heal)
+        {
+            HitPoints += (int)heal;
+            if (HitPoints > MaxHitPoints) HitPoints = MaxHitPoints;
+            ActionPerformed?.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: Healed {heal} HP!");
         }
 
         public void BroadCast(string effect)

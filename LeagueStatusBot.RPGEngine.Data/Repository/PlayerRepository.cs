@@ -121,10 +121,7 @@ namespace LeagueStatusBot.RPGEngine.Data.Repository
                 return null; // Player not found
             }
 
-            if (player.Inventory == null)
-            {
-                player.Inventory = new List<int>();
-            }
+            player.Inventory ??= new List<int>();
 
             if (!player.Inventory.Contains(itemId))
             {
