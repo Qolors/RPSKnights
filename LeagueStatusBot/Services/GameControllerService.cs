@@ -77,8 +77,8 @@ namespace LeagueStatusBot.Services
         private double GetRandomInterval()
         {
             const double twoMinutesInMilliseconds = 300000; // 2 minutes
-            const double oneMinuteInMilliseconds = 300000;   // 1 minute
-            return twoMinutesInMilliseconds + random.NextDouble() * oneMinuteInMilliseconds;
+            const double oneMinuteInMilliseconds = 60000;   // 1 minute
+            return twoMinutesInMilliseconds + (random.NextDouble() * oneMinuteInMilliseconds);
         }
 
         private async void OnLobbyOpen(object sender, ElapsedEventArgs e)
@@ -504,6 +504,13 @@ namespace LeagueStatusBot.Services
 
         public async Task HandleDefenseAsync(SocketMessageComponent component, string attackType)
         {
+            if (gameManager.CurrentEncounter == null)
+            {
+                await component.RespondAsync("The Encounter has ended.", ephemeral: true);
+                return;
+            }
+                
+
             if (!gameManager.CurrentEncounter.CurrentTurn.Target.IsHuman || gameManager.CurrentEncounter.CurrentTurn.Target.DiscordId != component.User.Id)
             {
                 await component.RespondAsync("It is not your turn!", ephemeral: true);
