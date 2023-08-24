@@ -21,7 +21,14 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public IArmorEffect ActiveDefenseItem { get; set; } = null;
         public List<Item> Inventory { get; set; }
         public int HitPoints { get; set; }
-        public int MaxHitPoints { get; set; }
+        public int MaxHitPoints 
+        { 
+            get 
+            {
+                return 30 + (BaseStats.Endurance * 5);
+            }
+
+        }
         public Stats BaseStats { get; set; } = new Stats();
         public ulong DiscordId { get; set; }
         public Ability FirstAbility { get; set; }
@@ -76,21 +83,18 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         {
             CurrentDamage = 0;
 
-            float dmg = 0.1f;
+            double baseDamage = 10.0; // Adjust as needed
+            double growthRate = 1.03; // Adjust as needed
+            CurrentDamage = (float)(baseDamage * Math.Pow(growthRate, BaseStats.Strength));
 
             // Effects
             foreach (Effect effect in ActiveEffects)
             {
                 if (effect.Type == EffectType.BasicDamageBoost)
                 {
-                    dmg += effect.ModifierAmount;
+                    CurrentDamage += effect.ModifierAmount;
                 }
             }
-
-            // Strength Modifier
-            dmg += BaseStats.Strength * 0.2f;
-
-            CurrentDamage =  dmg * strAdRatio;
 
             OnDamageGiven?.Invoke(this);
 

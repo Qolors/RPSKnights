@@ -17,14 +17,12 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public event EventHandler<float> PartyMemberAOEHealDone;
         public List<Being> Members { get; set; } = new List<Being>();
         public bool IsAlive => Members.Any(m => m.IsAlive);
-        public void AddPartyMember(ulong discordId, string name)
+        public int AverageGearScore()
         {
-            var player = new Player(discordId, name);
+            if (Members == null || Members.Count == 0) return 0;
 
-            player.DiscordId = discordId;
-            player.Name = name;
-
-            AddPartyMember(player);
+            int totalGearScore = Members.Sum(being => being.BaseStats.GearScore);
+            return totalGearScore / Members.Count;
         }
 
         public void AddPartyMember(Being being)

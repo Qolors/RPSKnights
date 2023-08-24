@@ -9,10 +9,11 @@ namespace LeagueStatusBot.RPGEngine.Data.Contexts
         public DbSet<ItemEntity> Items { get; set; }
         public DbSet<ItemEffectEntity> ItemEffects { get; set; }
         public DbSet<ArmorEffectEntity> ArmorEffects { get; set; }
+        public DbSet<LootEntity> Loot { get; set; }
 
         public GameDbContext(DbContextOptions<GameDbContext> options) : base(options) { }
 
-        //USE WHEN PERFORMING A MIGRATION
+        //USE WHEN PERFORMING A MIGRATION THROUGH CLI
         private static DbContextOptions GetOptions()
         {
             var optionsBuilder = new DbContextOptionsBuilder<GameDbContext>();
@@ -25,6 +26,7 @@ namespace LeagueStatusBot.RPGEngine.Data.Contexts
             modelBuilder.Entity<ItemEntity>().HasKey(x => x.ItemId);
             modelBuilder.Entity<ItemEffectEntity>().HasKey(x => x.EffectId);
             modelBuilder.Entity<ArmorEffectEntity>().HasKey(x => x.EffectId);
+            modelBuilder.Entity<LootEntity>().HasKey(x => x.DiscordId);
             modelBuilder.Entity<BeingEntity>().HasKey(x => x.DiscordId);
             modelBuilder.Entity<BeingEntity>()
                 .Property(e => e.Inventory)

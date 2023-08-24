@@ -16,10 +16,14 @@ namespace LeagueStatusBot.Modules
     {
         private GameControllerService gameControllerService;
         private DiscordSocketClient client;
-        private const string emoji = "\u2694\uFE0F";
-        public RPGModule(GameControllerService gameControllerService, DiscordSocketClient client)
-        {
+        private ItemRepository itemRepository;
+        private PlayerRepository playerRepository;
 
+        private const string emoji = "\u2694\uFE0F";
+        public RPGModule(GameControllerService gameControllerService, DiscordSocketClient client, ItemRepository itemRepository, PlayerRepository playerRepository)
+        {
+            this.playerRepository = playerRepository;
+            this.itemRepository = itemRepository;
             this.gameControllerService = gameControllerService;
             this.client = client;
         }
@@ -184,6 +188,39 @@ namespace LeagueStatusBot.Modules
                 .Build();
 
             await FollowupAsync("**Aye..**", embeds: new Embed[] { embed, embed3, embed2, embed6, embed4, embed7, embed5 }, ephemeral: false);
+        }
+
+        [SlashCommand("useshard", "Break open an Item Shard, Conjuring a random item.")]
+        public async Task RollAnItem()
+        {
+            await DeferAsync(true);
+
+            if (!gameControllerService.CheckIfPlayerExists(Context.User.Id))
+            {
+                await FollowupAsync("You don't have a character created!", ephemeral: true);
+                return;
+            }
+
+            if (!playerRepository.SubtractFromPlayerLootTable(Context.User.Id))
+            {
+                await FollowupAsync("You don't have any Item Shards to break!", ephemeral: true);
+                return;
+            }
+
+            var beingEnt = playerRepository.GetBeingByDiscordId(Context.User.Id);
+
+            if (new Random().Next(2) == 0)
+            {
+                var chest = Mapper.ArmorEffectEntityToDomainModel(itemRepository.GenerateRandomChestArmor());
+                PostToFeedChannel.MessageCache.Add((await FollowupAsync(embed: PostToFeedChannel.ShowArmorPiece(chest), components: PostToFeedChannel.ArmorButtons(chest, beingEnt.DiscordId))).Id);
+            }
+            else
+            {
+                var weapon = Mapper.ItemEntityToDomainModel(itemRepository.GenerateRandomWeapon());
+                PostToFeedChannel.MessageCache.Add((await FollowupAsync(embed: PostToFeedChannel.ShowWeaponPiece(weapon), components: PostToFeedChannel.WeaponButtons(weapon, beingEnt.DiscordId))).Id);
+            }
+
+
         }
     }
 }

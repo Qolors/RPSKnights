@@ -18,7 +18,8 @@ namespace LeagueStatusBot.RPGEngine.Factories.ArmorEffects.Adventurer
         public void ActivateArmor(Being self, Being? target, float damage)
         {
             self.BroadCast("Mystical Vestment - Redirecting damage back to attacker");
-            target?.TakeDamage(damage, DamageType.Magic, self); // Assumes you have a method to differentiate physical vs. magic damage
+            damage = damage + (self.BaseStats.Intelligence * 0.2f);
+            target?.TakeDamage(damage, DamageType.Magic, self);
             self.LastActionPerformed = Common.Models.ActionPerformed.ArmorAbility;
             IsUsed = true;
         }

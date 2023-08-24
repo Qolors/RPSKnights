@@ -42,8 +42,7 @@ namespace LeagueStatusBot.Helpers
             };
 
             being.DiscordId = beingEntity.DiscordId;
-            being.MaxHitPoints = beingEntity.MaxHitPoints;
-            being.HitPoints = beingEntity.MaxHitPoints;
+            being.HitPoints = being.MaxHitPoints;
             being.Helm = ArmorEffectEntityToDomainModel(itemRepository.GetArmorFromId(beingEntity.Helm));
             being.Chest = ArmorEffectEntityToDomainModel(itemRepository.GetArmorFromId(beingEntity.Chest));
             being.Gloves = ArmorEffectEntityToDomainModel(itemRepository.GetArmorFromId(beingEntity.Gloves));

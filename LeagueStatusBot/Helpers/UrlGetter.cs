@@ -30,7 +30,8 @@ namespace LeagueStatusBot.Helpers
                 { "Bulwark Breastplate", "https://i.imgur.com/ej8vREr.png" },
                 { "Chest of Faith", "https://i.imgur.com/BRDc63M.png" },
                 { "Mystical Vestment", "https://i.imgur.com/a11ehRq.png" },
-                { "Basic", "https://i.imgur.com/kTaaNAY.png" }
+                { "Basic", "https://i.imgur.com/kTaaNAY.png" },
+                { "Default","https://i.imgur.com/kTaaNAY.png" }
             };
 
             WeaponUrls = new Dictionary<string, string>

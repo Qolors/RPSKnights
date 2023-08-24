@@ -203,7 +203,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         {
             tcsPlayerAction = new TaskCompletionSource();
 
-            var timeout = Task.Delay(TimeSpan.FromSeconds(30));
+            var timeout = Task.Delay(TimeSpan.FromSeconds(10));
             var completedTask = await Task.WhenAny(tcsPlayerAction.Task, timeout);
 
             if (completedTask == timeout)
@@ -265,11 +265,12 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         {
             tcsPlayerAction = new TaskCompletionSource();
 
-            var timeout = Task.Delay(TimeSpan.FromSeconds(30));
+            var timeout = Task.Delay(TimeSpan.FromSeconds(15));
             var completedTask = await Task.WhenAny(tcsPlayerAction.Task, timeout);
 
             if (completedTask == timeout)
             {
+                await ProcessTurnAsync();
                 TurnEnded?.Invoke(this, EventArgs.Empty);
                 await Task.Delay(3000);
                 await OnTurnEnded(this, EventArgs.Empty); // Directly call the method here

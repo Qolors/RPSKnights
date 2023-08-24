@@ -1,3 +1,5 @@
-Database Integration - CREATE/UPDATE/REMOVE
-Weapon/Armor Item Generation
-Quest (Boss Fight) Progression implementation
+Implement Default targeting when only 1 target is available
+implement enemy power scaling
+implement monster abilities/new player abilities
+install James' item/weapon list
+proper Max Health scaling with Endurance

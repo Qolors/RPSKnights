@@ -13,6 +13,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.ItemEffects.Adventurer
         public string Name { get; set; } = "Sword of Steadiness";
         public string Description { get; set; } = "After three consecutive turns without taking damage, your next attack is a guaranteed super critical.";
         public bool IsUsed { get; set; } = false;
+
         private int counter = 0;
         public string PrintPassiveStatus()
         {
@@ -27,10 +28,11 @@ namespace LeagueStatusBot.RPGEngine.Factories.ItemEffects.Adventurer
         public void OnExecutePassive(Being being)
         {
             counter++;
+
             if (counter >= 3)
             {
                 being.CurrentDamage *= 2; // Double the damage for critical hit
-                counter = 0; // Reset the counter
+                counter = 0;
             }
         }
 
@@ -42,7 +44,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.ItemEffects.Adventurer
         public void OnExecuteActive(Being being)
         {
             being.OnDamageGiven -= OnExecutePassive;
-            being.CurrentDamage *= 3; // Triple the damage for this turn
+            being.CurrentDamage += 1 + (being.CurrentDamage * counter);
             being.BroadCast(this.Name);
             counter = 0; // Reset the counter
 

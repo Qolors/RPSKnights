@@ -15,15 +15,75 @@ namespace LeagueStatusBot.RPGEngine.Data.Repository
         public bool Exists(ulong key)
         {
             return dbContext
-                .Set<BeingEntity>()
-                .Any(e => e.DiscordId == key);
+                .Set<BeingEntity>().Any(e => e.DiscordId == key);
+        }
+
+        public LootEntity GetPlayerLootTable(ulong key)
+        {
+            return dbContext
+                .Loot.SingleOrDefault(b => b.DiscordId == key);
+        }
+
+        public int GetLootCount(ulong key)
+        {
+            if (!HasLootTableCreated(key))
+            {
+                AddPlayerLootTable(key);
+            }
+
+            return dbContext
+                .Loot.SingleOrDefault(b => b.DiscordId == key).LootCount;
+        }
+
+        public bool HasLootTableCreated(ulong key)
+        {
+            return dbContext
+                .Set<LootEntity>().Any(e => e.DiscordId == key);
+        }
+
+        public void AddPlayerLootTable(ulong key)
+        {
+            dbContext.Loot.Add(new LootEntity { DiscordId = key, LootCount = 0 });
+            dbContext.SaveChanges();
+        }
+
+        public void AddToPlayerLootTable(ulong key)
+        {
+            if (!HasLootTableCreated(key))
+            {
+                AddPlayerLootTable(key);
+            }
+
+            var playerLoot = GetPlayerLootTable(key);
+            playerLoot.LootCount++;
+
+            dbContext.SaveChanges();
+        }
+
+        public bool SubtractFromPlayerLootTable(ulong key)
+        {
+            if (!HasLootTableCreated(key))
+            {
+                return false;
+            }
+
+            var playerLoot = GetPlayerLootTable(key);
+
+            if (playerLoot.LootCount <= 0)
+            {
+                return false;
+            }
+
+            playerLoot.LootCount--;
+            dbContext.SaveChanges();
+
+            return true;
         }
 
         public BeingEntity? GetBeingByDiscordId(ulong key)
         {
             return dbContext
-                .Beings
-                .SingleOrDefault(b => b.DiscordId == key);
+                .Beings.SingleOrDefault(b => b.DiscordId == key);
         }
 
         public void UpdatePlayerStats(ulong discordId, int strength, int luck, int endurance, int charisma, int intelligence, int agility)

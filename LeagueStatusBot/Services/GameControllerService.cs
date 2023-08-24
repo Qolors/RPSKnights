@@ -202,15 +202,19 @@ namespace LeagueStatusBot.Services
                         .AddOption($"Charisma ({member.BaseStats.Charisma}) + 1", $"charisma&{member.DiscordId}")
                         .AddOption($"Agility ({member.BaseStats.Agility}) + 1", $"agility&{member.DiscordId}")
                         .AddOption($"Endurance ({member.BaseStats.Endurance}) + 1", $"endurance&{member.DiscordId}")
-                        .AddOption($"Luck ({member.BaseStats.Luck}) + 1", "luck&{member.DiscordId}")
+                        .AddOption($"Luck ({member.BaseStats.Luck}) + 1", $"luck&{member.DiscordId}")
                         .AddOption($"Intelligence ({member.BaseStats.Intelligence}) + 1", $"intelligence&{member.DiscordId}");
                     var comp = new ComponentBuilder()
                         .WithSelectMenu(menu);
 
 
                     await PostToFeedChannel.SendSkillUpMessage($"**{member.Name}** has earned themselves a skill point.", client, embeds: new[] { embed }, messageComponent: comp.Build());
+                    await Task.Run(() => playerRepository.AddToPlayerLootTable(member.DiscordId));
+                    await PostToFeedChannel.SendChannelMessage($"**{member.Name}** has discovered an Item Shard! Added to Inventory.", client);
                 }
             }
+
+            await Task.Run(CleanUp);
 
             timer = new Timer(GetRandomInterval());
             timer.Elapsed += OnLobbyOpen;
@@ -218,8 +222,19 @@ namespace LeagueStatusBot.Services
             timer.Start();
         }
 
-        public async Task UpdateBeing(Being being, Skill skill)
+        private async Task CleanUp()
         {
+            Console.WriteLine("Cleaning up..");
+            PostToFeedChannel.MessageCache.Add(TurnEvenHistoryMessagedId);
+            PostToFeedChannel.MessageCache.Add(TurnRequestMessageId);
+            await Task.Run(() => PostToFeedChannel.Flush(client));
+        }
+
+        public async Task UpdateBeing(ulong id, Skill skill)
+        {
+
+            Being being = this.GetCharacterInfo(id);
+
             switch (skill)
             {
                 case Skill.Strength:
@@ -242,7 +257,7 @@ namespace LeagueStatusBot.Services
                     break;
             }
 
-            Console.WriteLine("Pushing Update");
+            Console.WriteLine($"Pushing Update for {being.Name}");
 
             await Task.Run(() => playerRepository.UpdatePlayerStats(being.DiscordId, being.BaseStats.Strength, being.BaseStats.Luck, being.BaseStats.Endurance, being.BaseStats.Charisma, being.BaseStats.Intelligence, being.BaseStats.Agility));
 
@@ -567,8 +582,8 @@ namespace LeagueStatusBot.Services
         {
             var being = gameManager.AssignRandomClass();
             being.Helm = Mapper.ArmorEffectEntityToDomainModel(itemRepository.GetArmorFromId(1));
-            being.Weapon = Mapper.ItemEntityToDomainModel(itemRepository.GenerateRandomWeapon());
-            being.Chest = Mapper.ArmorEffectEntityToDomainModel(itemRepository.GenerateRandomChestArmor());
+            being.Weapon = Mapper.ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(1));
+            being.Chest = Mapper.ArmorEffectEntityToDomainModel(itemRepository.GetArmorFromId(1));
             being.Gloves = Mapper.ArmorEffectEntityToDomainModel(itemRepository.GetArmorFromId(1));
             being.Boots = Mapper.ArmorEffectEntityToDomainModel(itemRepository.GetArmorFromId(1));
             being.Legs = Mapper.ArmorEffectEntityToDomainModel(itemRepository.GetArmorFromId(1));
@@ -576,7 +591,17 @@ namespace LeagueStatusBot.Services
             being.DiscordId = id;
             being.Inventory = new List<Item>();
 
+            if (!playerRepository.HasLootTableCreated(id))
+            {
+                playerRepository.AddPlayerLootTable(id);
+            }
+
             return playerRepository.AddPlayerByDiscordId(Mapper.BeingToEntityModel(being));
+        }
+
+        public void UpdatePlayerEquipment(ulong id, ItemType type, int itemId)
+        {
+            _ = playerRepository.UpdateEquipment(id, type, itemId);
         }
 
         public Being GetCharacterInfo(ulong id)

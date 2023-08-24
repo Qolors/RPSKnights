@@ -16,17 +16,8 @@ namespace LeagueStatusBot.RPGEngine.Factories.Classes.Adventurer
             ArmorClassValue = 0.2f;
             FirstAbility = new ParryingStrike();
             SecondAbility = new FirstAid();
-            MaxHitPoints = 30;
-            HitPoints = 30;
-            BaseStats = new()
-            {
-                Agility = 10,
-                Charisma = 10,
-                Luck = 10,
-                Endurance = 12,
-                Strength = 12,
-                Intelligence = 10,
-            };
+            BaseStats = new Stats();
+            HitPoints = MaxHitPoints;
         }
     }
 }

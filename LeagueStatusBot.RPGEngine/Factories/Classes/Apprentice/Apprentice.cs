@@ -15,17 +15,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.Classes.Apprentice
             ArmorClassValue = 0.1f;
             FirstAbility = new ArcaneBolt();
             SecondAbility = new MindSnap();
-            MaxHitPoints = 30;
-            HitPoints = 30;
-            BaseStats = new()
-            {
-                Agility = 10,
-                Charisma = 12,
-                Luck = 10,
-                Endurance = 10,
-                Strength = 10,
-                Intelligence = 12,
-            };
+            BaseStats = new();
         }
 
         public override float BasicAttack(float strAdRatio = 1)

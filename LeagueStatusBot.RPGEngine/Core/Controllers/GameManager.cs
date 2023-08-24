@@ -20,7 +20,6 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         public event EventHandler<TurnActionsEventArgs> TurnEnded;
         public event EventHandler RoundEnded;
         public event EventHandler RoundStarted;
-        private Random Random { get; set; } = new Random();
 
         public async Task StartGameAsync(List<Being> beings)
         {
@@ -36,7 +35,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             CurrentEncounter = new Encounter
             {
                 PlayerParty = party,
-                EncounterParty = GenerateMonsters()
+                EncounterParty = GenerateMonsters(party.Members.Count, party.AverageGearScore())
             };
 
             GameStarted?.Invoke(this, EventArgs.Empty);
@@ -50,13 +49,6 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         {
             //TODO --> CURRENTLY ONLY ADVENTURER ACTIVE
             return ClassFactory.CreateAdventurer();
-            return Random.Next(0, 3) switch
-            {
-                0 => ClassFactory.CreateVagabond(),
-                1 => ClassFactory.CreateApprentice(),
-                2 => ClassFactory.CreateAdventurer(),
-                _ => ClassFactory.CreateAdventurer(),
-            };
         }
 
         private async Task SpawnEncounterAsync()
@@ -81,13 +73,29 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             await CurrentEncounter.StartEncounterAsync();
         }
 
-        private Party GenerateMonsters()
+        private Party GenerateMonsters(int playerCount, int gearScore)
         {
-            // Logic to generate monsters for an encounter
             var party = new Party();
-            party.AddPartyMember(new Enemy("Bragore the Wretched"));
-            party.AddPartyMember(new Enemy("Lord Tusker"));
-            party.AddPartyMember(new Enemy("D the Lone Bumbis"));
+            // Logic to generate monsters for an encounter
+
+            Random rnd = new Random();
+
+            for (int i = 0; i < playerCount; i++)
+            {
+                int random = rnd.Next(3);
+                switch (random)
+                {
+                    case 0:
+                        party.AddPartyMember(new Enemy("Bragore the Wretched", gearScore));
+                        break;
+                    case 1:
+                        party.AddPartyMember(new Enemy("Lord Tusker", gearScore));
+                        break;
+                    case 2:
+                        party.AddPartyMember(new Enemy("D the Lone Bumbis", gearScore));
+                        break;
+                }
+            }
 
             return party;
         }

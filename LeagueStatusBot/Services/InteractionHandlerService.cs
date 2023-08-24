@@ -104,6 +104,7 @@ namespace LeagueStatusBot.Services
                     await HandleTurnActionAsync(component, "weapon-active");
                     break;
 
+                //HANDLE DEFENSE ACTIONS
                 case "chest-ability":
                     await HandleDefenseActionAsync(component, "chest-ability");
                     break;
@@ -112,10 +113,48 @@ namespace LeagueStatusBot.Services
                     await HandleDefenseActionAsync(component, "take-damage");
                     break;
 
+
+                //HANDLING LOOT DROPS
+                case "trash":
+                    await component.RespondAsync("Item Discarded, hehe!");
+                    break;
+
+                case string s when s.StartsWith("chest&"):
+                    await HandleLootDecision(component, s.Split("&"));
+                    break;
+
+                case string s when s.StartsWith("weapon&"):
+                    await HandleLootDecision(component, s.Split("&"));
+                    break;
+
                 default:
                     break;
             }
 
+        }
+
+        private async Task HandleLootDecision(SocketMessageComponent args, string[] data)
+        {
+            string lootType = data[0];
+            int id = int.Parse(data[1]);
+            ulong playerId = ulong.Parse(data[2]);
+
+            if (playerId != args.User.Id)
+            {
+                await args.RespondAsync("Not for you!", ephemeral: true);
+                return;
+            }
+
+            if (lootType == "chest")
+            {
+                gameControllerService.UpdatePlayerEquipment(playerId, ItemType.Chest, id);
+                await args.RespondAsync($"New Chest Piece Equipped!", ephemeral: true);
+            }
+            else if (lootType == "weapon")
+            {
+                gameControllerService.UpdatePlayerEquipment(playerId, ItemType.Weapon, id);
+                await args.RespondAsync($"New Weapon Equipped!", ephemeral: true);
+            }
         }
 
         private async Task HandleSelectMenuAsync(SocketMessageComponent args)
@@ -171,27 +210,27 @@ namespace LeagueStatusBot.Services
             switch (skill)
             {
                 case "strength":
-                    gameControllerService.UpdateBeing(gameControllerService.GetCharacterInfo(args.User.Id), Skill.Strength);
+                    await gameControllerService.UpdateBeing(args.User.Id, Skill.Strength);
                     break;
 
                 case "agility":
-                    gameControllerService.UpdateBeing(gameControllerService.GetCharacterInfo(args.User.Id), Skill.Agility);
+                    await gameControllerService.UpdateBeing(args.User.Id, Skill.Agility);
                     break;
 
                 case "intelligence":
-                    gameControllerService.UpdateBeing(gameControllerService.GetCharacterInfo(args.User.Id), Skill.Intelligence);
+                    await gameControllerService.UpdateBeing(args.User.Id, Skill.Intelligence);
                     break;
 
                 case "luck":
-                    gameControllerService.UpdateBeing(gameControllerService.GetCharacterInfo(args.User.Id), Skill.Luck);
+                    await gameControllerService.UpdateBeing(args.User.Id, Skill.Luck);
                     break;
 
                 case "endurance":
-                    gameControllerService.UpdateBeing(gameControllerService.GetCharacterInfo(args.User.Id), Skill.Endurance);
+                    await gameControllerService.UpdateBeing(args.User.Id, Skill.Endurance);
                     break;
 
                 case "charisma":
-                    gameControllerService.UpdateBeing(gameControllerService.GetCharacterInfo(args.User.Id), Skill.Charisma);
+                    await gameControllerService.UpdateBeing(args.User.Id, Skill.Charisma);
                     break;
             }
 
