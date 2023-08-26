@@ -168,6 +168,7 @@ namespace LeagueStatusBot.Services
                     .WithTitle(member.Name)
                     .AddField($"    Class: - {member.ClassName}", "..")
                     .AddField($"HitPoints: - {member.MaxHitPoints}/{member.MaxHitPoints}", "..")
+                    .AddField("Combat Description", $"-{member.FirstAbility.Description}\n-{member.SecondAbility.Description}")
                     .Build();
                 embeds.Add(embed);
             }
@@ -341,11 +342,20 @@ namespace LeagueStatusBot.Services
             }
             else
             {
+                var attackName = turnSummary.ActionPerformed switch
+                {
+                    ActionPerformed.BasicAttack => UrlGetter.GetAbilityImage("Basic"),
+                    ActionPerformed.FirstAbility => UrlGetter.GetAbilityImage(turnSummary.ActivePlayer.FirstAbility.Name),
+                    ActionPerformed.SecondAbility => UrlGetter.GetAbilityImage(turnSummary.ActivePlayer.SecondAbility.Name),
+                    ActionPerformed.ArmorAbility => UrlGetter.GetAbilityImage(turnSummary.ActivePlayer.Chest.Name),
+                    ActionPerformed.WeaponAbility => UrlGetter.GetAbilityImage(turnSummary.ActivePlayer.Weapon.Effect.Name),
+                };
+
                 var embed = new EmbedBuilder()
                 .WithColor(Color.Red)
                 .WithTitle(turnSummary.CombatLogs[0])
                 .WithThumbnailUrl(UrlGetter.GetMonsterPortrait(turnSummary.ActivePlayer.Name))
-                .WithImageUrl(UrlGetter.GetAbilityImage("Basic"))
+                .WithImageUrl(attackName)
                 .WithDescription(string.Join("\n", turnSummary.CombatLogs.Skip(1)));
 
                 if (TurnEvenHistoryMessagedId == 0)
@@ -409,7 +419,7 @@ namespace LeagueStatusBot.Services
                 Their HP: {attacker.HitPoints}/{attacker.MaxHitPoints}
                 
                 Their Active Effects:
-                {string.Join("\n", attacker.ActiveEffects.Select(x => x.Name))}
+                {string.Join("\n", attacker.ActiveEffects.Select(x => x.Name + " - " + x.Description))}
                 """);
             }
             else

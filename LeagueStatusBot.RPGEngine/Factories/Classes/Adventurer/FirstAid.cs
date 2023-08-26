@@ -16,10 +16,12 @@ namespace LeagueStatusBot.RPGEngine.Factories.Classes.Adventurer
             if((int)(user.MaxHitPoints * 0.5f + target?.HitPoints) > target?.MaxHitPoints)
             {
                 target.HitPoints = target.MaxHitPoints;
+                user.BroadCast($"{this.Name}, healing {target.Name} to full");
             }
             else
             {
                 target.HitPoints += (int)(user.MaxHitPoints * 0.5f);
+                user.BroadCast($"{this.Name}, healing {target.Name} for {(int)(user.MaxHitPoints * 0.5f)}");
             }
 
             Cooldown = 5;

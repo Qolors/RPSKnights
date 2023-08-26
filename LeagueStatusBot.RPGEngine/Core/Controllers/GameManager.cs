@@ -3,6 +3,8 @@ using LeagueStatusBot.RPGEngine.Core.Engine;
 using System.Linq;
 using LeagueStatusBot.RPGEngine.Core.Events;
 using LeagueStatusBot.RPGEngine.Factories;
+using LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities;
+using LeagueStatusBot.RPGEngine.Factories.Monsters;
 
 namespace LeagueStatusBot.RPGEngine.Core.Controllers
 {
@@ -82,19 +84,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
             for (int i = 0; i < playerCount; i++)
             {
-                int random = rnd.Next(3);
-                switch (random)
-                {
-                    case 0:
-                        party.AddPartyMember(new Enemy("Bragore the Wretched", gearScore));
-                        break;
-                    case 1:
-                        party.AddPartyMember(new Enemy("Lord Tusker", gearScore));
-                        break;
-                    case 2:
-                        party.AddPartyMember(new Enemy("D the Lone Bumbis", gearScore));
-                        break;
-                }
+                party.AddPartyMember(MonsterLoader.GetRandomEnemy(gearScore));
             }
 
             return party;

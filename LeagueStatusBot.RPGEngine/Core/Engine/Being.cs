@@ -207,6 +207,11 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
                 HitPoints -= finalDmgRound;
                 DamageTaken?.Invoke(this, $"- {Name} bled for {finalDmgRound} damage. HP is Now ({this.HitPoints}/{this.MaxHitPoints})\n");
             }
+            else if (effectType == EffectType.Debuff)
+            {
+                this.BaseStats.Strength -= 5;
+                ActionPerformed?.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: Strength was reduced by 5!");
+            }
 
             if (!IsAlive) Killed?.Invoke(this, EventArgs.Empty);
         }
@@ -255,6 +260,11 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             Target.TakeDamage(CurrentDamage, DamageType.Normal, this);
         }
 
+        protected virtual void OnActionPerformed(string message)
+        {
+            ActionPerformed?.Invoke(this, message);
+        }
+
         public void AddEffect(Effect effect)
         {
             ActiveEffects.Add(effect);
@@ -268,6 +278,10 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
         public void RemoveEffect(Effect effect)
         {
+            if (effect.Type == EffectType.Debuff)
+            {
+                this.BaseStats.Strength += 5;
+            }
             ActiveEffects.Remove(effect);
             EffectRemoved?.Invoke(this, $"{Name}'s {effect.Name} wore off..\n");
         }
@@ -293,22 +307,18 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
                     if (ActiveEffects[i].Duration <= 0)
                     {
-                        EffectRemoved?.Invoke(this, $"{Name}'s {ActiveEffects[i].Name} wore off..\n");
-                        ActiveEffects.RemoveAt(i);
+                        RemoveEffect(ActiveEffects[i]);
                     }
                 }
             }
 
-            if (IsHuman)
+            if (FirstAbility.Cooldown > 0)
             {
-                if (FirstAbility.Cooldown > 0)
-                {
-                    FirstAbility.Cooldown--;
-                }
-                if (SecondAbility.Cooldown > 0)
-                {
-                    SecondAbility.Cooldown--;
-                }
+                FirstAbility.Cooldown--;
+            }
+            if (SecondAbility.Cooldown > 0)
+            {
+                SecondAbility.Cooldown--;
             }
         }
 

@@ -120,7 +120,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
 
             TurnEnded?.Invoke(this, EventArgs.Empty);
-            await Task.Delay(3000);
+            await Task.Delay(5000);
             await OnTurnEnded(this, EventArgs.Empty); // Directly call the method here
         }
 
@@ -263,6 +263,15 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
         private async Task ProcessHumanTurn()
         {
+
+            if (CurrentTurn.ActiveEffects.Any(x => x.Type == EffectType.Stun))
+            {
+                TurnEnded?.Invoke(this, EventArgs.Empty);
+                await Task.Delay(3000);
+                await OnTurnEnded(this, EventArgs.Empty);
+                return;
+            }
+
             tcsPlayerAction = new TaskCompletionSource();
 
             var timeout = Task.Delay(TimeSpan.FromSeconds(15));

@@ -397,3 +397,6 @@ FodyWeavers.xsd
 
 #databases
 game.db
+
+#json Sheets
+*.json

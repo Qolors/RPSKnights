@@ -17,7 +17,9 @@ namespace LeagueStatusBot.Helpers
             {
                 { "Bragore the Wretched", "https://i.imgur.com/zfP1ABN.png"},
                 { "Lord Tusker", "https://i.imgur.com/RsMf6Rg.png" },
-                { "D the Lone Bumbis", "https://i.imgur.com/Y0u6RHn.png" }
+                { "D the Lone Bumbis", "https://i.imgur.com/Y0u6RHn.png" },
+                { "Silthar the Slithering", "https://i.imgur.com/jk7Fhk5.png" },
+                { "Tetheris the Skyhunter", "https://i.imgur.com/N64U3nP.png" }
             };
 
             AbilityUrls = new Dictionary<string, string>
@@ -31,7 +33,15 @@ namespace LeagueStatusBot.Helpers
                 { "Chest of Faith", "https://i.imgur.com/BRDc63M.png" },
                 { "Mystical Vestment", "https://i.imgur.com/a11ehRq.png" },
                 { "Basic", "https://i.imgur.com/kTaaNAY.png" },
-                { "Default","https://i.imgur.com/kTaaNAY.png" }
+                { "Default","https://i.imgur.com/kTaaNAY.png" },
+                { "Just Two", "https://i.imgur.com/DBXSI8c.png" },
+                { "Verbal Assault", "https://i.imgur.com/EwYm3MY.png" },
+                { "Fire Breath", "https://i.imgur.com/lgDywaz.png" },
+                { "Tail Swipe", "https://i.imgur.com/4g1t78u.png" },
+                { "Constrict", "https://i.imgur.com/BJacoFA.png" },
+                { "Venom Strike", "https://i.imgur.com/zELcm3l.png" },
+                { "Dive Bomb", "https://i.imgur.com/MqiCTt6.png" },
+                { "Wing Slash", "https://i.imgur.com/jDI2ys4.png" }
             };
 
             WeaponUrls = new Dictionary<string, string>
@@ -43,7 +53,9 @@ namespace LeagueStatusBot.Helpers
 
             ArmorUrls = new Dictionary<string, string>
             {
-                
+                { "Bulwark Breastplate", "https://i.imgur.com/ej8vREr.png" },
+                { "Chest of Faith", "https://i.imgur.com/BRDc63M.png" },
+                { "Mystical Vestment", "https://i.imgur.com/a11ehRq.png" },
             };
         }
 
