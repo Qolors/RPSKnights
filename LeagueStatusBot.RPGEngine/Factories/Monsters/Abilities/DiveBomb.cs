@@ -21,7 +21,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities
         public DiveBomb()
         {
             Name = "Dive Bomb";
-            Description = "Dives from the sky to strike the enemy with great force and precision.";
+            Description = "Dives from the sky to strike the enemy with great force, can apply Confuse";
             Cooldown = 0;
             DamageType = DamageType.Pierce;
         }
@@ -52,7 +52,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities
             if (isCrit)
             {
                 target.AddDelayedEffect(new Effect() { BufferDuration = 1, Description = "Disables Spell Casting", Duration = 3, ModifierAmount = 1, Name = this.Name, Type = EffectType.Confuse }); // Assuming a function in Being class that makes the target dazed for a turn
-                user.BroadCast($"{target.Name} is dazed & confused from the powerful strike!");
+                user.BroadCast($"and applied Dazed and Confused on {target.Name}");
             }
 
             Cooldown = 3;

@@ -43,7 +43,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities
                 target.AddEffect(new Effect()
                 {
                     Name = "Tail Swipe",
-                    Duration = 2,
+                    Duration = 3,
                     Description = "Stunned for 2 rounds",
                     Type = EffectType.Stun,
                     ModifierAmount = 1,

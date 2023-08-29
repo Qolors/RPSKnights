@@ -151,7 +151,7 @@ namespace LeagueStatusBot.Services
                 var currentUser = client.GetUser(member.DiscordId);
                 var embed = new EmbedBuilder()
                     .WithColor(Color.Blue)
-                    .WithImageUrl(currentUser.GetAvatarUrl())
+                    .WithThumbnailUrl(currentUser.GetAvatarUrl())
                     .WithTitle(member.Name)
                     .AddField($"    Class: - {member.ClassName}", "..")
                     .AddField($"HitPoints: - {member.MaxHitPoints}/{member.MaxHitPoints}", "..")
@@ -164,7 +164,7 @@ namespace LeagueStatusBot.Services
             {
                 var embed = new EmbedBuilder()
                     .WithColor(Color.Red)
-                    .WithImageUrl(UrlGetter.GetMonsterPortrait(member.Name))
+                    .WithThumbnailUrl(UrlGetter.GetMonsterPortrait(member.Name))
                     .WithTitle(member.Name)
                     .AddField($"    Class: - {member.ClassName}", "..")
                     .AddField($"HitPoints: - {member.MaxHitPoints}/{member.MaxHitPoints}", "..")
@@ -322,21 +322,67 @@ namespace LeagueStatusBot.Services
 
                 var embed = new EmbedBuilder()
                 .WithColor(Color.Red)
-                .WithTitle(turnSummary.CombatLogs[0])
-                .WithThumbnailUrl(user.GetAvatarUrl())
-                .WithImageUrl(attackName)
-                .WithDescription(string.Join("\n", turnSummary.CombatLogs.Skip(1)));
+                .WithTitle(user.Username)
+                .WithThumbnailUrl(attackName);
 
-                if (TurnEvenHistoryMessagedId == 0)
+                foreach (var log in turnSummary.CombatLogs)
+                {
+                    embed.AddField("Combat Log:", log);
+                }
+
+                if (TurnRequestMessageId == 0)
                 {
                     var eventMessage = await channel.SendMessageAsync(embed: embed.Build());
-                    TurnEvenHistoryMessagedId = eventMessage.Id;
+                    TurnRequestMessageId = eventMessage.Id;
                 }
                 else
                 {
                     await channel.ModifyMessageAsync(TurnRequestMessageId, m =>
                     {
                         m.Embed = embed.Build();
+                    });
+                }
+
+                if (TurnEvenHistoryMessagedId == 0)
+                {
+                    List<string> playersInfo = new List<string>();
+
+
+                    foreach (var player in gameManager.CurrentEncounter.PlayerParty.Members)
+                    {
+                        string info = $"{player.Name}:\n---> HitPoints: {player.HitPoints}/{player.MaxHitPoints} \n--> Statuses: {(player.ActiveEffects.Count != 0 ? string.Join("\n", player.ActiveEffects.Select(x => "- " + x.Name + " - " + x.Description)) : "none")}";
+                        playersInfo.Add(info);
+                    }
+
+                    foreach (var enemy in gameManager.CurrentEncounter.EncounterParty.Members)
+                    {
+                        string info = $"{enemy.Name}:\n--> HitPoints: {enemy.HitPoints}/{enemy.MaxHitPoints} \n--> Statuses: {(enemy.ActiveEffects.Count != 0 ? string.Join("\n", enemy.ActiveEffects.Select(x => x.Name)) : "none")}";
+                        playersInfo.Add(info);
+                    }
+
+                    var eventMessage = await channel.SendMessageAsync($"{string.Join("\n", playersInfo)}");
+                    TurnEvenHistoryMessagedId = eventMessage.Id;
+                }
+                else
+                {
+                    List<string> playersInfo = new List<string>();
+
+
+                    foreach (var player in gameManager.CurrentEncounter.PlayerParty.Members)
+                    {
+                        string info = $"{player.Name}: \n--> HitPoints: {player.HitPoints}/{player.MaxHitPoints} \n--> Statuses: {(player.ActiveEffects.Count != 0 ? string.Join("\n", player.ActiveEffects.Select(x => x.Name)) : "none")}";
+                        playersInfo.Add(info);
+                    }
+
+                    foreach (var enemy in gameManager.CurrentEncounter.EncounterParty.Members)
+                    {
+                        string info = $"{enemy.Name}: \n--> HitPoints: {enemy.HitPoints}/{enemy.MaxHitPoints} \n--> Statuses: {(enemy.ActiveEffects.Count != 0 ? string.Join("\n", enemy.ActiveEffects.Select(x => x.Name)) : "none")}";
+                        playersInfo.Add(info);
+                    }
+
+                    await channel.ModifyMessageAsync(TurnEvenHistoryMessagedId, m =>
+                    {
+                        m.Content = $"```\n{string.Join("\n\n", playersInfo)}\n```";
                     });
                 }
             }
@@ -353,21 +399,67 @@ namespace LeagueStatusBot.Services
 
                 var embed = new EmbedBuilder()
                 .WithColor(Color.Red)
-                .WithTitle(turnSummary.CombatLogs[0])
-                .WithThumbnailUrl(UrlGetter.GetMonsterPortrait(turnSummary.ActivePlayer.Name))
-                .WithImageUrl(attackName)
-                .WithDescription(string.Join("\n", turnSummary.CombatLogs.Skip(1)));
+                .WithTitle(turnSummary.ActivePlayer.Name)
+                .WithThumbnailUrl(attackName);
 
-                if (TurnEvenHistoryMessagedId == 0)
+                foreach (var log in turnSummary.CombatLogs)
+                {
+                    embed.AddField("Combat Log:", log);
+                }
+
+                if (TurnRequestMessageId == 0)
                 {
                     var eventMessage = await channel.SendMessageAsync(embed: embed.Build());
-                    TurnEvenHistoryMessagedId = eventMessage.Id;
+                    TurnRequestMessageId = eventMessage.Id;
                 }
                 else
                 {
                     await channel.ModifyMessageAsync(TurnRequestMessageId, m =>
                     {
                         m.Embed = embed.Build();
+                    });
+                }
+
+                if (TurnEvenHistoryMessagedId == 0)
+                {
+                    List<string> playersInfo = new List<string>();
+
+
+                    foreach (var player in gameManager.CurrentEncounter.PlayerParty.Members)
+                    {
+                        string info = $"{player.Name}:\n--> HitPoints: {player.HitPoints}/{player.MaxHitPoints} \n--> Statuses: \n{(player.ActiveEffects.Count != 0 ? string.Join("\n", player.ActiveEffects.Select(x => "- " + x.Name + " - " + x.Description)) : "none")}";
+                        playersInfo.Add(info);
+                    }
+
+                    foreach (var enemy in gameManager.CurrentEncounter.EncounterParty.Members)
+                    {
+                        string info = $"{enemy.Name}: \n--> HitPoints: {enemy.HitPoints}/{enemy.MaxHitPoints} \n--> Statuses: \n{(enemy.ActiveEffects.Count != 0 ? string.Join("\n", enemy.ActiveEffects.Select(x => x.Name)) : "none")}";
+                        playersInfo.Add(info);
+                    }
+
+                    var eventMessage = await channel.SendMessageAsync($"{string.Join("\n", playersInfo)}");
+                    TurnEvenHistoryMessagedId = eventMessage.Id;
+                }
+                else
+                {
+                    List<string> playersInfo = new List<string>();
+
+
+                    foreach (var player in gameManager.CurrentEncounter.PlayerParty.Members)
+                    {
+                        string info = $"{player.Name}: \n--> HitPoints: {player.HitPoints}/{player.MaxHitPoints} \n--> Statuses: \n{(player.ActiveEffects.Count != 0 ? string.Join("\n", player.ActiveEffects.Select(x => x.Name)) : "none")}";
+                        playersInfo.Add(info);
+                    }
+
+                    foreach (var enemy in gameManager.CurrentEncounter.EncounterParty.Members)
+                    {
+                        string info = $"{enemy.Name}: \n--> HitPoints: {enemy.HitPoints}/{enemy.MaxHitPoints} \n--> Statuses: \n{(enemy.ActiveEffects.Count != 0 ? string.Join("\n", enemy.ActiveEffects.Select(x => x.Name)) : "none")}";
+                        playersInfo.Add(info);
+                    }
+
+                    await channel.ModifyMessageAsync(TurnEvenHistoryMessagedId, m =>
+                    {
+                        m.Content = $"```\n {string.Join("\n\n", playersInfo)}```";
                     });
                 }
             }
@@ -441,7 +533,7 @@ namespace LeagueStatusBot.Services
                 HP: {player.HitPoints}/{player.MaxHitPoints}
                 
                 Active Effects:
-                {string.Join("\n", player.ActiveEffects.Select(x => x.Name))}
+                {string.Join("\n", player.ActiveEffects.Select(x => x.Name + " - " + x.Description))}
                 """);
             }
 
@@ -588,9 +680,9 @@ namespace LeagueStatusBot.Services
             return gameManager.GetPlayerPartyNames();
         }
 
-        public bool AddNewCharacter(ulong id, string name)
+        public bool AddNewCharacter(ulong id, string name, string className)
         {
-            var being = gameManager.AssignRandomClass();
+            var being = GameManager.AssignRandomClass(className);
             being.Helm = Mapper.ArmorEffectEntityToDomainModel(itemRepository.GetArmorFromId(1));
             being.Weapon = Mapper.ItemEntityToDomainModel(itemRepository.GetItemFromEntityId(1));
             being.Chest = Mapper.ArmorEffectEntityToDomainModel(itemRepository.GetArmorFromId(1));

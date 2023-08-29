@@ -1,13 +1,12 @@
 ﻿using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using Fergun.Interactive;
+using Fergun.Interactive.Pagination;
 using LeagueStatusBot.Helpers;
 using LeagueStatusBot.RPGEngine.Data.Repository;
 using LeagueStatusBot.Services;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace LeagueStatusBot.Modules
@@ -16,15 +15,17 @@ namespace LeagueStatusBot.Modules
     {
         private GameControllerService gameControllerService;
         private DiscordSocketClient client;
-        private ItemRepository itemRepository;
-        private PlayerRepository playerRepository;
+        private InteractiveService interactiveService;
+        private readonly ItemRepository itemRepository;
+        private readonly PlayerRepository playerRepository;
 
         private const string emoji = "\u2694\uFE0F";
-        public RPGModule(GameControllerService gameControllerService, DiscordSocketClient client, ItemRepository itemRepository, PlayerRepository playerRepository)
+        public RPGModule(GameControllerService gameControllerService, DiscordSocketClient client, ItemRepository itemRepository, PlayerRepository playerRepository, InteractiveService interactiveService)
         {
             this.playerRepository = playerRepository;
             this.itemRepository = itemRepository;
             this.gameControllerService = gameControllerService;
+            this.interactiveService = interactiveService;
             this.client = client;
         }
 
@@ -40,7 +41,59 @@ namespace LeagueStatusBot.Modules
                 return;
             }
 
-            if (gameControllerService.AddNewCharacter(Context.User.Id, Context.User.Username))
+            var pages = new[]
+            {
+                new PageBuilder()
+                .WithTitle("The Adventurer Archetype")
+                .AddField("Starter Skill: First Aid", "A burst heal (50% of your Max Hitpoints) to anyone in your party")
+                .AddField("Starter Skill: Parrying Strike", "A weakened strike that reduces the damage you take for multiple rounds")
+                .WithImageUrl("https://i.imgur.com/fnUj6sd.png")
+                .WithDescription("A versatile skill set ideal for front-line / melee builds"),
+                new PageBuilder()
+                .WithTitle("The Apprentice Archetype")
+                .AddField("Starter Skill: Arcane Bolt", "A ramping damage ability that can be used frequently")
+                .AddField("Starter Skill: Mind Snap", "A solid utility spell that knocks out a targeted enemy")
+                .WithImageUrl("https://i.imgur.com/VZp9Cq8.png")
+                .WithDescription("A high damage skill set that can also bring good control of the battlefield."),
+                new PageBuilder()
+                .WithTitle("The Vagabond Archetype")
+                .AddField("Starter Skill: Splintered Shot", "A ranged attack causing the target to bleed")
+                .AddField("Starter Skill: Fall Back", "A defensive skill allowing you to regroup and increase your next attack's damage")
+                .WithImageUrl("https://i.imgur.com/S0X2GdD.png")
+                .WithDescription("A versatile skill set with good dot damage and status effects."),
+            };
+
+            var paginator = new StaticPaginatorBuilder()
+                .AddUser(Context.User) // Only allow the user that executed the command to interact with the selection.
+                .WithPages(pages) // Set the pages the paginator will use. This is the only required component.
+                .WithActionOnCancellation(ActionOnStop.DeleteMessage)
+                .WithActionOnTimeout(ActionOnStop.DisableInput)
+                .Build();
+
+            
+
+            // Send the paginator to the source channel and wait until it times out after 10 minutes.
+            await interactiveService.SendPaginatorAsync(paginator, Context.Channel, TimeSpan.FromMinutes(1));
+
+            Console.WriteLine("Starting");
+
+            string selectedClass = string.Empty;
+
+            switch (paginator.CurrentPageIndex)
+            {
+                case 0:
+                    selectedClass = "Adventurer";
+                    break;
+                case 1:
+                    selectedClass = "Apprentice";
+                    break;
+                case 2:
+                    selectedClass = "Vagabond";
+                    break;
+
+            }
+
+            if (gameControllerService.AddNewCharacter(Context.User.Id, Context.User.Username, selectedClass))
             {
                 Console.WriteLine("2");
                 await FollowupAsync("Character Created!", ephemeral: true);

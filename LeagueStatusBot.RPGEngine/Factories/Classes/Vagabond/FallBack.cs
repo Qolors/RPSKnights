@@ -32,6 +32,8 @@ namespace LeagueStatusBot.RPGEngine.Factories.Classes.Vagabond
 
             Cooldown = 5;
 
+            user.LastActionPerformed = Common.Models.ActionPerformed.FirstAbility;
+
             return 0.0f;
         }
 

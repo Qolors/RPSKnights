@@ -21,7 +21,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities
         public WingSlash()
         {
             Name = "Wing Slash";
-            Description = "Uses powerful wings to deliver rapid slashes to opponents.";
+            Description = "Slashes with their wings, attacking multiple times";
             Cooldown = 0;
             DamageType = DamageType.Normal;
         }

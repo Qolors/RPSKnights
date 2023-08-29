@@ -5,6 +5,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.Classes.Apprentice
     public class ArcaneBolt : Ability
     {
         private int _consecutiveHits = 0;
+        
         private Being? _previousTarget;
         public ArcaneBolt()
         {
@@ -15,15 +16,20 @@ namespace LeagueStatusBot.RPGEngine.Factories.Classes.Apprentice
 
         public override float Activate(Being user, Being? target)
         {
-            float baseDamage = 1 + user.BaseStats.Intelligence * 0.2f; // Example base damage formula
+            double baseDamage = 10.0f; // Adjust as needed
+            double growthRate = 1.04; // Adjust as needed
+            baseDamage *= Math.Pow(growthRate, user.BaseStats.Intelligence);
 
-            if (_previousTarget.Name == target.Name)
+            if (_previousTarget is not null && _previousTarget.Name == target.Name)
             {
                 _consecutiveHits++;
 
                 if (_consecutiveHits == 2)
                 {
+                    user.BroadCast("Arcane Bolt's Extra Damage!");
                     baseDamage *= 1.25f; // Apply 25% damage boost
+                    _consecutiveHits = 0;
+
                 }
             }
             else
@@ -33,7 +39,11 @@ namespace LeagueStatusBot.RPGEngine.Factories.Classes.Apprentice
 
             _previousTarget = target;
 
-            return baseDamage;
+            user.LastActionPerformed = Common.Models.ActionPerformed.FirstAbility;
+
+            Cooldown = 2;
+
+            return (float)baseDamage;
         }
 
         public override double ExpectedDamage(Being user)

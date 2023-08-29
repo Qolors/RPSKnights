@@ -5,6 +5,7 @@ using Discord;
 using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
+using Fergun.Interactive;
 using LeagueStatusBot.RPGEngine.Data.Contexts;
 using LeagueStatusBot.RPGEngine.Data.Repository;
 using LeagueStatusBot.Services;
@@ -79,6 +80,8 @@ public class Startup
             })
             .AddSingleton<CommandHandlingService>()
             .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
+            .AddSingleton(new InteractiveConfig { DefaultTimeout = TimeSpan.FromMinutes(5) }) // Optional config
+            .AddSingleton<InteractiveService>()
             .AddSingleton<InteractionHandlerService>()
             .AddSingleton<NasaSchedulerService>()
             .AddSingleton<GameControllerService>()

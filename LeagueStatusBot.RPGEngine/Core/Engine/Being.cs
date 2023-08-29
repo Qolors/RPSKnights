@@ -121,7 +121,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
             float abilityDmg = ability.Activate(this, this.Target);
 
-            if (abilityDmg == 0) return;
+            if (abilityDmg == 0.0f) return;
 
             OnDamageGiven?.Invoke(this);
 
@@ -211,6 +211,12 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             {
                 this.BaseStats.Strength -= 5;
                 ActionPerformed?.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: Strength was reduced by 5!");
+            }
+            else if (effectType == EffectType.Poison)
+            {
+                int finalDmgRound = Convert.ToInt32(effectDamage);
+                HitPoints -= finalDmgRound;
+                DamageTaken?.Invoke(this, $"- {Name} took {finalDmgRound} poison damage. HP is Now ({this.HitPoints}/{this.MaxHitPoints})\n");
             }
 
             if (!IsAlive) Killed?.Invoke(this, EventArgs.Empty);

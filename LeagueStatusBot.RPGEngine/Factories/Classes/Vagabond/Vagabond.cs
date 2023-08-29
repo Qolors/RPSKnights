@@ -7,25 +7,11 @@ namespace LeagueStatusBot.RPGEngine.Factories.Classes.Vagabond
         public Vagabond()
         {
             ClassName = "Vagabond";
-            ArmorClassValue = 0.15f;
+            ArmorClassValue = 0.2f;
             FirstAbility = new FallBack();
             SecondAbility = new SplinterShot();
             BaseStats = new();
-        }
-
-        public override float BasicAttack(float strAdRatio = 1)
-        {
-            float dmg = 0.1f;
-
-            foreach (Effect effect in ActiveEffects)
-            {
-                if (effect.Type == EffectType.BasicDamageBoost)
-                {
-                    dmg = effect.ModifierAmount;
-                }
-            }
-
-            return (1 + dmg * this.BaseStats.Agility) * strAdRatio;
+            HitPoints = MaxHitPoints;
         }
     }
 }

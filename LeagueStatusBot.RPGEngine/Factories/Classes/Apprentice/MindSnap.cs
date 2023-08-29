@@ -7,7 +7,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.Classes.Apprentice
         public MindSnap()
         {
             Name = "Mind Snap";
-            Description = "A Snap of the fingers sends a concussive blow to the target's mind, causing them to be stunned and skip their next turns\n\n - Cooldown: 3 Turns";
+            Description = "A Snap of the fingers sends a concussive blow to the target's mind, causing them to be stunned and skip their next 2 turns\n\n - Cooldown: 5 Turns";
             DamageType = DamageType.Arcane;
         }
 
@@ -16,12 +16,15 @@ namespace LeagueStatusBot.RPGEngine.Factories.Classes.Apprentice
             target?.AddEffect(new Effect()
             {
                 Name = "Mind Snap",
+                Description = "Causes the player to be stunned, unable to take action.",
                 Type = EffectType.Stun,
                 Duration = 2,
                 ModifierAmount = 0
             });
 
-            Cooldown = 4;
+            Cooldown = 6;
+
+            user.LastActionPerformed = Common.Models.ActionPerformed.SecondAbility;
 
             return 0.0f;
         }

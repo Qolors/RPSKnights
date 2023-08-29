@@ -6,7 +6,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.Classes.Vagabond
     {
         public SplinterShot()
         {
-            Name = "Splinter shot";
+            Name = "Splinter Shot";
             Description = "Fire a powerful shot, causing the arrow to splinter on hit dealing Basic Attack Damage, but causes 1 + (1% Max Health) bleeding for 2 rounds after\n\n - Cooldown: 2 Turns";
             DamageType = DamageType.Ranged;
         }
@@ -23,6 +23,8 @@ namespace LeagueStatusBot.RPGEngine.Factories.Classes.Vagabond
             });
 
             Cooldown = 3;
+
+            user.LastActionPerformed = Common.Models.ActionPerformed.SecondAbility;
 
             return user.BasicAttack();
         }

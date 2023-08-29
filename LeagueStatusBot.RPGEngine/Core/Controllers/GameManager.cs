@@ -47,9 +47,20 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             await SpawnEncounterAsync();
         }
 
-        public Being AssignRandomClass()
+        public static Being AssignRandomClass(string className)
         {
-            //TODO --> CURRENTLY ONLY ADVENTURER ACTIVE
+            switch (className)
+            {
+                case "Adventurer":
+                    return ClassFactory.CreateAdventurer();
+                case "Apprentice":
+                    return ClassFactory.CreateApprentice();
+                case "Vagabond":
+                    return ClassFactory.CreateVagabond();
+                case null:
+                    return ClassFactory.CreateAdventurer();
+            }
+
             return ClassFactory.CreateAdventurer();
         }
 
@@ -128,7 +139,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             {
                 EventHistory.RemoveAt(0);
             }
-            EventHistory.Add(e.DeathSentence);
+            EventHistory.Add("-" + e.DeathSentence);
             GameDeath?.Invoke(sender, e);
         }
 
@@ -138,19 +149,19 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             {
                 EventHistory.RemoveAt(0);
             }
-            EventHistory.Add(e);
+            EventHistory.Add("-" + e);
             GameEvent?.Invoke(sender, e);
         }
 
         private void OnPartyEffect(object sender, string e)
         {
-            EventHistory.Add(e);
+            EventHistory.Add("-" + e);
             GameEvent?.Invoke(sender, e);
         }
 
         private void OnPartyEffectRemoval(object sender, string e)
         {
-            EventHistory.Add(e);
+            EventHistory.Add("-" + e);
             GameEvent?.Invoke(sender, e);
         }
 

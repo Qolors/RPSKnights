@@ -12,25 +12,11 @@ namespace LeagueStatusBot.RPGEngine.Factories.Classes.Apprentice
         public Apprentice()
         {
             ClassName = "Apprentice";
-            ArmorClassValue = 0.1f;
+            ArmorClassValue = 0.2f;
             FirstAbility = new ArcaneBolt();
             SecondAbility = new MindSnap();
             BaseStats = new();
-        }
-
-        public override float BasicAttack(float strAdRatio = 1)
-        {
-            float dmg = 0.1f;
-
-            foreach (Effect effect in ActiveEffects)
-            {
-                if (effect.Type == EffectType.BasicDamageBoost)
-                {
-                    dmg = effect.ModifierAmount;
-                }
-            }
-
-            return (1 + dmg * this.BaseStats.Intelligence) * strAdRatio;
+            HitPoints = MaxHitPoints;
         }
     }
 }
