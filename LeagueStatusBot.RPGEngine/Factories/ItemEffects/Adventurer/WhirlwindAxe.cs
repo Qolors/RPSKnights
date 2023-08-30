@@ -43,7 +43,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.ItemEffects.Adventurer
 
             float damage = being.CurrentDamage + ((0.1f * being.BaseStats.Endurance) * enduranceCounter);
             being.BaseStats.Endurance -= enduranceCounter;
-            being.BroadCast(this.Name);
+            being.BroadCast($"**{Name}**");
             // Logic to deal AoE damage to all nearby enemies
             being.DealAOEDamage(damage);
 

@@ -31,7 +31,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.ItemEffects.Adventurer
         {
             being.OnDamageGiven -= OnExecutePassive;
             being.CurrentDamage += (being.CurrentDamage *= bonusDamage) * 2; // A big burst of damage
-            being.BroadCast(this.Name);
+            being.BroadCast($"**{this.Name}**");
             bonusDamage = 0;
 
             being.LastActionPerformed = Common.Models.ActionPerformed.WeaponAbility;

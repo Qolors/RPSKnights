@@ -16,6 +16,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.Classes.Vagabond
             target?.AddEffect(new Effect()
             {
                 Name = "Splinter Shot",
+                Description = "Bleeding Effect. Causes the player to take damage over time.",
                 Type = EffectType.Bleed,
                 BufferDuration = 0,
                 Duration = 2,

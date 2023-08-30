@@ -80,7 +80,6 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
                 if (!PlayerParty.IsAlive || !EncounterParty.IsAlive)
                 {
                     Console.WriteLine("Party Died - Ending Game");
-                    RoundEnded?.Invoke(this, EventArgs.Empty);
                     EndEncounter();
                     return;
                 }
@@ -118,9 +117,10 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
                 }
             }
 
+            await Task.Delay(2000);
 
             TurnEnded?.Invoke(this, EventArgs.Empty);
-            await Task.Delay(5000);
+            await Task.Delay(7000);
             await OnTurnEnded(this, EventArgs.Empty); // Directly call the method here
         }
 
@@ -267,7 +267,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             if (CurrentTurn.ActiveEffects.Any(x => x.Type == EffectType.Stun))
             {
                 TurnEnded?.Invoke(this, EventArgs.Empty);
-                await Task.Delay(3000);
+                await Task.Delay(5000);
                 await OnTurnEnded(this, EventArgs.Empty);
                 return;
             }

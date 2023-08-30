@@ -325,10 +325,5 @@ namespace LeagueStatusBot.Services
         {
             await gameControllerService.HandleDefenseAsync(component, attack);
         }
-
-
-
-
-
     }
 }

@@ -52,7 +52,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
             Members.Remove(being);
 
-            CharacterDeathEventArgs charDeath = new(being.DiscordId, $"- {being.Name} has been slain!.\n", being.IsHuman);
+            CharacterDeathEventArgs charDeath = new(being.DiscordId, $"**{being.Name}** has been slain!.\n", being.IsHuman);
 
             PartyMemberDeath?.Invoke(this, charDeath);
         }

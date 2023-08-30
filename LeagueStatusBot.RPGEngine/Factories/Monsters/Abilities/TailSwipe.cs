@@ -11,8 +11,8 @@ namespace LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities
     {
         public TailSwipe(AbilityTemplate template)
         {
-            Name = template.Name;
-            Description = template.Description;
+            Name = "Tail Swipe";
+            Description = "Strong tail swipe that has a chance to stun";
             Cooldown = 0;
             DamageType = Enum.Parse<DamageType>(template.DamageType);  // assuming DamageType is an enum
         }
@@ -34,12 +34,11 @@ namespace LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities
             float stunChance = 20f + (user.BaseStats.Charisma > 10 ? user.BaseStats.Charisma - 10 : 0);
             bool isStunned = new Random().Next(100) < stunChance;
 
-            user.BroadCast($"{user.Name} used {this.Name} on {target.Name}!");
+            user.BroadCast($"**{this.Name}** on **{target.Name}**");
 
             if (isStunned)
             {
-                // Add a stun effect to the target. This is pseudocode since the mechanism isn't provided.
-                // It's assumed that the `Being` class or some manager handles active effects on characters.
+
                 target.AddEffect(new Effect()
                 {
                     Name = "Tail Swipe",
@@ -47,12 +46,11 @@ namespace LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities
                     Description = "Stunned for 2 rounds",
                     Type = EffectType.Stun,
                     ModifierAmount = 1,
-                });  // e.g., stun for 1 turn
+                });
 
-                user.BroadCast($"{user.Name} stunned {target.Name} for 2 rounds!");
+                user.BroadCast($"Stun Effect on **{target.Name}** for 2 rounds!");
             }
 
-            //target.TakeDamage(baseDamage, DamageType, user);
             Cooldown = 2;
             return baseDamage;
         }

@@ -12,7 +12,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.ArmorEffects.Adventurer
 
         public void ActivateArmor(Being self, Being? target, float damage)
         {
-            self.BroadCast("Chest of Faith - healing allies for 50% of the damage taken");
+            self.BroadCast($"**{Name}** - healing allies for 50% of the damage taken");
             float healingAmount = damage * 0.5f;
             self.TakeDamage(damage, DamageType.Normal, target);
             self.HealAOEDamage(healingAmount);

@@ -18,17 +18,15 @@ namespace LeagueStatusBot.Services
     public class GameControllerService
     {
         private Timer timer;
-        private GameManager gameManager;
-        private DiscordSocketClient client;
-        private PlayerRepository playerRepository;
-        private ItemRepository itemRepository;
-        private Random random = new Random();
+        private readonly GameManager gameManager;
+        private readonly DiscordSocketClient client;
+        private readonly PlayerRepository playerRepository;
+        private readonly ItemRepository itemRepository;
+        private readonly Random random = new Random();
         public bool IsLobbyOpen { get; set; } = false;
 
         private const ulong GUILD_ID = 402652836606771202;
         private const ulong CHANNEL_ID = 702684769200111716;
-        private const int LOBBY_DURATION = 1000 * 60 * 2;
-        private const int FINAL_MINUTE_DURATION = 1000 * 30;
         private const string emoji = "\u2694\uFE0F";
 
         public ulong TurnRequestMessageId { get; set; } = 0;
@@ -131,7 +129,7 @@ namespace LeagueStatusBot.Services
 
         public async void JoinLobby(ulong id, string name)
         {
-            await PostToFeedChannel.SendChannelMessage($"- **{name}** has entered. {emoji}", client);
+            await PostToFeedChannel.SendChannelMessage($"**{name}** has entered. {emoji}", client);
             Members.Add(id, name);
         }
 
@@ -146,55 +144,91 @@ namespace LeagueStatusBot.Services
 
             List<Embed> embeds = new List<Embed>();
 
-            foreach (var member in gameManager.CurrentEncounter.PlayerParty.Members)
+            foreach (var player in gameManager.CurrentEncounter.PlayerParty.Members)
             {
-                var currentUser = client.GetUser(member.DiscordId);
-                var embed = new EmbedBuilder()
-                    .WithColor(Color.Blue)
-                    .WithThumbnailUrl(currentUser.GetAvatarUrl())
-                    .WithTitle(member.Name)
-                    .AddField($"    Class: - {member.ClassName}", "..")
-                    .AddField($"HitPoints: - {member.MaxHitPoints}/{member.MaxHitPoints}", "..")
-                    .Build();
-                embeds.Add(embed);
+                embeds.Add(CreatePlayerEmbed(player));
             }
-                
 
-            foreach (var member in gameManager.CurrentEncounter.EncounterParty.Members)
+            foreach (var monster in gameManager.CurrentEncounter.EncounterParty.Members)
             {
-                var embed = new EmbedBuilder()
-                    .WithColor(Color.Red)
-                    .WithThumbnailUrl(UrlGetter.GetMonsterPortrait(member.Name))
-                    .WithTitle(member.Name)
-                    .AddField($"    Class: - {member.ClassName}", "..")
-                    .AddField($"HitPoints: - {member.MaxHitPoints}/{member.MaxHitPoints}", "..")
-                    .AddField("Combat Description", $"-{member.FirstAbility.Description}\n-{member.SecondAbility.Description}")
-                    .Build();
-                embeds.Add(embed);
+                embeds.Add(CreateMonsterEmbed(monster));
             }
 
             await PostToFeedChannel.SendChannelMessage(battleBeginString, client, embeds: embeds.ToArray());
         }
 
+        private Embed CreatePlayerEmbed(Being player)
+        {
+            var currentUser = client.GetUser(player.DiscordId);
+            return new EmbedBuilder()
+                .WithColor(Color.Blue)
+                .WithThumbnailUrl(currentUser.GetAvatarUrl())
+                .WithTitle(player.Name)
+                .AddField($"Class: {player.ClassName}", "\u200b")
+                .AddField($"\u2665\uFE0F HitPoints: {player.MaxHitPoints}/{player.MaxHitPoints}", "\u200b")
+                .AddField("📊 Stats", "\n​​​​\u200b" +
+                             $"    Strength: **{player.BaseStats.Strength}** \n" +
+                             $"    Charisma: **{player.BaseStats.Charisma}** \n" +
+                             $"     Agility: **{player.BaseStats.Agility}** \n" +
+                             $"   Endurance: **{player.BaseStats.Endurance}** \n" +
+                             $"        Luck: **{player.BaseStats.Luck}** \n" +
+                             $"Intelligence: **{player.BaseStats.Intelligence}** \n")
+                .Build();
+        }
+
+        private Embed CreateMonsterEmbed(Being monster)
+        {
+            return new EmbedBuilder()
+                .WithColor(Color.Red)
+                .WithThumbnailUrl(UrlGetter.GetMonsterPortrait(monster.Name))
+                .WithTitle(monster.Name)
+                .AddField($"Class: {monster.ClassName}", "\u200b")
+                .AddField($"\u2665\uFE0F HitPoints: {monster.MaxHitPoints}/{monster.MaxHitPoints}", "\u200b")
+                .AddField("\u2139\uFE0F Combat Description", $"-{monster.FirstAbility.Description}\n-{monster.SecondAbility.Description}")
+                .AddField("📊 Stats", "\n​​​​\u200b" +
+                             $"    Strength: **{monster.BaseStats.Strength}** \n" +
+                             $"    Charisma: **{monster.BaseStats.Charisma}** \n" +
+                             $"     Agility: **{monster.BaseStats.Agility}** \n" +
+                             $"   Endurance: **{monster.BaseStats.Endurance}** \n" +
+                             $"        Luck: **{monster.BaseStats.Luck}** \n" +
+                             $"Intelligence: **{monster.BaseStats.Intelligence}** \n")
+                .Build();
+        }
+
         private async void OnGameEnded(object sender, GameEndedEventArgs e)
         {
-            await PostToFeedChannel.SendChannelMessage($"**{e.Announcement}**", client);
+            await AnnounceGameEnd(e.Announcement);
 
             if (e.IsVictory)
             {
-                foreach (var member in e.PlayerParty)
-                {
-                    if (!member.IsAlive) continue;
+                HandleVictory(e.PlayerParty);
+            }
 
-                    var currentUser = client.GetUser(member.DiscordId);
-                    var embed = new EmbedBuilder()
-                        .WithColor(Color.Blue)
-                        .WithThumbnailUrl(currentUser.GetAvatarUrl())
-                        .WithTitle(member.Name)
-                        .AddField($"    Class: - {member.ClassName}", "..")
-                        .AddField($"HitPoints: - {member.MaxHitPoints}/{member.MaxHitPoints}", "..")
-                        .Build();
-                    var menu = new SelectMenuBuilder()
+            await CleanUp();
+            StartNewLobbyTimer();
+        }
+
+        private async Task AnnounceGameEnd(string announcement)
+        {
+            await PostToFeedChannel.SendChannelMessage($"**{announcement}**", client);
+        }
+
+        private async void HandleVictory(List<Being> playerParty)  // Assuming the type is "Player".
+        {
+            foreach (var member in playerParty)
+            {
+                if (!member.IsAlive) continue;
+
+                await AwardSkillPointToPlayer(member);
+                await AwardLootToPlayer(member);
+            }
+        }
+
+        private async Task AwardSkillPointToPlayer(Being member)
+        {
+            var embed = CreatePlayerEmbed(member);  // Use a method similar to the one we refactored earlier.
+
+            var menu = new SelectMenuBuilder()
                         .WithPlaceholder("Select a Skill")
                         .WithCustomId("skill-select")
                         .WithMinValues(1)
@@ -205,18 +239,20 @@ namespace LeagueStatusBot.Services
                         .AddOption($"Endurance ({member.BaseStats.Endurance}) + 1", $"endurance&{member.DiscordId}")
                         .AddOption($"Luck ({member.BaseStats.Luck}) + 1", $"luck&{member.DiscordId}")
                         .AddOption($"Intelligence ({member.BaseStats.Intelligence}) + 1", $"intelligence&{member.DiscordId}");
-                    var comp = new ComponentBuilder()
-                        .WithSelectMenu(menu);
 
+            var comp = new ComponentBuilder().WithSelectMenu(menu);
 
-                    await PostToFeedChannel.SendSkillUpMessage($"**{member.Name}** has earned themselves a skill point.", client, embeds: new[] { embed }, messageComponent: comp.Build());
-                    await Task.Run(() => playerRepository.AddToPlayerLootTable(member.DiscordId));
-                    await PostToFeedChannel.SendChannelMessage($"**{member.Name}** has discovered an Item Shard! Added to Inventory.", client);
-                }
-            }
+            await PostToFeedChannel.SendSkillUpMessage($"**{member.Name}** has earned themselves a skill point.", client, embeds: new[] { embed }, messageComponent: comp.Build());
+        }
 
-            await Task.Run(CleanUp);
+        private async Task AwardLootToPlayer(Being member)
+        {
+            await Task.Run(() => playerRepository.AddToPlayerLootTable(member.DiscordId));
+            await PostToFeedChannel.SendChannelMessage($"**{member.Name}** has discovered an Item Shard! Added to Inventory.", client);
+        }
 
+        private void StartNewLobbyTimer()
+        {
             timer = new Timer(GetRandomInterval());
             timer.Elapsed += OnLobbyOpen;
             timer.AutoReset = false;
@@ -301,278 +337,160 @@ namespace LeagueStatusBot.Services
            await SendEventHistoryAsync(e);
         }
 
+        private EmbedBuilder CreateEmbed(TurnActionsEventArgs turnSummary, string title)
+        {
+            var attackName = turnSummary.ActionPerformed switch
+            {
+                ActionPerformed.BasicAttack => UrlGetter.GetAbilityImage("Basic"),
+                ActionPerformed.FirstAbility => UrlGetter.GetAbilityImage(turnSummary.ActivePlayer.FirstAbility.Name),
+                ActionPerformed.SecondAbility => UrlGetter.GetAbilityImage(turnSummary.ActivePlayer.SecondAbility.Name),
+                ActionPerformed.ArmorAbility => UrlGetter.GetAbilityImage(turnSummary.ActivePlayer.Chest.Name),
+                ActionPerformed.WeaponAbility => UrlGetter.GetAbilityImage(turnSummary.ActivePlayer.Weapon.Effect.Name),
+            };
+
+            var embed = new EmbedBuilder()
+                            .WithColor(turnSummary.ActivePlayer.IsHuman ? Color.Blue : Color.Red)
+                            .WithTitle("Turn for " + title)
+                            .WithImageUrl(attackName);
+
+            foreach (var log in turnSummary.CombatLogs)
+            {
+                embed.AddField(new Emoji("\u2757") + " **Event:**", log);
+            }
+
+            return embed;
+        }
+
         private async Task SendEventHistoryAsync(TurnActionsEventArgs turnSummary)
         {
             if (turnSummary.CombatLogs.Count == 0) return;
 
             var channel = client.GetGuild(GUILD_ID).GetTextChannel(CHANNEL_ID);
 
-            if (turnSummary.ActivePlayer.IsHuman)
+            string title = turnSummary.ActivePlayer.IsHuman
+                            ? (await client.GetUserAsync(turnSummary.ActivePlayer.DiscordId)).Username
+                            : turnSummary.ActivePlayer.Name;
+
+            var embed = CreateEmbed(turnSummary, title);
+            await SendOrModifyEmbedMessage(channel, embed);
+
+            var playersInfo = GeneratePlayersInfo(gameManager.CurrentEncounter.PlayerParty.Members)
+                            .Concat(GeneratePlayersInfo(gameManager.CurrentEncounter.EncounterParty.Members))
+                            .ToList();
+
+            await SendOrModifyPlayersInfoMessage(channel, playersInfo);
+        }
+
+        private async Task SendOrModifyEmbedMessage(ITextChannel channel, EmbedBuilder embed)
+        {
+            if (TurnRequestMessageId == 0)
             {
-                var user = await client.GetUserAsync(turnSummary.ActivePlayer.DiscordId);
-
-                var attackName = turnSummary.ActionPerformed switch
-                {
-                    ActionPerformed.BasicAttack => UrlGetter.GetAbilityImage("Basic"),
-                    ActionPerformed.FirstAbility => UrlGetter.GetAbilityImage(turnSummary.ActivePlayer.FirstAbility.Name),
-                    ActionPerformed.SecondAbility => UrlGetter.GetAbilityImage(turnSummary.ActivePlayer.SecondAbility.Name),
-                    ActionPerformed.ArmorAbility => UrlGetter.GetAbilityImage(turnSummary.ActivePlayer.Chest.Name),
-                    ActionPerformed.WeaponAbility => UrlGetter.GetAbilityImage(turnSummary.ActivePlayer.Weapon.Effect.Name),
-                };
-
-                var embed = new EmbedBuilder()
-                .WithColor(Color.Red)
-                .WithTitle(user.Username)
-                .WithThumbnailUrl(attackName);
-
-                foreach (var log in turnSummary.CombatLogs)
-                {
-                    embed.AddField("Combat Log:", log);
-                }
-
-                if (TurnRequestMessageId == 0)
-                {
-                    var eventMessage = await channel.SendMessageAsync(embed: embed.Build());
-                    TurnRequestMessageId = eventMessage.Id;
-                }
-                else
-                {
-                    await channel.ModifyMessageAsync(TurnRequestMessageId, m =>
-                    {
-                        m.Embed = embed.Build();
-                    });
-                }
-
-                if (TurnEvenHistoryMessagedId == 0)
-                {
-                    List<string> playersInfo = new List<string>();
-
-
-                    foreach (var player in gameManager.CurrentEncounter.PlayerParty.Members)
-                    {
-                        string info = $"{player.Name}:\n---> HitPoints: {player.HitPoints}/{player.MaxHitPoints} \n--> Statuses: {(player.ActiveEffects.Count != 0 ? string.Join("\n", player.ActiveEffects.Select(x => "- " + x.Name + " - " + x.Description)) : "none")}";
-                        playersInfo.Add(info);
-                    }
-
-                    foreach (var enemy in gameManager.CurrentEncounter.EncounterParty.Members)
-                    {
-                        string info = $"{enemy.Name}:\n--> HitPoints: {enemy.HitPoints}/{enemy.MaxHitPoints} \n--> Statuses: {(enemy.ActiveEffects.Count != 0 ? string.Join("\n", enemy.ActiveEffects.Select(x => x.Name)) : "none")}";
-                        playersInfo.Add(info);
-                    }
-
-                    var eventMessage = await channel.SendMessageAsync($"{string.Join("\n", playersInfo)}");
-                    TurnEvenHistoryMessagedId = eventMessage.Id;
-                }
-                else
-                {
-                    List<string> playersInfo = new List<string>();
-
-
-                    foreach (var player in gameManager.CurrentEncounter.PlayerParty.Members)
-                    {
-                        string info = $"{player.Name}: \n--> HitPoints: {player.HitPoints}/{player.MaxHitPoints} \n--> Statuses: {(player.ActiveEffects.Count != 0 ? string.Join("\n", player.ActiveEffects.Select(x => x.Name)) : "none")}";
-                        playersInfo.Add(info);
-                    }
-
-                    foreach (var enemy in gameManager.CurrentEncounter.EncounterParty.Members)
-                    {
-                        string info = $"{enemy.Name}: \n--> HitPoints: {enemy.HitPoints}/{enemy.MaxHitPoints} \n--> Statuses: {(enemy.ActiveEffects.Count != 0 ? string.Join("\n", enemy.ActiveEffects.Select(x => x.Name)) : "none")}";
-                        playersInfo.Add(info);
-                    }
-
-                    await channel.ModifyMessageAsync(TurnEvenHistoryMessagedId, m =>
-                    {
-                        m.Content = $"```\n{string.Join("\n\n", playersInfo)}\n```";
-                    });
-                }
+                var eventMessage = await channel.SendMessageAsync(embed: embed.Build());
+                TurnRequestMessageId = eventMessage.Id;
             }
             else
             {
-                var attackName = turnSummary.ActionPerformed switch
-                {
-                    ActionPerformed.BasicAttack => UrlGetter.GetAbilityImage("Basic"),
-                    ActionPerformed.FirstAbility => UrlGetter.GetAbilityImage(turnSummary.ActivePlayer.FirstAbility.Name),
-                    ActionPerformed.SecondAbility => UrlGetter.GetAbilityImage(turnSummary.ActivePlayer.SecondAbility.Name),
-                    ActionPerformed.ArmorAbility => UrlGetter.GetAbilityImage(turnSummary.ActivePlayer.Chest.Name),
-                    ActionPerformed.WeaponAbility => UrlGetter.GetAbilityImage(turnSummary.ActivePlayer.Weapon.Effect.Name),
-                };
-
-                var embed = new EmbedBuilder()
-                .WithColor(Color.Red)
-                .WithTitle(turnSummary.ActivePlayer.Name)
-                .WithThumbnailUrl(attackName);
-
-                foreach (var log in turnSummary.CombatLogs)
-                {
-                    embed.AddField("Combat Log:", log);
-                }
-
-                if (TurnRequestMessageId == 0)
-                {
-                    var eventMessage = await channel.SendMessageAsync(embed: embed.Build());
-                    TurnRequestMessageId = eventMessage.Id;
-                }
-                else
-                {
-                    await channel.ModifyMessageAsync(TurnRequestMessageId, m =>
-                    {
-                        m.Embed = embed.Build();
-                    });
-                }
-
-                if (TurnEvenHistoryMessagedId == 0)
-                {
-                    List<string> playersInfo = new List<string>();
-
-
-                    foreach (var player in gameManager.CurrentEncounter.PlayerParty.Members)
-                    {
-                        string info = $"{player.Name}:\n--> HitPoints: {player.HitPoints}/{player.MaxHitPoints} \n--> Statuses: \n{(player.ActiveEffects.Count != 0 ? string.Join("\n", player.ActiveEffects.Select(x => "- " + x.Name + " - " + x.Description)) : "none")}";
-                        playersInfo.Add(info);
-                    }
-
-                    foreach (var enemy in gameManager.CurrentEncounter.EncounterParty.Members)
-                    {
-                        string info = $"{enemy.Name}: \n--> HitPoints: {enemy.HitPoints}/{enemy.MaxHitPoints} \n--> Statuses: \n{(enemy.ActiveEffects.Count != 0 ? string.Join("\n", enemy.ActiveEffects.Select(x => x.Name)) : "none")}";
-                        playersInfo.Add(info);
-                    }
-
-                    var eventMessage = await channel.SendMessageAsync($"{string.Join("\n", playersInfo)}");
-                    TurnEvenHistoryMessagedId = eventMessage.Id;
-                }
-                else
-                {
-                    List<string> playersInfo = new List<string>();
-
-
-                    foreach (var player in gameManager.CurrentEncounter.PlayerParty.Members)
-                    {
-                        string info = $"{player.Name}: \n--> HitPoints: {player.HitPoints}/{player.MaxHitPoints} \n--> Statuses: \n{(player.ActiveEffects.Count != 0 ? string.Join("\n", player.ActiveEffects.Select(x => x.Name)) : "none")}";
-                        playersInfo.Add(info);
-                    }
-
-                    foreach (var enemy in gameManager.CurrentEncounter.EncounterParty.Members)
-                    {
-                        string info = $"{enemy.Name}: \n--> HitPoints: {enemy.HitPoints}/{enemy.MaxHitPoints} \n--> Statuses: \n{(enemy.ActiveEffects.Count != 0 ? string.Join("\n", enemy.ActiveEffects.Select(x => x.Name)) : "none")}";
-                        playersInfo.Add(info);
-                    }
-
-                    await channel.ModifyMessageAsync(TurnEvenHistoryMessagedId, m =>
-                    {
-                        m.Content = $"```\n {string.Join("\n\n", playersInfo)}```";
-                    });
-                }
+                await channel.ModifyMessageAsync(TurnRequestMessageId, m => m.Embed = embed.Build());
             }
-            
+        }
 
-            
+        private IEnumerable<string> GeneratePlayersInfo(IEnumerable<Being> members)
+        {
+            foreach (var member in members)
+            {
+                yield return $"**{member.Name}**:\n" +
+                             $"\u2665\uFE0F **HitPoints**: {member.HitPoints}/{member.MaxHitPoints} \n" +
+                             $"\uD83D\uDCA2 **Statuses**: {(member.ActiveEffects.Count != 0 ? string.Join("\n", member.ActiveEffects.Select(x => "- " + x.Name + " - " + x.Description)) : "none")} \n";
+            }
+        }
+
+        private async Task SendOrModifyPlayersInfoMessage(ITextChannel channel, List<string> playersInfo)
+        {
+            if (TurnEvenHistoryMessagedId == 0)
+            {
+                var eventMessage = await channel.SendMessageAsync(embed: new EmbedBuilder().WithDescription(string.Join("\n", playersInfo)).WithTitle("Battlefield Report").WithThumbnailUrl("https://i.imgur.com/f8M2Y5s.png").Build());
+                TurnEvenHistoryMessagedId = eventMessage.Id;
+            }
+            else
+            {
+                await channel.ModifyMessageAsync(TurnEvenHistoryMessagedId, m => m.Embed = new EmbedBuilder().WithDescription(string.Join("\n", playersInfo)).WithThumbnailUrl("https://i.imgur.com/f8M2Y5s.png").WithTitle("Battlefield Report").Build());
+            }
         }
 
         private async Task SendTurnRequest(Being player)
         {
             var channel = client.GetGuild(GUILD_ID).GetTextChannel(CHANNEL_ID);
-
             var currentUser = await client.GetUserAsync(player.DiscordId);
-
-            bool isFirst = false;
-            bool isSecond = false;
-
-            if (player.FirstAbility.Cooldown > 0)
-            {
-                isFirst = true;
-            }
-
-            if (player.SecondAbility.Cooldown > 0)
-            {
-                isSecond = true;
-            }
+            var isDefending = this.ReceiveRequest(player.DiscordId) == null;
 
             var builder = new ComponentBuilder();
-            var characterSheet = new EmbedBuilder();
+            var characterSheet = isDefending ? BuildDefenseEmbed(player, currentUser) : BuildAttackEmbed(player, currentUser);
 
-            if (this.ReceiveRequest(player.DiscordId) == null)
-            {
-                var attacker = gameManager.CurrentEncounter.CurrentTurn;
-
-                builder
-                .WithButton($"{player.Chest.Name}", "chest-ability", disabled: player.Chest.IsUsed)
-                .WithButton("Take Damage", "take-damage");
-
-
-                characterSheet
-                    .AddField($"{player.Chest.Name}", $"{player.Chest.Description}\n")
-                    .WithThumbnailUrl(currentUser.GetAvatarUrl())
-                    .WithTitle($"{currentUser.Mention} is being attacked by {attacker.Name}")
-                    .WithImageUrl(UrlGetter.GetMonsterPortrait(attacker.Name))
-                    .WithDescription($"""
-                Class: {attacker.ClassName}
-
-                 Your HP: {player.HitPoints}/{player.MaxHitPoints}
-                Their HP: {attacker.HitPoints}/{attacker.MaxHitPoints}
-                
-                Their Active Effects:
-                {string.Join("\n", attacker.ActiveEffects.Select(x => x.Name + " - " + x.Description))}
-                """);
-            }
-            else
-            {
-                builder
-                .WithButton("Basic Attack", "basic-attack")
-                .WithButton(player.FirstAbility.Name, "first-ability", disabled: isFirst)
-                .WithButton(player.SecondAbility.Name, "second-ability", disabled: isSecond)
-                .WithButton(player.Weapon.ItemName, "weapon-active", disabled: player.Weapon.Effect.IsUsed);
-
-
-                characterSheet
-                    .AddField($"{player.Weapon.ItemName}", $"{player.Weapon.Effect.PrintPassiveStatus()}")
-                    .WithThumbnailUrl(currentUser.GetAvatarUrl())
-                    .WithTitle(player.Name)
-                    .WithDescription($"""
-                Class: {player.ClassName}
-
-                HP: {player.HitPoints}/{player.MaxHitPoints}
-                
-                Active Effects:
-                {string.Join("\n", player.ActiveEffects.Select(x => x.Name + " - " + x.Description))}
-                """);
-            }
-
-            
+            SetupComponentButtons(builder, player, isDefending);
 
             var mentionName = channel.GetUser(player.DiscordId);
 
+            await SendOrUpdateTurnRequestMessage(channel, mentionName, characterSheet, builder, isDefending);
+        }
+
+        private EmbedBuilder BuildDefenseEmbed(Being player, IUser currentUser)
+        {
+            var attacker = gameManager.CurrentEncounter.CurrentTurn;
+            return new EmbedBuilder()
+                .AddField($"{player.Chest.Name}", $"{player.Chest.Description}\n")
+                .WithThumbnailUrl(currentUser.GetAvatarUrl())
+                .WithTitle($"**{currentUser.Mention}** is being attacked by **{attacker.Name}**")
+                .WithImageUrl(UrlGetter.GetMonsterPortrait(attacker.Name));
+        }
+
+        private EmbedBuilder BuildAttackEmbed(Being player, IUser currentUser)
+        {
+            return new EmbedBuilder()
+                .AddField($"{player.Weapon.ItemName}", $"{player.Weapon.Effect.PrintPassiveStatus()}")
+                .WithThumbnailUrl(currentUser.GetAvatarUrl())
+                .WithImageUrl(UrlGetter.GetClassImage(player.ClassName))
+                .WithTitle("Turn for " + player.Name);
+        }
+
+        private void SetupComponentButtons(ComponentBuilder builder, Being player, bool isDefending)
+        {
+            if (isDefending)
+            {
+                builder.WithButton($"{player.Chest.Name}", "chest-ability", disabled: player.Chest.IsUsed)
+                       .WithButton("Take No Action", "take-damage");
+            }
+            else
+            {
+                builder.WithButton("Basic Attack", "basic-attack")
+                       .WithButton(player.FirstAbility.Name, "first-ability", disabled: player.FirstAbility.Cooldown > 0)
+                       .WithButton(player.SecondAbility.Name, "second-ability", disabled: player.SecondAbility.Cooldown > 0)
+                       .WithButton(player.Weapon.ItemName, "weapon-active", disabled: player.Weapon.Effect.IsUsed);
+            }
+        }
+
+        private async Task SendOrUpdateTurnRequestMessage(ITextChannel channel, SocketGuildUser mentionName, EmbedBuilder characterSheet, ComponentBuilder builder, bool isDefending)
+        {
             if (TurnRequestMessageId == 0)
             {
-                var consoleBlock = await channel?.SendMessageAsync("```\n \n```");
-
-                var newMessage = await channel?.SendMessageAsync($"Turn Started for **{mentionName.Mention}**", components: builder.Build());
+                var consoleBlock = await channel.SendMessageAsync("```\n \n```");
+                var newMessage = await channel.SendMessageAsync($"Turn Started for **{mentionName.Mention}**", components: builder.Build());
 
                 TurnRequestMessageId = newMessage.Id;
                 TurnEvenHistoryMessagedId = consoleBlock.Id;
             }
             else
             {
-                if (this.ReceiveRequest(player.DiscordId) == null)
+                var messageContent = isDefending ? $"Defense Action for **{mentionName.Mention}**." : $"Turn Started for **{mentionName.Mention}**.";
+
+                await channel.ModifyMessageAsync(TurnRequestMessageId, m =>
                 {
-                    await channel.ModifyMessageAsync(TurnRequestMessageId, m =>
-                    {
-                        m.Content = $"Defense Action for **{mentionName.Mention}**.";
-                        m.Embed = characterSheet.Build();
-                        m.Components = builder.Build();
-                    });
-                }
-                else
-                {
-                    await channel.ModifyMessageAsync(TurnRequestMessageId, m =>
-                    {
-                        m.Content = $"Turn Started for **{mentionName.Mention}**.";
-                        m.Embed = characterSheet.Build();
-                        m.Components = builder.Build();
-                    });
-                }
-                
+                    m.Content = messageContent;
+                    m.Embed = characterSheet.Build();
+                    m.Components = builder.Build();
+                });
             }
         }
+
 
         public async Task HandleActionAsync(SocketMessageComponent component, string attackType)
         {

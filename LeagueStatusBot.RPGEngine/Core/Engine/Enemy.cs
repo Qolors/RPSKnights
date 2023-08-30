@@ -33,67 +33,32 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
         private Ability LoadAbilityFromTemplate(AbilityTemplate template)
         {
-            // This is a simple example. You may have different ability classes for different implementations.
-            switch (template.Implementation)
+            return template.Implementation switch
             {
-                case "FireBreath":
-                    return new FireBreath(template);
-                case "TailSwipe":
-                    return new TailSwipe(template);
-                case "Constrict":
-                    return new Constrict(template);
-                case "DiveBomb":
-                    return new DiveBomb(template);
-                case "JustTwo":
-                    return new JustTwo(template);
-                case "VenomStrike":
-                    return new VenomStrike(template);
-                case "VerbalAssault":
-                    return new VerbalAssault(template);
-                case "WingSlash":
-                    return new WingSlash(template);
-                // ... add other cases for other ability implementations.
-                default:
-                    throw new Exception($"Unknown ability implementation: {template.Implementation}");
-            }
+                "FireBreath" => new FireBreath(template),
+                "TailSwipe" => new TailSwipe(template),
+                "Constrict" => new Constrict(template),
+                "DiveBomb" => new DiveBomb(template),
+                "JustTwo" => new JustTwo(template),
+                "VenomStrike" => new VenomStrike(template),
+                "VerbalAssault" => new VerbalAssault(template),
+                "WingSlash" => new WingSlash(template),
+                _ => throw new Exception($"Unknown ability implementation: {template.Implementation}"),
+            };
         }
 
         public override void AttackTarget()
         {
             if (Target == null) return;
-
-            float attackRoll;
-
             AttackType chosenAttack = ChooseAttack();
-
-            switch (chosenAttack)
+            var attackRoll = chosenAttack switch
             {
-                case AttackType.Basic:
-                    attackRoll = this.BasicAttack();
-                    break;
-                case AttackType.FirstAbility:
-                    attackRoll = FirstAbility.Activate(this, Target);
-                    break;
-                case AttackType.SecondAbility:
-                    attackRoll = SecondAbility.Activate(this, Target);
-                    break;
-                default:
-                    attackRoll = this.BasicAttack();
-                    break;
-            }
-
+                AttackType.Basic => this.BasicAttack(),
+                AttackType.FirstAbility => FirstAbility.Activate(this, Target),
+                AttackType.SecondAbility => SecondAbility.Activate(this, Target),
+                _ => this.BasicAttack(),
+            };
             Console.WriteLine("Attack Type: " + chosenAttack);
-
-            // Luck Modifier (Critical Hit)
-            if (new Random().NextDouble() < BaseStats.Luck * 0.01)
-            {
-                attackRoll *= 1.5f;
-                this.OnActionPerformed($"[{Name} ({HitPoints}/{MaxHitPoints})]: CRITICAL HIT {Target.Name}!");
-            }
-            else
-            {
-                this.OnActionPerformed($"[{Name} ({HitPoints}/{MaxHitPoints})]: {chosenAttack.ToString()} {Target.Name}!");
-            }
 
             CurrentDamage = attackRoll;
 
@@ -105,6 +70,15 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
                 ? Common.Models.ActionPerformed.FirstAbility
                 : Common.Models.ActionPerformed.SecondAbility);
 
+            var attackString = chosenAttack switch
+            {
+                AttackType.Basic => "Basic Attack",
+                AttackType.FirstAbility => FirstAbility.Name,
+                AttackType.SecondAbility => SecondAbility.Name,
+                _ => "Basic Attack"
+            };
+
+            this.OnActionPerformed($"**{Name}**: {attackString} {Target.Name}");
 
             Target.TakeDamage(CurrentDamage, DamageType.Normal, this);  // Assuming DamageType.Normal for now, you might want to adjust based on chosen attack type.
         }

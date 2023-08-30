@@ -6,8 +6,8 @@ namespace LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities
     {
         public VenomStrike(AbilityTemplate template)
         {
-            Name = template.Name;
-            Description = template.Description;
+            Name = "Venom Strike";
+            Description = "A Basic Attack that also applies poison";
             Cooldown = 0;
             DamageType = Enum.Parse<DamageType>(template.DamageType);
         }
@@ -20,9 +20,9 @@ namespace LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities
 
             float poisonDamage = user.BaseStats.Intelligence * 0.5f;
 
-            user.BroadCast($"{user.Name} used {this.Name} on {target.Name}!");
+            user.BroadCast($"**{this.Name}** on **{target.Name}**");
 
-            target.AddEffect(new Effect() { Duration = 3, Description = $"Poisoned (-{poisonDamage}hp per Turn", Type = EffectType.Poison, Name = this.Name, BufferDuration = 0, ModifierAmount = poisonDamage });
+            target.AddEffect(new Effect() { Duration = 3, Description = $"Poisoned: -{poisonDamage}hp per Turn", Type = EffectType.Poison, Name = this.Name, BufferDuration = 0, ModifierAmount = poisonDamage });
 
             // Apply the initial venom strike damage.
             target.TakeDamage(baseDamage, DamageType, user);

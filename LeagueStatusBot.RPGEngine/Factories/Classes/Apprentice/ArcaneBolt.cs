@@ -26,7 +26,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.Classes.Apprentice
 
                 if (_consecutiveHits == 2)
                 {
-                    user.BroadCast("Arcane Bolt's Extra Damage!");
+                    user.BroadCast("Arcane Bolt's **Damage Boost**");
                     baseDamage *= 1.25f; // Apply 25% damage boost
                     _consecutiveHits = 0;
 

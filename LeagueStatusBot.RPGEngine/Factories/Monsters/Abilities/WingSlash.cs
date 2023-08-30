@@ -12,8 +12,8 @@ namespace LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities
     {
         public WingSlash(AbilityTemplate template)
         {
-            Name = template.Name;
-            Description = template.Description;
+            Name = "Wing Slash";
+            Description = "Strikes randomly between 2 or 3 times";
             Cooldown = 0;
             DamageType = Enum.Parse<DamageType>(template.DamageType);
         }
@@ -46,7 +46,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities
 
                 if (isCrit)
                 {
-                    user.BroadCast($"{user.Name}'s {this.Name} critically strikes {target.Name}!");
+                    user.BroadCast($"{this.Name}'s {i} hit critically strikes {target.Name}!");
                 }
             }
 

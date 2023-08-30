@@ -7,7 +7,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities
 
         public FireBreath(AbilityTemplate template)
         {
-            Name = template.Name;
+            Name = "Fire Breath";
 
             Description = template.Description;
 
@@ -34,7 +34,14 @@ namespace LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities
 
             float totalDamage = isCrit ? baseDamage * 1.5f : baseDamage;
 
-            user.BroadCast($"{user.Name} used {this.Name} on {target.Name}!");
+            if (isCrit)
+            {
+                user.BroadCast($"**{this.Name}** on **{target.Name}** - **CRITICAL HIT**");
+            }
+            else
+            {
+                user.BroadCast($"**{this.Name}** on **{target.Name}**");
+            }
 
             //target.TakeDamage(totalDamage, DamageType, user);
 

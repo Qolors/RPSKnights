@@ -17,7 +17,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.ArmorEffects.Adventurer
 
         public void ActivateArmor(Being self, Being? target, float damage)
         {
-            self.BroadCast("Bulwark Breastplate - nullifying the attack");
+            self.BroadCast($"**{Name}** - nullifying the attack");
             IsUsed = true;
             self.LastActionPerformed = Common.Models.ActionPerformed.ArmorAbility;
         }

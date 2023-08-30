@@ -117,7 +117,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public virtual void ChosenAbility(Ability ability)
         {
             // Existing code
-            ActionPerformed?.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: Used {ability.Name}!");
+            ActionPerformed?.Invoke(this, $"**{Name}**: Used {ability.Name}!");
 
             float abilityDmg = ability.Activate(this, this.Target);
 
@@ -135,7 +135,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             float modifiedDmg = GetModifiedDamage(enemyDamageRoll, dmgType);
             if (modifiedDmg == 0)
             {
-                ActionPerformed.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: Dodged the attack!");
+                ActionPerformed.Invoke(this, $"**{Name}**: Dodged the attack!");
                 return;
             }
             //AFTER MODIFICATIONS MADE
@@ -180,7 +180,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
             if (HitPoints < 0) HitPoints = 0;
 
-            DamageTaken?.Invoke(this, $"- {Name} took {finalDamage} damage. HP is Now ({this.HitPoints}/{this.MaxHitPoints})\n");
+            DamageTaken?.Invoke(this, $"**{Name}**: took {finalDamage} damage. HP is Now ({this.HitPoints}/{this.MaxHitPoints})\n");
 
             if (!IsAlive) Killed?.Invoke(this, EventArgs.Empty);
         }
@@ -205,18 +205,18 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
                 float finalDmg = MaxHitPoints * effectDamage;
                 int finalDmgRound = 1 + Convert.ToInt32(finalDmg);
                 HitPoints -= finalDmgRound;
-                DamageTaken?.Invoke(this, $"- {Name} bled for {finalDmgRound} damage. HP is Now ({this.HitPoints}/{this.MaxHitPoints})\n");
+                DamageTaken?.Invoke(this, $"**{Name}**: bled for {finalDmgRound} damage. HP is Now ({this.HitPoints}/{this.MaxHitPoints})\n");
             }
             else if (effectType == EffectType.Debuff)
             {
                 this.BaseStats.Strength -= 5;
-                ActionPerformed?.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: Strength was reduced by 5!");
+                ActionPerformed?.Invoke(this, $"**{Name}**: Strength was reduced by 5!");
             }
             else if (effectType == EffectType.Poison)
             {
                 int finalDmgRound = Convert.ToInt32(effectDamage);
                 HitPoints -= finalDmgRound;
-                DamageTaken?.Invoke(this, $"- {Name} took {finalDmgRound} poison damage. HP is Now ({this.HitPoints}/{this.MaxHitPoints})\n");
+                DamageTaken?.Invoke(this, $"**{Name}**: took {finalDmgRound} poison damage. HP is Now ({this.HitPoints}/{this.MaxHitPoints})\n");
             }
 
             if (!IsAlive) Killed?.Invoke(this, EventArgs.Empty);
@@ -250,11 +250,11 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
             if (new Random().NextDouble() < BaseStats.Luck * 0.01)
             {
                 attackRoll *= 1.5f;
-                ActionPerformed?.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: CRITICAL HIT {Target.Name}!");
+                ActionPerformed?.Invoke(this, $"**{Name}**: CRITICAL HIT {Target.Name}!");
             }
             else
             {
-                ActionPerformed?.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: Attacked {Target.Name}!");
+                ActionPerformed?.Invoke(this, $"**{Name}**: Attacked {Target.Name}!");
             }
 
             CurrentDamage = attackRoll;
@@ -274,7 +274,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         public void AddEffect(Effect effect)
         {
             ActiveEffects.Add(effect);
-            EffectApplied?.Invoke(this, $"{Name} has {effect.Name} applied for {effect.Duration} round!\n");
+            EffectApplied?.Invoke(this, $"**{Name}** has {effect.Name} applied for {effect.Duration} round!\n");
         }
 
         public void AddDelayedEffect(Effect effect)
@@ -289,7 +289,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
                 this.BaseStats.Strength += 5;
             }
             ActiveEffects.Remove(effect);
-            EffectRemoved?.Invoke(this, $"{Name}'s {effect.Name} wore off..\n");
+            EffectRemoved?.Invoke(this, $"**{Name}'s** {effect.Name} wore off..\n");
         }
 
         public void ProcessEndOfRound()
@@ -302,7 +302,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
                     if (ActiveEffects[i].BufferDuration == 0)
                     {
-                        EffectApplied?.Invoke(this, $"{Name} has {ActiveEffects[i].Name} applied for {ActiveEffects[i].Duration} round!\n");
+                        EffectApplied?.Invoke(this, $"**{Name}** has {ActiveEffects[i].Name} applied for {ActiveEffects[i].Duration} round!\n");
                     }
                 }
                 else
@@ -330,7 +330,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
 
         public void DealAOEDamage(float dmg)
         {
-            ActionPerformed?.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: AOE Hit!");
+            ActionPerformed?.Invoke(this, $"**{Name}**: AOE Hit!");
             AoeDamagePerformed?.Invoke(this, dmg);
         }
 
@@ -343,12 +343,12 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine
         {
             HitPoints += (int)heal;
             if (HitPoints > MaxHitPoints) HitPoints = MaxHitPoints;
-            ActionPerformed?.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: Healed {heal} HP!");
+            ActionPerformed?.Invoke(this, $"**{Name}**: Healed {heal} HP!");
         }
 
         public void BroadCast(string effect)
         {
-            ActionPerformed?.Invoke(this, $"[{Name} ({HitPoints}/{MaxHitPoints})]: activated {effect}!");
+            ActionPerformed?.Invoke(this, $"**{Name}**: activated {effect}!");
         }
 
         public virtual void SetTarget(Being target)

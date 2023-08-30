@@ -12,8 +12,8 @@ namespace LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities
     {
         public DiveBomb(AbilityTemplate template)
         {
-            Name = template.Name;
-            Description = template.Description;
+            Name = "Dive Bomb";
+            Description = "Dives from the sky to strike the enemy with great force, can apply Confuse";
             Cooldown = 0;
             DamageType = Enum.Parse<DamageType>(template.DamageType);
         }
@@ -39,11 +39,11 @@ namespace LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities
 
             if (isCrit)
             {
-                user.BroadCast($"{user.Name} used {this.Name} on {target.Name} - CRITICAL HIT!");
+                user.BroadCast($"**{this.Name}** on **{target.Name}** - **CRITICAL HIT**");
             }
             else
             {
-                user.BroadCast($"{user.Name} used {this.Name} on {target.Name}!");
+                user.BroadCast($"**{this.Name}** on **{target.Name}**");
             }
             
 

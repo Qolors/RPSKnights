@@ -12,8 +12,8 @@ namespace LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities
     {
         public VerbalAssault(AbilityTemplate template) 
         {
-            Name = template.Name;
-            Description = template.Description;
+            Name = "Verbal Assault";
+            Description = "Weakens the strength of the target";
             Cooldown = 0;
             DamageType = Enum.Parse<DamageType>(template.DamageType);
         }

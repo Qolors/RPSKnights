@@ -12,8 +12,8 @@ namespace LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities
     {
         public JustTwo(AbilityTemplate template)
         {
-            Name = template.Name;
-            Description = template.Description;
+            Name = "Just Two";
+            Description = "Strikes Twice";
             Cooldown = 0;
             DamageType = Enum.Parse<DamageType>(template.DamageType);
         }
@@ -32,7 +32,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities
 
             float damage = user.BasicAttack() * 2;
 
-            user.BroadCast($"{user.Name} used {this.Name} on {target.Name} attacking twice");
+            user.BroadCast($"**{this.Name}** on **{target.Name}** attacking twice");
 
             //target.TakeDamage(damage, DamageType, user);
 

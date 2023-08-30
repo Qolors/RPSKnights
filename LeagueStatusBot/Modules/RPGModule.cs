@@ -47,19 +47,19 @@ namespace LeagueStatusBot.Modules
                 .WithTitle("The Adventurer Archetype")
                 .AddField("Starter Skill: First Aid", "A burst heal (50% of your Max Hitpoints) to anyone in your party")
                 .AddField("Starter Skill: Parrying Strike", "A weakened strike that reduces the damage you take for multiple rounds")
-                .WithImageUrl("https://i.imgur.com/fnUj6sd.png")
+                .WithImageUrl(UrlGetter.GetClassImage("Adventurer"))
                 .WithDescription("A versatile skill set ideal for front-line / melee builds"),
                 new PageBuilder()
                 .WithTitle("The Apprentice Archetype")
                 .AddField("Starter Skill: Arcane Bolt", "A ramping damage ability that can be used frequently")
                 .AddField("Starter Skill: Mind Snap", "A solid utility spell that knocks out a targeted enemy")
-                .WithImageUrl("https://i.imgur.com/VZp9Cq8.png")
+                .WithImageUrl(UrlGetter.GetClassImage("Apprentice"))
                 .WithDescription("A high damage skill set that can also bring good control of the battlefield."),
                 new PageBuilder()
                 .WithTitle("The Vagabond Archetype")
                 .AddField("Starter Skill: Splintered Shot", "A ranged attack causing the target to bleed")
                 .AddField("Starter Skill: Fall Back", "A defensive skill allowing you to regroup and increase your next attack's damage")
-                .WithImageUrl("https://i.imgur.com/S0X2GdD.png")
+                .WithImageUrl(UrlGetter.GetClassImage("Vagabond"))
                 .WithDescription("A versatile skill set with good dot damage and status effects."),
             };
 
@@ -133,6 +133,7 @@ namespace LeagueStatusBot.Modules
                 .AddField(player.FirstAbility.Name, player.FirstAbility.Description)
                 .AddField(player.SecondAbility.Name, player.SecondAbility.Description)
                 .WithThumbnailUrl(Context.User.GetAvatarUrl())
+                .WithImageUrl(UrlGetter.GetClassImage(player.ClassName))
                 .Build();
 
             var embed3 = new EmbedBuilder()
@@ -202,6 +203,7 @@ namespace LeagueStatusBot.Modules
                 .AddField(player.FirstAbility.Name, player.FirstAbility.Description)
                 .AddField(player.SecondAbility.Name, player.SecondAbility.Description)
                 .WithThumbnailUrl(Context.User.GetAvatarUrl())
+                .WithImageUrl(UrlGetter.GetClassImage(player.ClassName))
                 .Build();
 
             var embed3 = new EmbedBuilder()

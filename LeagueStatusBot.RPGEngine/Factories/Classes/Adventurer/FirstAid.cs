@@ -21,7 +21,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.Classes.Adventurer
             else
             {
                 target.HitPoints += (int)(user.MaxHitPoints * 0.5f);
-                user.BroadCast($"{this.Name}, healing {target.Name} for {(int)(user.MaxHitPoints * 0.5f)}");
+                user.BroadCast($"'{this.Name}', healing **{target.Name}** for **{(int)(user.MaxHitPoints * 0.5f)}**");
             }
 
             Cooldown = 5;

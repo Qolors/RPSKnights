@@ -1,9 +1,4 @@
 ﻿using LeagueStatusBot.RPGEngine.Core.Engine;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LeagueStatusBot.RPGEngine.Factories.ArmorEffects.Adventurer
 {
@@ -17,7 +12,7 @@ namespace LeagueStatusBot.RPGEngine.Factories.ArmorEffects.Adventurer
 
         public void ActivateArmor(Being self, Being? target, float damage)
         {
-            self.BroadCast("Mystical Vestment - Redirecting damage back to attacker");
+            self.BroadCast($"**{Name}** Redirecting damage back to attacker");
             damage = damage + (self.BaseStats.Intelligence * 0.2f);
             target?.TakeDamage(damage, DamageType.Magic, self);
             self.LastActionPerformed = Common.Models.ActionPerformed.ArmorAbility;

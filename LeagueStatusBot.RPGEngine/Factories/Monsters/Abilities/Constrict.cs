@@ -12,8 +12,8 @@ namespace LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities
     {
         public Constrict(AbilityTemplate template)
         {
-            Name = template.Name;
-            Description = template.Description;
+            Name = "Constrict";
+            Description = "High Crit Chance Ability";
             Cooldown = 0;
             DamageType = Enum.Parse<DamageType>(template.DamageType);
         }
@@ -36,11 +36,11 @@ namespace LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities
 
             if (isCrit)
             {
-                user.BroadCast($"{user.Name} used {this.Name} on {target.Name} - CRITICAL HIT!");
+                user.BroadCast($"**{this.Name}** on **{target.Name}** - **CRITICAL HIT**");
             }
             else
             {
-                user.BroadCast($"{user.Name} used {this.Name} on {target.Name}");
+                user.BroadCast($"**{this.Name}** on **{target.Name}**");
             }
 
             Cooldown = 3;
