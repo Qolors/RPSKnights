@@ -65,6 +65,37 @@ namespace LeagueStatusBot.Helpers
 
         }
 
+        public static async Task<ulong> SendStoryMessage(DiscordSocketClient client, Embed embed)
+        {
+            const ulong GUILD_ID = 402652836606771202;
+            const ulong CHANNEL_ID = 702684769200111716;
+            var channel = client.GetGuild(GUILD_ID).GetTextChannel(CHANNEL_ID);
+
+            ulong messageInt = (await channel?.SendMessageAsync(embed: embed)).Id;
+
+            MessageCache.Add(messageInt);
+
+            return messageInt;
+        }
+
+        public static async Task EditStoryMessage(DiscordSocketClient client, ulong messageId, string post, string imageUrl)
+        {
+            const ulong GUILD_ID = 402652836606771202;
+            const ulong CHANNEL_ID = 702684769200111716;
+            var channel = client.GetGuild(GUILD_ID).GetTextChannel(CHANNEL_ID);
+
+            var embed = new EmbedBuilder()
+                .WithTitle("Memories start to flood in..")
+                .WithDescription(post)
+                .WithImageUrl(imageUrl)
+                .Build();
+
+            await channel.ModifyMessageAsync(messageId, m =>
+            {
+                m.Embed = embed;
+            });
+        }
+
         public static async Task SendSkillUpMessage(string message, DiscordSocketClient client, Embed[] embeds, MessageComponent messageComponent, bool eph = false)
         {
             const ulong GUILD_ID = 402652836606771202;

@@ -22,6 +22,7 @@ namespace LeagueStatusBot.Services
         private readonly DiscordSocketClient client;
         private readonly PlayerRepository playerRepository;
         private readonly ItemRepository itemRepository;
+        private readonly MonsterRepository monsterRepository;
         private readonly Random random = new Random();
         public bool IsLobbyOpen { get; set; } = false;
 
@@ -33,14 +34,14 @@ namespace LeagueStatusBot.Services
         public ulong TurnEvenHistoryMessagedId { get; set; } = 0;
         public Dictionary<ulong, string> Members { get; set; } = new();
 
-        public GameControllerService(DiscordSocketClient client, PlayerRepository playerRepository, ItemRepository itemRepository)
+        public GameControllerService(DiscordSocketClient client, PlayerRepository playerRepository, ItemRepository itemRepository, MonsterRepository monsterRepository)
         {
             this.playerRepository = playerRepository;
             this.itemRepository = itemRepository;
             this.gameManager = new GameManager();
             this.client = client;
 
-            Mapper.Initialize(this.playerRepository, this.itemRepository);
+            Mapper.Initialize(this.playerRepository, this.itemRepository, this.monsterRepository);
             UrlGetter.Initialize();
 
             client.Ready += SetupTimer;
@@ -103,13 +104,20 @@ namespace LeagueStatusBot.Services
             if (Members.Any()) 
             {
                 var playerList = new List<Being>();
+
                 foreach (var member in Members)
                 {
                     playerList.Add(Mapper.BeingEntityToDomainModel(playerRepository.GetBeingByDiscordId(member.Key)));
                 }
 
+                Monster monster = Mapper.MonsterEntityToDomainModel(monsterRepository.GetRandomSuperMonster());
+                Campaign campaign = Mapper.CampaignEntityToDomainModel(monsterRepository.GetMonsterCampaign(monster.Name));
+
                 await PostToFeedChannel.EditOldMessage("The Portal has closed..", client);
-                await gameManager.StartGameAsync(playerList);
+
+                await PlayCampaignCinematic(campaign);
+
+                await gameManager.StartGameAsync(playerList, monster);
                 
             }
             else
@@ -596,6 +604,23 @@ namespace LeagueStatusBot.Services
         public List<string> GetAllies()
         {
             return gameManager.GetPlayerPartyNames();
+        }
+
+        private async Task PlayCampaignCinematic(Campaign campaign)
+        {
+            var embed = new EmbedBuilder()
+                .WithTitle("Memories begin to flood in..")
+                .WithDescription(campaign.IntroductionPost)
+                .WithImageUrl(campaign.IntroductionImageUrl);
+
+            ulong storyId = await PostToFeedChannel.SendStoryMessage(client, embed.Build());
+
+            await Task.Delay(7000);
+            await PostToFeedChannel.EditStoryMessage(client, storyId, campaign.MidPost, campaign.MidPostImageUrl);
+            await Task.Delay(7000);
+            await PostToFeedChannel.EditStoryMessage(client, storyId, campaign.PreFightPost, campaign.PreFightPostImageUrl);
+            await Task.Delay(7000);
+            
         }
 
         public bool AddNewCharacter(ulong id, string name, string className)

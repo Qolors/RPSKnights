@@ -1,10 +1,5 @@
 ﻿using LeagueStatusBot.RPGEngine.Data.Contexts;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using LeagueStatusBot.RPGEngine.Data.Entities;
 
 namespace LeagueStatusBot.RPGEngine.Data.Repository
 {
@@ -16,6 +11,18 @@ namespace LeagueStatusBot.RPGEngine.Data.Repository
             this.context = context;
         }
 
+        public SuperMonsterEntity GetRandomSuperMonster()
+        {
+            var effects = context.SuperMonsters.ToList();
+            var random = new Random();
+            var randomMonster = effects[random.Next(1, effects.Count)];
+            return randomMonster;
+        }
 
+        public CampaignEntity GetMonsterCampaign(string name)
+        {
+            return context
+                .Campaigns.SingleOrDefault(b => b.MonsterName == name);
+        }
     }
 }

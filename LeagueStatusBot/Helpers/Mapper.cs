@@ -12,13 +12,15 @@ namespace LeagueStatusBot.Helpers
     {
         private static PlayerRepository playerRepository;
         private static ItemRepository itemRepository;
+        private static MonsterRepository monsterRepository;
         private static ItemEffectFactory itemEffectFactory;
         private static ArmorEffectFactory armorEffectFactory;
 
-        public static void Initialize(PlayerRepository playerRepo, ItemRepository itemRepo)
+        public static void Initialize(PlayerRepository playerRepo, ItemRepository itemRepo, MonsterRepository monsterRepo)
         {
             playerRepository = playerRepo;
             itemRepository = itemRepo;
+            monsterRepository = monsterRepo;
             itemEffectFactory = new ItemEffectFactory();
             armorEffectFactory = new ArmorEffectFactory();
         }
@@ -133,6 +135,25 @@ namespace LeagueStatusBot.Helpers
             item.Effect.EffectId = effect.EffectId;
 
             return item;
+        }
+
+        public static Monster MonsterEntityToDomainModel(this SuperMonsterEntity monsterEntity)
+        {
+            return new Monster(monsterEntity.FirstSuper, monsterEntity.SecondSuper, monsterEntity.Name, monsterEntity.Description);
+        }
+
+        public static Campaign CampaignEntityToDomainModel(this CampaignEntity campaignEntity)
+        {
+            return new Campaign
+            {
+                IntroductionPost = campaignEntity.IntroductionPost,
+                IntroductionImageUrl = campaignEntity.IntroductionImageUrl,
+                MidPost = campaignEntity.MidPost,
+                MidPostImageUrl = campaignEntity.MidPostImageUrl,
+                PreFightPost = campaignEntity.PreFightPost,
+                PreFightPostImageUrl = campaignEntity.PreFightPostImageUrl,
+                MonsterName = campaignEntity.MonsterName,
+            };
         }
     }
 }

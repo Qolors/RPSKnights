@@ -6,7 +6,8 @@ namespace LeagueStatus.RPGEngine.Tooling
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Welcome to Bonk RPG Engine Tooling. Please enter a command:\n add-items, add-itemeffects, add-beings");
+            Console.WriteLine("Welcome to Bonk RPG Engine Tooling. Please enter a command:\n add-items, add-itemeffects, add-beings, add-campaigns, add-monsters");
+            
             var input = Console.ReadLine();
 
             if (string.IsNullOrEmpty(input)) { return; }

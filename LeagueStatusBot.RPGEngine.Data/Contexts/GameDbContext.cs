@@ -10,9 +10,9 @@ namespace LeagueStatusBot.RPGEngine.Data.Contexts
         public DbSet<ItemEffectEntity> ItemEffects { get; set; }
         public DbSet<ArmorEffectEntity> ArmorEffects { get; set; }
         public DbSet<LootEntity> Loot { get; set; }
-        public DbSet<SuperMonsterEntity> SuperMonster { get; set; }
-
-        public GameDbContext(DbContextOptions<GameDbContext> options) : base(options) { }
+        public DbSet<SuperMonsterEntity> SuperMonsters { get; set; }
+        public DbSet<CampaignEntity> Campaigns { get; set; }
+        public GameDbContext() : base(GetOptions()) { }
 
         //USE WHEN PERFORMING A MIGRATION THROUGH CLI
         private static DbContextOptions GetOptions()
@@ -28,6 +28,7 @@ namespace LeagueStatusBot.RPGEngine.Data.Contexts
             modelBuilder.Entity<ItemEffectEntity>().HasKey(x => x.EffectId);
             modelBuilder.Entity<ArmorEffectEntity>().HasKey(x => x.EffectId);
             modelBuilder.Entity<SuperMonsterEntity>().HasKey(x => x.Name);
+            modelBuilder.Entity<CampaignEntity>().HasKey(x => x.MonsterName);
             modelBuilder.Entity<LootEntity>().HasKey(x => x.DiscordId);
             modelBuilder.Entity<BeingEntity>().HasKey(x => x.DiscordId);
             modelBuilder.Entity<BeingEntity>()

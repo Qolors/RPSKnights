@@ -9,7 +9,7 @@ namespace LeagueStatusBot.RPGEngine.Tooling.DatabaseTools
 {
     public class DatabasePopulator
     {
-        public DatabasePopulator(string[] args) 
+        public DatabasePopulator(string[] args)
         {
             string dataType = args[0];
             string jsonPath = args[1];
@@ -37,6 +37,14 @@ namespace LeagueStatusBot.RPGEngine.Tooling.DatabaseTools
                     AddBeings(jsonData);
                     break;
 
+                case "add-monsters":
+                    AddMonsters(jsonData);
+                    break;
+
+                case "add-campaigns":
+                    AddCampaigns(jsonData);
+                    break;
+
                 case "peek-db":
                     SeeItemEffects();
                     break;
@@ -52,7 +60,7 @@ namespace LeagueStatusBot.RPGEngine.Tooling.DatabaseTools
         {
             var items = JsonConvert.DeserializeObject<List<ItemEntity>>(jsonData);
 
-            if (items  == null || items.Count == 0)
+            if (items == null || items.Count == 0)
             {
                 Console.WriteLine("Incorrect Format for ItemEntity List");
                 return;
@@ -120,6 +128,47 @@ namespace LeagueStatusBot.RPGEngine.Tooling.DatabaseTools
             db.SaveChanges();
 
             Console.WriteLine("Added Beings to Database");
+        }
+
+        public void AddMonsters(string jsonData)
+        {
+            var monsters = JsonConvert.DeserializeObject<List<SuperMonsterEntity>>(jsonData);
+
+            if (monsters == null || monsters.Count == 0)
+            {
+                Console.WriteLine("Incorrect Format for SuperMonsterEntity List");
+                return;
+            }
+
+            var optionsBuilder = new DbContextOptionsBuilder<GameDbContext>();
+            optionsBuilder.UseSqlite("Data Source=game.db");
+            using var db = new GameDbContext(optionsBuilder.Options);
+
+            db.SuperMonsters.AddRange(monsters);
+            db.SaveChanges();
+
+            Console.WriteLine("Added Monsters to Database");
+            Console.WriteLine($"Showing Example: {db.SuperMonsters.FirstOrDefault().Name} {db.SuperMonsters.FirstOrDefault().Description}");
+        }
+
+        public void AddCampaigns(string jsonData)
+        {
+            var campaigns = JsonConvert.DeserializeObject<List<CampaignEntity>>(jsonData);
+
+            if (campaigns == null ||  campaigns.Count == 0)
+            {
+                Console.WriteLine("Incorrect format for CampaignEntity List");
+            }
+
+            var optionsBuilder = new DbContextOptionsBuilder<GameDbContext>();
+            optionsBuilder.UseSqlite("Data Source=game.db");
+            using var db = new GameDbContext(optionsBuilder.Options);
+
+            db.Campaigns.AddRange(campaigns);
+            db.SaveChanges();
+
+            Console.WriteLine("Added Campaigns to Database");
+            Console.WriteLine($"Showing Example: {db.Campaigns.FirstOrDefault().IntroductionPost}");
         }
     }
 }

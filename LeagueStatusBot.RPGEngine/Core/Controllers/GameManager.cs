@@ -10,6 +10,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 {
     public class GameManager
     {
+        public Campaign Campaign { get; set; }
         public Encounter? CurrentEncounter { get; set; }
         public List<string> EventHistory { get; set; } = new List<string>(); // This can be more detailed with a custom class
         public bool IsGameStarted() => CurrentEncounter == null ? false : true;
@@ -23,7 +24,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         public event EventHandler RoundEnded;
         public event EventHandler RoundStarted;
 
-        public async Task StartGameAsync(List<Being> beings)
+        public async Task StartGameAsync(List<Being> beings, Monster monster)
         {
             Party party = new Party();
 
@@ -37,7 +38,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             CurrentEncounter = new Encounter
             {
                 PlayerParty = party,
-                EncounterParty = GenerateMonsters(party.Members.Count, party.AverageGearScore())
+                EncounterParty = GenerateMonsters(party.Members.Count, party.AverageGearScore(), monster)
             };
 
             GameStarted?.Invoke(this, EventArgs.Empty);
@@ -81,13 +82,13 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             await CurrentEncounter.StartEncounterAsync();
         }
 
-        private Party GenerateMonsters(int playerCount, int gearScore)
+        private Party GenerateMonsters(int playerCount, int gearScore, Monster monster)
         {
             var party = new Party();
 
             for (int i = 0; i < playerCount; i++)
             {
-                party.AddPartyMember(MonsterLoader.GetRandomEnemy(gearScore));
+                party.AddPartyMember(monster.SetGearScore(gearScore));
             }
 
             return party;

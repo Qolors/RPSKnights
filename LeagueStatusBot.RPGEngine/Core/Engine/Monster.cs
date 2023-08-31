@@ -1,50 +1,31 @@
-﻿using LeagueStatusBot.RPGEngine.Factories.Monsters;
+﻿using LeagueStatusBot.Common.Models;
+using LeagueStatusBot.RPGEngine.Factories.Monsters;
 using LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities;
 
 namespace LeagueStatusBot.RPGEngine.Core.Engine
 {
-    public class Enemy : Being
+    public class Monster : Being
     {
-        public Enemy(string name, int enemyPowerScore)
+        private bool FirstSuperUsed { get; set; } = false;
+        private bool SecondSuperUsed { get; set; } = false;
+        public Super FirstSuper {  get; set; }
+        public Super SecondSuper { get; set; }
+        public string Description { get; set; }
+
+        public Monster(Super first, Super second, string name, string description)
         {
-            Name = name;
             ClassName = "Monster";
-            BaseStats = Stats.RollStatsToPowerScore(enemyPowerScore);
-            HitPoints = MaxHitPoints;
+            FirstSuper = first;
+            SecondSuper = second;
+            Name = name;
+            Description = description;
         }
 
-        public Enemy(Monster monster)
+        public Monster SetGearScore(int powerScore)
         {
-            Name = monster.Name;
-            ClassName = monster.ClassName;
-            BaseStats = Stats.RollStatsToPowerScore(monster.EnemyPowerScore);
-            HitPoints = MaxHitPoints;
+            BaseStats = Stats.RollStatsToPowerScore(powerScore);
 
-            if (monster.Abilities != null && monster.Abilities.Count > 0)
-            {
-                FirstAbility = LoadAbilityFromTemplate(monster.Abilities[0]);
-
-                if (monster.Abilities.Count > 1)
-                {
-                    SecondAbility = LoadAbilityFromTemplate(monster.Abilities[1]);
-                }
-            }
-        }
-
-        private Ability LoadAbilityFromTemplate(AbilityTemplate template)
-        {
-            return template.Implementation switch
-            {
-                "FireBreath" => new FireBreath(template),
-                "TailSwipe" => new TailSwipe(template),
-                "Constrict" => new Constrict(template),
-                "DiveBomb" => new DiveBomb(template),
-                "JustTwo" => new JustTwo(template),
-                "VenomStrike" => new VenomStrike(template),
-                "VerbalAssault" => new VerbalAssault(template),
-                "WingSlash" => new WingSlash(template),
-                _ => throw new Exception($"Unknown ability implementation: {template.Implementation}"),
-            };
+            return this;
         }
 
         public override void AttackTarget()
