@@ -82,7 +82,6 @@ namespace LeagueStatusBot.API.Models
         public int BaronKills { get; set; }
         public int BasicPings { get; set; }
         public int BountyLevel { get; set; }
-        public Challenges Challenges { get; set; }
         public int ChampExperience { get; set; }
         public int ChampLevel { get; set; }
         public int ChampionId { get; set; }

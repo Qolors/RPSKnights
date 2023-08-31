@@ -44,6 +44,11 @@ namespace LeagueStatusBot.Modules
             var pages = new[]
             {
                 new PageBuilder()
+                .WithTitle("Grand Wizard Po")
+                .WithImageUrl("https://i.imgur.com/s6A594B.png")
+                .WithDescription("Welcome, brave souls, to a realm where memories long forgotten are reborn, and destinies are reshaped. I am the Grand Wizard Po, the keeper of time's tapestry and guardian of lost legends. This world, you'll soon discover, is a nexus of battles once lost, now awaiting redemption.\r\n\r\nEach portal you see beckons with tales of heroes past, their spirits longing for another chance to confront the adversaries that once bested them. And you, chosen ones, bear the weight of their hopes. Guided by my hand and the magic that binds this realm, you shall step into their shoes, live their memories, and challenge the very foes that led to their downfall.\r\n\r\nYour journey will span vast oceans haunted by abyssal behemoths, and skies guarded by celestial beings. Remember, while the past cannot be changed, the outcomes of these battles can be reshaped by your hands.\nThe Following pages will help you select your archetype.")
+                .WithFooter(f => f.WithText("Pre-Alpha Build v0.1")),
+                new PageBuilder()
                 .WithTitle("The Adventurer Archetype")
                 .AddField("Starter Skill: First Aid", "A burst heal (50% of your Max Hitpoints) to anyone in your party")
                 .AddField("Starter Skill: Parrying Strike", "A weakened strike that reduces the damage you take for multiple rounds")

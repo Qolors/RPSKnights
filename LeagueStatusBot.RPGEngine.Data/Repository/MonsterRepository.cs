@@ -15,7 +15,7 @@ namespace LeagueStatusBot.RPGEngine.Data.Repository
         {
             var effects = context.SuperMonsters.ToList();
             var random = new Random();
-            var randomMonster = effects[random.Next(1, effects.Count)];
+            var randomMonster = effects.SingleOrDefault(x => x.Name == "Abyssion");
             return randomMonster;
         }
 

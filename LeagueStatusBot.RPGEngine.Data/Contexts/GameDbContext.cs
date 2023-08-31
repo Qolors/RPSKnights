@@ -12,7 +12,7 @@ namespace LeagueStatusBot.RPGEngine.Data.Contexts
         public DbSet<LootEntity> Loot { get; set; }
         public DbSet<SuperMonsterEntity> SuperMonsters { get; set; }
         public DbSet<CampaignEntity> Campaigns { get; set; }
-        public GameDbContext() : base(GetOptions()) { }
+        public GameDbContext(DbContextOptions<GameDbContext> options) : base(options) { }
 
         //USE WHEN PERFORMING A MIGRATION THROUGH CLI
         private static DbContextOptions GetOptions()
@@ -28,6 +28,8 @@ namespace LeagueStatusBot.RPGEngine.Data.Contexts
             modelBuilder.Entity<ItemEffectEntity>().HasKey(x => x.EffectId);
             modelBuilder.Entity<ArmorEffectEntity>().HasKey(x => x.EffectId);
             modelBuilder.Entity<SuperMonsterEntity>().HasKey(x => x.Name);
+            modelBuilder.Entity<SuperMonsterEntity>().OwnsOne(x => x.FirstSuper);
+            modelBuilder.Entity<SuperMonsterEntity>().OwnsOne(x => x.SecondSuper);
             modelBuilder.Entity<CampaignEntity>().HasKey(x => x.MonsterName);
             modelBuilder.Entity<LootEntity>().HasKey(x => x.DiscordId);
             modelBuilder.Entity<BeingEntity>().HasKey(x => x.DiscordId);

@@ -3,8 +3,6 @@ using LeagueStatusBot.RPGEngine.Core.Engine;
 using System.Linq;
 using LeagueStatusBot.RPGEngine.Core.Events;
 using LeagueStatusBot.RPGEngine.Factories;
-using LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities;
-using LeagueStatusBot.RPGEngine.Factories.Monsters;
 
 namespace LeagueStatusBot.RPGEngine.Core.Controllers
 {

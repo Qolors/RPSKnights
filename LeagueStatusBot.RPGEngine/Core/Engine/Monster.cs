@@ -1,6 +1,4 @@
 ﻿using LeagueStatusBot.Common.Models;
-using LeagueStatusBot.RPGEngine.Factories.Monsters;
-using LeagueStatusBot.RPGEngine.Factories.Monsters.Abilities;
 
 namespace LeagueStatusBot.RPGEngine.Core.Engine
 {

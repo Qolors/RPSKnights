@@ -14,4 +14,8 @@
     <ProjectReference Include="..\LeagueStatusBot.Common\LeagueStatusBot.Common.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Factories\Monsters\Abilities\" />
+  </ItemGroup>
+
 </Project>

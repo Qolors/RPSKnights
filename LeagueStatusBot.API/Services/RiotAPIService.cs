@@ -124,7 +124,6 @@ namespace LeagueStatusBot.API.Services
                 MatchHistoryModel matchHistoryModel = new MatchHistoryModel()
                 {
                     Champion = participant.ChampionName,
-                    KDA = participant.Challenges.Kda,
                     Kills = participant.Kills,
                     Deaths = participant.Deaths,
                     Assists = participant.Assists,

@@ -38,7 +38,9 @@ namespace LeagueStatusBot.Services
         {
             this.playerRepository = playerRepository;
             this.itemRepository = itemRepository;
+            this.monsterRepository = monsterRepository;
             this.gameManager = new GameManager();
+            
             this.client = client;
 
             Mapper.Initialize(this.playerRepository, this.itemRepository, this.monsterRepository);
@@ -615,11 +617,11 @@ namespace LeagueStatusBot.Services
 
             ulong storyId = await PostToFeedChannel.SendStoryMessage(client, embed.Build());
 
-            await Task.Delay(7000);
+            await Task.Delay(14000);
             await PostToFeedChannel.EditStoryMessage(client, storyId, campaign.MidPost, campaign.MidPostImageUrl);
-            await Task.Delay(7000);
+            await Task.Delay(14000);
             await PostToFeedChannel.EditStoryMessage(client, storyId, campaign.PreFightPost, campaign.PreFightPostImageUrl);
-            await Task.Delay(7000);
+            await Task.Delay(14000);
             
         }
 

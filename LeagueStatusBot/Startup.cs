@@ -87,6 +87,7 @@ public class Startup
             .AddSingleton<GameControllerService>()
             .AddSingleton<PlayerRepository>()
             .AddSingleton<ItemRepository>()
+            .AddSingleton<MonsterRepository>()
             .BuildServiceProvider();
     }
 }
