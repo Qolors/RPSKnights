@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace LeagueStatusBot.RPGEngine.Core.Engine.Beings
 {
-    public class Player
+    public class Player : Being
     {
+        public Player(Image idleImage) : base(idleImage) { }
     }
 }

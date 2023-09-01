@@ -1,4 +1,4 @@
-﻿using LeagueStatusBot.Common.Models;
+﻿
 
 namespace LeagueStatusBot.RPGEngine.Data.Entities
 {
@@ -6,7 +6,5 @@ namespace LeagueStatusBot.RPGEngine.Data.Entities
     {
         public required string Name { get; set; }
         public string Description { get; set; }
-        public Super FirstSuper { get; set; }
-        public Super SecondSuper { get; set; }
     }
 }
