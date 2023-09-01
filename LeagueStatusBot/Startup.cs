@@ -30,8 +30,6 @@ public class Startup
 
         await services.GetRequiredService<InteractionHandlerService>().InitializeAsync();
         await services.GetRequiredService<CommandHandlingService>().InitializeAsync();
-        await services.GetRequiredService<NasaSchedulerService>().InitializeAsync();
-        await services.GetRequiredService<GameControllerService>().InitializeAsync();
         await _client.LoginAsync(TokenType.Bot, Environment.GetEnvironmentVariable("DISCORD_BOT_TOKEN"));
         await _client.StartAsync();
 
@@ -83,7 +81,6 @@ public class Startup
             .AddSingleton(new InteractiveConfig { DefaultTimeout = TimeSpan.FromMinutes(5) }) // Optional config
             .AddSingleton<InteractiveService>()
             .AddSingleton<InteractionHandlerService>()
-            .AddSingleton<NasaSchedulerService>()
             .AddSingleton<GameControllerService>()
             .AddSingleton<PlayerRepository>()
             .AddSingleton<ItemRepository>()
