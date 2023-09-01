@@ -6,10 +6,7 @@ using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Fergun.Interactive;
-using LeagueStatusBot.RPGEngine.Data.Contexts;
-using LeagueStatusBot.RPGEngine.Data.Repository;
 using LeagueStatusBot.Services;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace LeagueStatusBot;
@@ -72,19 +69,19 @@ public class Startup
                 DefaultRunMode = Discord.Commands.RunMode.Async,
                 CaseSensitiveCommands = false,
             }))
-            .AddDbContext<GameDbContext>(options =>
-            {
-                options.UseSqlite("Data Source=/app/game.db");
-            })
+            //.AddDbContext<GameDbContext>(options =>
+            //{
+            //    options.UseSqlite("Data Source=/app/game.db");
+            //})
             .AddSingleton<CommandHandlingService>()
             .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
             .AddSingleton(new InteractiveConfig { DefaultTimeout = TimeSpan.FromMinutes(5) }) // Optional config
             .AddSingleton<InteractiveService>()
             .AddSingleton<InteractionHandlerService>()
             .AddSingleton<GameControllerService>()
-            .AddSingleton<PlayerRepository>()
-            .AddSingleton<ItemRepository>()
-            .AddSingleton<MonsterRepository>()
+            //.AddSingleton<PlayerRepository>()
+            //.AddSingleton<ItemRepository>()
+            //.AddSingleton<MonsterRepository>()
             .BuildServiceProvider();
     }
 }

@@ -5,7 +5,6 @@ using Fergun.Interactive;
 using Fergun.Interactive.Pagination;
 using LeagueStatusBot.Helpers;
 using LeagueStatusBot.RPGEngine.Core.Controllers;
-using LeagueStatusBot.RPGEngine.Data.Repository;
 using LeagueStatusBot.Services;
 using System;
 using System.Threading.Tasks;

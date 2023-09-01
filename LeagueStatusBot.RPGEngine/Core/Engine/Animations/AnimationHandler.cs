@@ -18,10 +18,10 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
         {
             spriteHandler.LoadSpriteSheet(image);
             // Extract idle sprites from the sprite sheet
-            var idleSprite1 = spriteHandler.ExtractSprite(1, 1, 16, 16);   // Coordinates for the 1st idle sprite
-            var idleSprite2 = spriteHandler.ExtractSprite(19, 1, 16, 16);  // 2nd idle sprite
-            var idleSprite3 = spriteHandler.ExtractSprite(37, 1, 16, 16);  // 3rd idle sprite
-            var idleSprite4 = spriteHandler.ExtractSprite(55, 1, 16, 16);
+            var idleSprite1 = spriteHandler.ExtractSprite(1, 1, 16, 29);   // Coordinates for the 1st idle sprite
+            var idleSprite2 = spriteHandler.ExtractSprite(19, 1, 16, 29);  // 2nd idle sprite
+            var idleSprite3 = spriteHandler.ExtractSprite(37, 1, 16, 29);  // 3rd idle sprite
+            var idleSprite4 = spriteHandler.ExtractSprite(55, 1, 16, 29);
 
             var frames = new List<Image<Rgba32>>();
 

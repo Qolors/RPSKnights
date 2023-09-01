@@ -12,12 +12,9 @@
     <PackageReference Include="Discord.Net.Interactions" Version="3.11.0" />
     <PackageReference Include="Fergun.Interactive" Version="1.7.3" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LeagueStatusBot.Common\LeagueStatusBot.Common.csproj" />
-    <ProjectReference Include="..\LeagueStatusBot.RPGEngine.Data\LeagueStatusBot.RPGEngine.Data.csproj" />
     <ProjectReference Include="..\LeagueStatusBot.RPGEngine\LeagueStatusBot.RPGEngine.csproj" />
   </ItemGroup>
 

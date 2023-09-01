@@ -19,11 +19,14 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             // Use the GifEncoder to save the animation
             using (Image<Rgba32> output = new Image<Rgba32>(100, 100))
             {
+                var gifMeta = output.Metadata.GetGifMetadata();
+                gifMeta.RepeatCount = 5;
+
                 foreach (var frame in frames)
                 {
                     output.Frames.AddFrame(frame.Frames.RootFrame);
                 }
-                output.SaveAsGif("animation.gif", new GifEncoder());
+                output.Save("animation.gif", new GifEncoder());
 
                 return true;
             }

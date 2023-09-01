@@ -9,8 +9,8 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
     public class AssetManager
     {
         // Use dictionaries to load and manage assets for quick look-up.
-        private Dictionary<string, Image> entitySprites = new Dictionary<string, Image>();
-        private Dictionary<string, Image> abilitySprites = new Dictionary<string, Image>();
+        private Dictionary<string, Image> entitySprites = new();
+        private Dictionary<string, Image> abilitySprites = new();
         private Image tilesetImage;
 
         public AssetManager()
@@ -23,13 +23,13 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         private void LoadTileset()
         {
             // Load your tileset image
-            tilesetImage = Image.Load("Assets/Maps/floor_1.png");
+            tilesetImage = Image.Load("./Assets/Maps/floor_1.png");
         }
 
         private void LoadEntitySprites()
         {
             // Load all entity sprites. This is simplified; consider error-checking and other concerns.
-            foreach (var file in Directory.GetFiles("Assets/Sprites"))
+            foreach (var file in Directory.GetFiles("./Assets/Sprites"))
             {
                 var spriteName = Path.GetFileNameWithoutExtension(file);
                 entitySprites[spriteName] = Image.Load(file);
@@ -47,12 +47,12 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         }
 
         // Getters to access loaded assets
-        public Image GetEntitySprite(string spriteName)
+        public Image? GetEntitySprite(string spriteName)
         {
             return entitySprites.TryGetValue(spriteName, out var sprite) ? sprite : null;
         }
 
-        public Image GetAbilitySprite(string spriteName)
+        public Image? GetAbilitySprite(string spriteName)
         {
             return abilitySprites.TryGetValue(spriteName, out var sprite) ? sprite : null;
         }
