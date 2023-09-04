@@ -11,28 +11,78 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
 
         public AnimationHandler()
         {
-            spriteHandler = new();
+            spriteHandler = new SpriteHandler();
         }
 
-        public List<Image<Rgba32>> CreateIdleAnimation(Image image)
+        private Image<Rgba32> ExtractSprite(Image image, int x, int y, int width, int height)
         {
             spriteHandler.LoadSpriteSheet(image);
-            // Extract idle sprites from the sprite sheet
-            var idleSprite1 = spriteHandler.ExtractSprite(1, 1, 16, 29);   // Coordinates for the 1st idle sprite
-            var idleSprite2 = spriteHandler.ExtractSprite(19, 1, 16, 29);  // 2nd idle sprite
-            var idleSprite3 = spriteHandler.ExtractSprite(37, 1, 16, 29);  // 3rd idle sprite
-            var idleSprite4 = spriteHandler.ExtractSprite(55, 1, 16, 29);
+            return spriteHandler.ExtractSprite(x, y, width, height);
+        }
+
+        private IEnumerable<Image<Rgba32>> ExtractSprites(Image image, int startIdx, int count, int spriteWidth, int spriteHeight)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                yield return ExtractSprite(image, startIdx + i * spriteWidth, 0, spriteWidth, spriteHeight);
+            }
+        }
+
+        public List<Image<Rgba32>> CreateAnimation(
+            Image<Rgba32> playerSpriteSheet,
+            Image<Rgba32> targetAvatar,
+            int offset,
+            int frameCount,
+            int spriteWidth,
+            int spriteHeight)
+        {
+            spriteHandler.LoadSpriteSheet(playerSpriteSheet);
+
+            List<Image<Rgba32>> playerSprites = new List<Image<Rgba32>>();
+
+            for (int i = 0; i < frameCount; i++)
+            {
+                var sprite = spriteHandler.ExtractSprite(i * spriteWidth, 0, spriteWidth, spriteHeight);
+                playerSprites.Add(sprite);
+            }
 
             var frames = new List<Image<Rgba32>>();
 
-            // Sequence the sprites to create the animation
-            frames.Add(spriteHandler.CreateAnimationFrame(idleSprite1, new Point(50, 50), null, Point.Empty)); // Assuming character is centered at 50,50
-            frames.Add(spriteHandler.CreateAnimationFrame(idleSprite2, new Point(50, 50), null, Point.Empty));
-            frames.Add(spriteHandler.CreateAnimationFrame(idleSprite3, new Point(50, 50), null, Point.Empty));
-            frames.Add(spriteHandler.CreateAnimationFrame(idleSprite4, new Point(50, 50), null, Point.Empty));
-            
+            for(int i = 0; i < playerSprites.Count; i++)
+            {
+                if (i == 4)
+                {
+                    targetAvatar.Mutate(x => x.RotateFlip(RotateMode.Rotate180, FlipMode.Vertical));
+                    targetAvatar.Mutate(x => x.OilPaint());
+                }
+                if (i == 6)
+                {
+                    targetAvatar.Mutate(x => x.Glow());
+                    targetAvatar.Mutate(x => x.RotateFlip(RotateMode.Rotate180, FlipMode.Vertical));
+                }
+
+                frames.Add(spriteHandler.CreateAnimationFrame(playerSprites[i], new Point(15, 25), targetAvatar, new Point(15 + offset, 25)));
+            }
+
             return frames;
         }
+
+        public Image<Rgba32> ResizeImage(Image<Rgba32> original, int width, int height)
+        {
+            try
+            {
+                var clone = original.Clone(ctx => ctx.Resize(width, height));
+                return clone;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            
+        }
+
+
     }
+
 
 }

@@ -8,6 +8,6 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Beings
 {
     public class Player : Being
     {
-        public Player(Image idleImage) : base(idleImage) { }
+        public Player(Image<Rgba32> idleImage) : base(idleImage) { }
     }
 }

@@ -1,18 +1,21 @@
-﻿using Discord;
-using Discord.Interactions;
+﻿using Discord.Interactions;
 using Discord.WebSocket;
 using Fergun.Interactive;
-using Fergun.Interactive.Pagination;
-using LeagueStatusBot.Helpers;
 using LeagueStatusBot.RPGEngine.Core.Controllers;
 using LeagueStatusBot.Services;
+using Microsoft.VisualBasic;
+using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
 using System;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace LeagueStatusBot.Modules
 {
     public class RPGModule : InteractionModuleBase<SocketInteractionContext>
     {
+        private HttpClient hclient;
         private GameControllerService gameControllerService;
         private GameManager gameManager;
         private DiscordSocketClient client;
@@ -22,17 +25,35 @@ namespace LeagueStatusBot.Modules
         {
             this.gameControllerService = gameControllerService;
             this.interactiveService = interactiveService;
-            gameManager = new();
+            
             this.client = client;
+            gameManager = new();
         }
 
-        [SlashCommand("test", "testing gif generation")]
-        public async Task GenerateGif()
+        [SlashCommand("attack", "Attack user")]
+        public async Task GenerateGif(SocketUser user)
         {
-            if (gameManager.ExecuteTurn(1231231))
+            await DeferAsync();
+            hclient = new HttpClient();
+            try
             {
-                await Context.Channel.SendFileAsync("animation.gif", "Test Good");
+                using (var bytes = await hclient.GetStreamAsync(user.GetAvatarUrl()))
+                using (var image = SixLabors.ImageSharp.Image.Load<Rgba32>(bytes))
+                {
+                    
+                    Console.WriteLine(user.GetAvatarUrl());
+
+                    if (gameManager.ExecuteTurn(image))
+                    {
+                        await FollowupWithFileAsync("animation.gif");
+                    }
+                }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+
         }
     }
 }

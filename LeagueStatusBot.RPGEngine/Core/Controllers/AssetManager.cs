@@ -9,8 +9,8 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
     public class AssetManager
     {
         // Use dictionaries to load and manage assets for quick look-up.
-        private Dictionary<string, Image> entitySprites = new();
-        private Dictionary<string, Image> abilitySprites = new();
+        private Dictionary<string, Image<Rgba32>> entitySprites = new();
+        private Dictionary<string, Image<Rgba32>> abilitySprites = new();
         private Image tilesetImage;
 
         public AssetManager()
@@ -32,7 +32,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             foreach (var file in Directory.GetFiles("./Assets/Sprites"))
             {
                 var spriteName = Path.GetFileNameWithoutExtension(file);
-                entitySprites[spriteName] = Image.Load(file);
+                entitySprites[spriteName] = (Image<Rgba32>)Image.Load(file);
             }
         }
 
@@ -42,12 +42,12 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             foreach (var file in Directory.GetFiles("Assets/Sprites/Abilities"))
             {
                 var spriteName = Path.GetFileNameWithoutExtension(file);
-                abilitySprites[spriteName] = Image.Load(file);
+                abilitySprites[spriteName] = (Image<Rgba32>)Image.Load(file);
             }
         }
 
         // Getters to access loaded assets
-        public Image? GetEntitySprite(string spriteName)
+        public Image<Rgba32>? GetEntitySprite(string spriteName)
         {
             return entitySprites.TryGetValue(spriteName, out var sprite) ? sprite : null;
         }

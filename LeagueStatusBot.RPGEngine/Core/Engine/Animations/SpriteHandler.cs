@@ -37,9 +37,10 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
         // Create an animation frame using two sprites for simplicity (extend as needed)
         public Image<Rgba32> CreateAnimationFrame(Image<Rgba32> sprite1, Point position1, Image<Rgba32> sprite2, Point position2)
         {
-            var frame = new Image<Rgba32>(100, 100); // Assuming a canvas size of 100x100
+            var frame = new Image<Rgba32>(150, 150); // Assuming a canvas size of 100x100
+            
+            PlaceSpriteOnCanvas(frame, sprite2, position2.X, position2.Y);
             PlaceSpriteOnCanvas(frame, sprite1, position1.X, position1.Y);
-            //PlaceSpriteOnCanvas(frame, sprite2, position2.X, position2.Y);
             return frame;
         }
     }

@@ -1,6 +1,8 @@
 ﻿using LeagueStatusBot.RPGEngine.Core.Engine.Animations;
 using LeagueStatusBot.RPGEngine.Core.Engine.Beings;
 using SixLabors.ImageSharp.Formats.Gif;
+using SixLabors.ImageSharp.Formats.Tiff;
+using SixLabors.ImageSharp.Metadata;
 
 namespace LeagueStatusBot.RPGEngine.Core.Controllers
 {
@@ -11,22 +13,35 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         {
             animationHandler = new();
         }
-        public bool CreateAnimation(Player player)
+        public bool CreateAnimation(Player player, Image<Rgba32> target)
         {
+            var resizeTarget = animationHandler.ResizeImage(target, 56, 56);
             // Create a list to hold your frames
-            var frames = animationHandler.CreateIdleAnimation(player.CurrentSprite);
+            var frames = animationHandler.CreateAnimation(player.CurrentSprite, resizeTarget, 35, 8, 56, 56);
 
             // Use the GifEncoder to save the animation
-            using (Image<Rgba32> output = new Image<Rgba32>(100, 100))
+            using (Image<Rgba32> output = new Image<Rgba32>(150, 150))
             {
                 var gifMeta = output.Metadata.GetGifMetadata();
-                gifMeta.RepeatCount = 5;
+
+                gifMeta.RepeatCount = 0;
 
                 foreach (var frame in frames)
                 {
                     output.Frames.AddFrame(frame.Frames.RootFrame);
                 }
-                output.Save("animation.gif", new GifEncoder());
+
+                output.Frames.RemoveFrame(0);
+
+                for (int i = 0; i < output.Frames.Count; i++)
+                {
+                    var frame = output.Frames[i];
+                    var metadata = frame.Metadata;
+                    var frameMetadata = metadata.GetGifMetadata();
+                    frameMetadata.DisposalMethod = GifDisposalMethod.RestoreToBackground;
+                }
+
+                output.SaveAsGif("animation.gif");
 
                 return true;
             }

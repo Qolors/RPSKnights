@@ -13,12 +13,13 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             animationManager = new AnimationManager();
         }
 
-        public bool ExecuteTurn(ulong gameId)
+        public bool ExecuteTurn(Image<Rgba32> targetImage)
         {
-            var image = assetManager.GetEntitySprite("Dwarf_Idle");
+            var image = assetManager.GetEntitySprite("tile001");
             Player player = new Player(image);
+            
 
-            if (animationManager.CreateAnimation(player))
+            if (animationManager.CreateAnimation(player, targetImage))
             {
                 return true;
             }
