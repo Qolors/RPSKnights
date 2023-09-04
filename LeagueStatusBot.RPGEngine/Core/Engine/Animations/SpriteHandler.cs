@@ -43,6 +43,27 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
             PlaceSpriteOnCanvas(frame, sprite1, position1.X, position1.Y);
             return frame;
         }
+
+        public List<Image<Rgba32>> CreateMovingAnimation(Image<Rgba32> sprite1, Point start, Image<Rgba32> sprite2, Point end, int steps)
+        {
+            var frames = new List<Image<Rgba32>>();
+
+            for (int i = 0; i <= steps; i++)
+            {
+                var position1 = new Point(
+                    start.X + (end.X - start.X) * i / steps,
+                    start.Y + (end.Y - start.Y) * i / steps
+                );
+
+                var frame = new Image<Rgba32>(150, 150);
+                PlaceSpriteOnCanvas(frame, sprite2, end.X, end.Y);
+                PlaceSpriteOnCanvas(frame, sprite1, position1.X, position1.Y);
+
+                frames.Add(frame);
+            }
+
+            return frames;
+        }
     }
 
 }

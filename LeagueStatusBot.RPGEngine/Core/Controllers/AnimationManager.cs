@@ -16,10 +16,9 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         public bool CreateAnimation(Player player, Image<Rgba32> target)
         {
             var resizeTarget = animationHandler.ResizeImage(target, 56, 56);
-            // Create a list to hold your frames
+
             var frames = animationHandler.CreateAnimation(player.CurrentSprite, resizeTarget, 35, 8, 56, 56);
 
-            // Use the GifEncoder to save the animation
             using (Image<Rgba32> output = new Image<Rgba32>(150, 150))
             {
                 var gifMeta = output.Metadata.GetGifMetadata();

@@ -25,7 +25,6 @@ namespace LeagueStatusBot.Modules
         {
             this.gameControllerService = gameControllerService;
             this.interactiveService = interactiveService;
-            
             this.client = client;
             gameManager = new();
         }

@@ -28,8 +28,6 @@ namespace LeagueStatusBot.RPGEngine.Data.Contexts
             modelBuilder.Entity<ItemEffectEntity>().HasKey(x => x.EffectId);
             modelBuilder.Entity<ArmorEffectEntity>().HasKey(x => x.EffectId);
             modelBuilder.Entity<SuperMonsterEntity>().HasKey(x => x.Name);
-            modelBuilder.Entity<SuperMonsterEntity>().OwnsOne(x => x.FirstSuper);
-            modelBuilder.Entity<SuperMonsterEntity>().OwnsOne(x => x.SecondSuper);
             modelBuilder.Entity<CampaignEntity>().HasKey(x => x.MonsterName);
             modelBuilder.Entity<LootEntity>().HasKey(x => x.DiscordId);
             modelBuilder.Entity<BeingEntity>().HasKey(x => x.DiscordId);

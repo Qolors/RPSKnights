@@ -40,7 +40,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
 
             List<Image<Rgba32>> playerSprites = new List<Image<Rgba32>>();
 
-            for (int i = 0; i < frameCount; i++)
+            for ( int i = 0; i < frameCount; i++ )
             {
                 var sprite = spriteHandler.ExtractSprite(i * spriteWidth, 0, spriteWidth, spriteHeight);
                 playerSprites.Add(sprite);
@@ -48,12 +48,12 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
 
             var frames = new List<Image<Rgba32>>();
 
-            for(int i = 0; i < playerSprites.Count; i++)
+            for ( int i = 0; i < playerSprites.Count; i++ )
             {
                 if (i == 4)
                 {
                     targetAvatar.Mutate(x => x.RotateFlip(RotateMode.Rotate180, FlipMode.Vertical));
-                    targetAvatar.Mutate(x => x.OilPaint());
+                    targetAvatar.Mutate(x => x.Glow());
                 }
                 if (i == 6)
                 {
@@ -62,6 +62,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
                 }
 
                 frames.Add(spriteHandler.CreateAnimationFrame(playerSprites[i], new Point(15, 25), targetAvatar, new Point(15 + offset, 25)));
+
             }
 
             return frames;
