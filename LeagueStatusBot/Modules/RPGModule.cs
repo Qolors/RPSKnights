@@ -28,7 +28,7 @@ namespace LeagueStatusBot.Modules
         public async Task GenerateGif(SocketUser user)
         {
             await DeferAsync();
-
+            
             if (!gameManager.StartGame(Context.User.Id, user.Id)) return;
 
             using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
@@ -115,7 +115,7 @@ namespace LeagueStatusBot.Modules
                 .AddUser(context.User)
                 .Build();
 
-            while (player1Choices.Count <= 3 && player2Choices.Count <= 3)
+            while (player1Choices.Count < 3)
             {
                 var result = message is null 
                 ? await interactiveService.SendSelectionAsync(buttonSelection, Context.Channel, TimeSpan.FromMinutes(2))
@@ -142,11 +142,24 @@ namespace LeagueStatusBot.Modules
                     .AddUser(context.User)
                     .Build();
             }
+
+            Console.WriteLine("Hopped out of while");
+
+            if (gameManager.ProcessTurn(player1Choices, player1Choices))
+            {
+                Console.WriteLine("Am i returning");
+                await attachmentMessage.ModifyAsync(x => x.Attachments = new FileAttachment[] { GetBattleFile() });
+            }
         }
 
         private static FileAttachment GetStartingFile()
         {
             return new FileAttachment("initial.gif");
+        }
+
+        private static FileAttachment GetBattleFile()
+        {
+            return new FileAttachment("battle.gif");
         }
     }
 }

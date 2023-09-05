@@ -4,7 +4,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 {
     public class GameManager 
     {
-        private const string DEFAULT_TILE = "tile000";
+        private const string DEFAULT_TILE = "Idle";
         private TurnManager turnManager;
         private AssetManager assetManager;
         private AnimationManager animationManager;
@@ -32,7 +32,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
         public bool ProcessTurn(List<string> player1actions, List<string> player2actions)
         {
-            
+            return turnManager.ProcessTurn(player1actions, player2actions, player1, player2);
         }
 
         public void EndGame()

@@ -44,6 +44,7 @@
             }
 
             return frames;
+
         }
 
         private List<Image<Rgba32>> GetPlayerSpriteFrames(Image<Rgba32> playerImage, int frameCount, int spriteWidth, int spriteHeight, bool flip)
@@ -65,6 +66,46 @@
             }
 
             return playerSprites;
+        }
+
+        public List<Image<Rgba32>> CreateAttackAnimation(
+            Image<Rgba32> playerSpriteSheet,
+            int frameCount,
+            int spriteWidth,
+            int spriteHeight,
+            bool flip)
+        {
+            return GetPlayerSpriteFrames(playerSpriteSheet, frameCount, spriteWidth, spriteHeight, flip);
+        }
+
+        public List<Image<Rgba32>> CreateDefendAnimation(
+            Image<Rgba32> playerSpriteSheet,
+            int frameCount,
+            int spriteWidth,
+            int spriteHeight,
+            bool flip)
+        {
+            return GetPlayerSpriteFrames(playerSpriteSheet, frameCount, spriteWidth, spriteHeight, flip);
+        }
+
+        public List<Image<Rgba32>> CreateAbilityAnimation(
+            Image<Rgba32> playerSpriteSheet,
+            int frameCount,
+            int spriteWidth,
+            int spriteHeight,
+            bool flip)
+        {
+            return GetPlayerSpriteFrames(playerSpriteSheet, frameCount, spriteWidth, spriteHeight, flip);
+        }
+
+        public List<Image<Rgba32>> CreateHitAnimation(
+            Image<Rgba32> playerSpriteSheet,
+            int frameCount,
+            int spriteWidth,
+            int spriteHeight,
+            bool flip)
+        {
+            return GetPlayerSpriteFrames(playerSpriteSheet, frameCount, spriteWidth, spriteHeight, flip);
         }
 
     }

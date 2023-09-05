@@ -15,7 +15,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         {
             try
             {
-                return true;
+                return animationManager.CreateBattleAnimation(player1, player2, player1actions, player2actions);
             }
             catch
             {
