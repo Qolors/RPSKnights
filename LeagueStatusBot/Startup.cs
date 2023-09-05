@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -6,6 +7,8 @@ using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Fergun.Interactive;
+using LeagueStatusBot.RPGEngine.Core.Controllers;
+using LeagueStatusBot.RPGEngine.Core.Engine.Animations;
 using LeagueStatusBot.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -78,10 +81,14 @@ public class Startup
             .AddSingleton(new InteractiveConfig { DefaultTimeout = TimeSpan.FromMinutes(5) }) // Optional config
             .AddSingleton<InteractiveService>()
             .AddSingleton<InteractionHandlerService>()
+            .AddSingleton<HttpClient>()
             .AddSingleton<GameControllerService>()
-            //.AddSingleton<PlayerRepository>()
-            //.AddSingleton<ItemRepository>()
-            //.AddSingleton<MonsterRepository>()
+            .AddSingleton<SpriteHandler>()
+            .AddSingleton<AnimationHandler>()
+            .AddSingleton<AnimationManager>()
+            .AddSingleton<AssetManager>()
+            .AddSingleton<TurnManager>()
+            .AddSingleton<GameManager>()
             .BuildServiceProvider();
     }
 }
