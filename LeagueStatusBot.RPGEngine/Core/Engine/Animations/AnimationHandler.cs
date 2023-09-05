@@ -1,8 +1,4 @@
-﻿using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
-using System.Collections.Generic;
-
+﻿
 namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
 {
     public class AnimationHandler
@@ -40,7 +36,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
 
             List<Image<Rgba32>> playerSprites = new List<Image<Rgba32>>();
 
-            for ( int i = 0; i < frameCount; i++ )
+            for (int i = 0; i < frameCount; i++)
             {
                 var sprite = spriteHandler.ExtractSprite(i * spriteWidth, 0, spriteWidth, spriteHeight);
                 playerSprites.Add(sprite);
@@ -48,13 +44,15 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
 
             var frames = new List<Image<Rgba32>>();
 
-            for ( int i = 0; i < playerSprites.Count; i++ )
+            for (int i = 0; i < playerSprites.Count; i++)
             {
+                
                 if (i == 4)
                 {
                     targetAvatar.Mutate(x => x.RotateFlip(RotateMode.Rotate180, FlipMode.Vertical));
                     targetAvatar.Mutate(x => x.Glow());
                 }
+
                 if (i == 6)
                 {
                     targetAvatar.Mutate(x => x.Glow());

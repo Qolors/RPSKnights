@@ -39,9 +39,6 @@ namespace LeagueStatusBot.Modules
                 using (var bytes = await hclient.GetStreamAsync(user.GetAvatarUrl()))
                 using (var image = SixLabors.ImageSharp.Image.Load<Rgba32>(bytes))
                 {
-                    
-                    Console.WriteLine(user.GetAvatarUrl());
-
                     if (gameManager.ExecuteTurn(image))
                     {
                         await FollowupWithFileAsync("animation.gif");
