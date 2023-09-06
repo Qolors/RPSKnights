@@ -32,7 +32,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
         public bool ProcessTurn(List<string> player1actions, List<string> player2actions)
         {
-            return turnManager.ProcessTurn(player1actions, player2actions, player1, player2);
+            return turnManager.ProcessTurn(player1actions, new List<string> {"Attack", "Attack", "Attack"}, player1, player2);
         }
 
         public void EndGame()

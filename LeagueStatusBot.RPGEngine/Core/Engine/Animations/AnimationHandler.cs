@@ -68,6 +68,20 @@
             return playerSprites;
         }
 
+        public Image<Rgba32> CombinePlayerSprites(Image<Rgba32> player1Sprite, Image<Rgba32> player2Sprite)
+        {
+            // Create a new image with the combined width of both sprites
+            var combinedImage = new Image<Rgba32>(player1Sprite.Width + player2Sprite.Width, Math.Max(player1Sprite.Height, player2Sprite.Height));
+
+            // Draw player1's sprite on the left side of the combined image
+            combinedImage.Mutate(ctx => ctx.DrawImage(player1Sprite, new Point(0, 0), 1));
+
+            // Draw player2's sprite on the right side of the combined image
+            combinedImage.Mutate(ctx => ctx.DrawImage(player2Sprite, new Point(player1Sprite.Width, 0), 1));
+
+            return combinedImage;
+        }
+
         public List<Image<Rgba32>> CreateAttackAnimation(
             Image<Rgba32> playerSpriteSheet,
             int frameCount,

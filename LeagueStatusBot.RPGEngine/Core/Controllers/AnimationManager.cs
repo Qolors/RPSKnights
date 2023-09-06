@@ -25,7 +25,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         public bool CreateBattleAnimation(Player player1, Player player2, List<string> player1actions, List<string> player2actions)
         {
             var allFrames = new List<Image<Rgba32>>();
-
+            Console.WriteLine("Running in to Loop");
             for (int i = 0; i < player1actions.Count; i++)
             {
                 var player1Action = player1actions[i];
@@ -77,35 +77,45 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
                 // Combine frames from both players
                 for (int j = 0; j < Math.Max(framesPlayer1.Count, framesPlayer2.Count); j++)
                 {
-                    if (winner == "player2" && j >= 4)
+                    Console.WriteLine(j);
+                    Image<Rgba32> framePlayer1 = null;
+                    Image<Rgba32> framePlayer2 = null;
+
+                    if (j < framesPlayer1.Count)
                     {
-                        allFrames.Add(hitFrames[hitFrameIndex]);
-                        hitFrameIndex++;
+                        framePlayer1 = framesPlayer1[j];
                     }
-                    else if (j < framesPlayer1.Count)
+                    if (j < framesPlayer2.Count)
                     {
-                        allFrames.Add(framesPlayer1[j]);
+                        framePlayer2 = framesPlayer2[j];
                     }
-                    if (winner == "player1" && j >= 4)
+
+                    // Check if either frame is null and return false if so
+                    if (framePlayer1 == null || framePlayer2 == null)
                     {
-                        allFrames.Add(hitFrames[hitFrameIndex]);
-                        hitFrameIndex++;
+                        Console.WriteLine("Error: One or both frames are null.");
+                        return false;
                     }
-                    else if (j < framesPlayer2.Count)
-                    {
-                        allFrames.Add(framesPlayer2[j]);
-                    }
+                    // Combine player1's and player2's sprites for this frame
+                    var combinedFrame = animationHandler.CombinePlayerSprites(framePlayer1, framePlayer2);
+                    Console.WriteLine("Adding");
+                    allFrames.Add(combinedFrame);
                 }
             }
 
-            using (Image<Rgba32> output = new Image<Rgba32>(CANVAS_WIDTH, CANVAS_HEIGHT))
+            try
+            {
+                
+                using (Image<Rgba32> output = new Image<Rgba32>(CANVAS_WIDTH, CANVAS_HEIGHT))
                 {
                     var gifMeta = output.Metadata.GetGifMetadata();
                     gifMeta.RepeatCount = 0;
 
                     foreach (var frame in allFrames)
                     {
-                        output.Frames.AddFrame(frame.Frames.RootFrame);
+                        // Resize the frame to match the output image dimensions before adding it
+                        var resizedFrame = frame.Clone(ctx => ctx.Resize(CANVAS_WIDTH, CANVAS_HEIGHT));
+                        output.Frames.AddFrame(resizedFrame.Frames.RootFrame);
                     }
 
                     output.Frames.RemoveFrame(0);
@@ -118,10 +128,20 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
                         frameMetadata.DisposalMethod = GifDisposalMethod.RestoreToBackground;
                     }
 
+                    Console.WriteLine("Saved");
                     output.SaveAsGif(BATTLE_FILE);
                 }
 
                 return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred: {ex.Message}");
+                return false;
+            }
+            
+
+            
         }
 
         public bool CreateInitialAnimation(Player player1, Player player2)
@@ -163,6 +183,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
         private string DetermineWinner(string player1action, string player2action)
         {
+
             if (player1action == "Attack" && player2action == "Defend")
             {
                 return "player2";
