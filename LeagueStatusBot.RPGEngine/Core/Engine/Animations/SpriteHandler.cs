@@ -32,11 +32,11 @@
 
         public Image<Rgba32> CreateAnimationFrame(Image<Rgba32> sprite1, Point position1, Image<Rgba32> sprite2, Point position2) 
         {
-            using (var frame = new Image<Rgba32>(CANVAS_WIDTH, CANVAS_HEIGHT))
+            using (var frame = new Image<Rgba32>(200, 200))
             {
                 PlaceSpriteOnCanvas(frame, sprite2, position2.X, position2.Y);
                 PlaceSpriteOnCanvas(frame, sprite1, position1.X, position1.Y);
-                return frame.Clone(); // Return a copy and continue managing the original frame's lifecycle in this method.
+                return frame.Clone();
             }
         }
 
@@ -52,7 +52,7 @@
                 {
                     PlaceSpriteOnCanvas(frame, sprite2, end.X, end.Y);
                     PlaceSpriteOnCanvas(frame, sprite1, position1.X, position1.Y);
-                    frames.Add(frame.Clone()); // Add a clone to the list and manage the frame's lifecycle in this loop.
+                    frames.Add(frame.Clone());
                 }
             }
 

@@ -7,6 +7,7 @@ using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Fergun.Interactive;
+using LeagueStatusBot.Helpers;
 using LeagueStatusBot.RPGEngine.Core.Controllers;
 using LeagueStatusBot.RPGEngine.Core.Engine.Animations;
 using LeagueStatusBot.Services;

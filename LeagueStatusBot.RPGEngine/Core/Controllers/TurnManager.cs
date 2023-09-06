@@ -1,4 +1,5 @@
 using LeagueStatusBot.RPGEngine.Core.Engine.Beings;
+using LeagueStatusBot.RPGEngine.Messaging;
 
 namespace LeagueStatusBot.RPGEngine.Core.Controllers
 {
@@ -11,16 +12,9 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             this.animationManager = animationManager;
             this.assetManager = assetManager;
         }
-        public bool ProcessTurn(List<string> player1actions, List<string> player2actions, Player player1, Player player2)
+        public TurnMessage ProcessTurn(List<string> player1actions, List<string> player2actions, Player player1, Player player2)
         {
-            try
-            {
-                return animationManager.CreateBattleAnimation(player1, player2, player1actions, player2actions);
-            }
-            catch
-            {
-                return false;
-            }
+            return animationManager.CreateBattleAnimation(player1, player2, player1actions, player2actions);
         }
     }
 }

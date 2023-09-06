@@ -1,5 +1,7 @@
 ﻿using LeagueStatusBot.RPGEngine.Core.Engine.Animations;
 using LeagueStatusBot.RPGEngine.Core.Engine.Beings;
+using LeagueStatusBot.RPGEngine.Messaging;
+using LeagueStatusBot.RPGEngine.Helpers;
 using SixLabors.ImageSharp.Formats.Gif;
 
 namespace LeagueStatusBot.RPGEngine.Core.Controllers
@@ -22,99 +24,103 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             this.assetManager = assetManager;
         }
 
-        public bool CreateBattleAnimation(Player player1, Player player2, List<string> player1actions, List<string> player2actions)
+        public TurnMessage CreateBattleAnimation(Player player1, Player player2, List<string> player1actions, List<string> player2actions)
         {
+            Dictionary<string, List<int>> actionHitFrames = new Dictionary<string, List<int>>
+            {
+                { "Attack", new List<int> { 4, 7 } },
+                { "Ability", new List<int> { 4 } },
+                { "Defend", new List<int> { 3 } }
+            };
             var allFrames = new List<Image<Rgba32>>();
-            Console.WriteLine("Running in to Loop");
-            for (int i = 0; i < player1actions.Count; i++)
+
+            int player1Strikes = 0;
+            int player2Strikes = 0;
+
+            string newFileName = string.Empty;
+            
+            for (int i = 0; i < 3; i++)
             {
                 var player1Action = player1actions[i];
                 var player2Action = player2actions[i];
 
-                player1.CurrentSprite = assetManager.GetEntitySprite(player1Action);
-                player2.CurrentSprite = assetManager.GetEntitySprite(player2Action);
+                // Fetch corresponding frames for each player action
+                var framesPlayer1 = GetActionFrames(player1Action, false);
+                var framesPlayer2 = GetActionFrames(player2Action, true);
 
-                List<Image<Rgba32>> framesPlayer1;
-                List<Image<Rgba32>> framesPlayer2;
-
-                // Handle player1's actions
-                if (player1Action == "Attack")
-                {
-                    player1.CurrentSprite = assetManager.GetEntitySprite("Attack");
-                    framesPlayer1 = animationHandler.CreateAttackAnimation(player1.CurrentSprite, 8, SPRITE_DIMENSION, SPRITE_DIMENSION, false);
-                }
-                else if (player1Action == "Defend")
-                {
-                    player1.CurrentSprite = assetManager.GetEntitySprite("Defend");
-                    framesPlayer1 = animationHandler.CreateDefendAnimation(player1.CurrentSprite, 3, SPRITE_DIMENSION, SPRITE_DIMENSION, false);
-                }
-                else // ability
-                {
-                    player1.CurrentSprite = assetManager.GetEntitySprite("Ability");
-                    framesPlayer1 = animationHandler.CreateAbilityAnimation(player1.CurrentSprite, 8, SPRITE_DIMENSION, SPRITE_DIMENSION, false);
-                }
-
-                // Handle player2's actions
-                if (player2Action == "Attack")
-                {
-                    player2.CurrentSprite = assetManager.GetEntitySprite("Attack");
-                    framesPlayer2 = animationHandler.CreateAttackAnimation(player2.CurrentSprite, 8, SPRITE_DIMENSION, SPRITE_DIMENSION, true);
-                }
-                else if (player2Action == "Defend")
-                {
-                    player2.CurrentSprite = assetManager.GetEntitySprite("Defend");
-                    framesPlayer2 = animationHandler.CreateDefendAnimation(player2.CurrentSprite, 3, SPRITE_DIMENSION, SPRITE_DIMENSION, true);
-                }
-                else // ability
-                {
-                    player2.CurrentSprite = assetManager.GetEntitySprite("Ability");
-                    framesPlayer2 = animationHandler.CreateAbilityAnimation(player2.CurrentSprite, 8, SPRITE_DIMENSION, SPRITE_DIMENSION, true);
-                }
-                
                 string winner = DetermineWinner(player1Action, player2Action);
-                int hitFrameIndex = 0;
-                var hitFrames = animationHandler.CreateHitAnimation(assetManager.GetEntitySprite("Hit"), 3, SPRITE_DIMENSION, SPRITE_DIMENSION, winner == "player2");
-                // Combine frames from both players
-                for (int j = 0; j < Math.Max(framesPlayer1.Count, framesPlayer2.Count); j++)
+
+                int maxFrames = 12;
+                int hitFrameCount = 3;
+                int idleFrameCount = 6;
+
+                var hitFrames1 = animationHandler.CreateHitAnimation(assetManager.GetEntitySprite("Hit"), hitFrameCount, SPRITE_DIMENSION, SPRITE_DIMENSION, false);
+                var hitFrames2 = animationHandler.CreateHitAnimation(assetManager.GetEntitySprite("Hit"), hitFrameCount, SPRITE_DIMENSION, SPRITE_DIMENSION, true);
+                var idleFrames1 = animationHandler.CreateIdleAnimation(assetManager.GetEntitySprite("Idle"), idleFrameCount, SPRITE_DIMENSION, SPRITE_DIMENSION, false);
+                var idleFrames2 = animationHandler.CreateIdleAnimation(assetManager.GetEntitySprite("Idle"), idleFrameCount, SPRITE_DIMENSION, SPRITE_DIMENSION, true);
+
+                int player1HitCounter = 0;
+                int player2HitCounter = 0;
+
+                for (int j = 0; j < maxFrames; j++)
                 {
-                    Console.WriteLine(j);
-                    Image<Rgba32> framePlayer1 = null;
-                    Image<Rgba32> framePlayer2 = null;
-
-                    if (j < framesPlayer1.Count)
+                    //TODO --> REMOVE MAGIC STRINGS FOR ENUM WINNER
+                    if (winner == "player1" && actionHitFrames[player1Action].Contains(j))
                     {
-                        framePlayer1 = framesPlayer1[j];
-                    }
-                    if (j < framesPlayer2.Count)
-                    {
-                        framePlayer2 = framesPlayer2[j];
+                        player2HitCounter = hitFrameCount;
+                        player1Strikes++;
                     }
 
-                    // Check if either frame is null and return false if so
-                    if (framePlayer1 == null || framePlayer2 == null)
+                    if (winner == "player2" && actionHitFrames[player2Action].Contains(j))
                     {
-                        Console.WriteLine("Error: One or both frames are null.");
-                        return false;
+                        player1HitCounter = hitFrameCount;
+                        player2Strikes++;
                     }
-                    // Combine player1's and player2's sprites for this frame
+
+                    var framePlayer1 = player1HitCounter > 0 
+                    ? hitFrames1[hitFrameCount - player1HitCounter] 
+                    : (j < framesPlayer1.Count 
+                        ? framesPlayer1[j] 
+                        : idleFrames1[j % idleFrames1.Count]);
+
+                    var framePlayer2 = player2HitCounter > 0 
+                    ? hitFrames2[hitFrameCount - player2HitCounter] 
+                    : (j < framesPlayer2.Count 
+                        ? framesPlayer2[j] 
+                        : idleFrames2[j % idleFrames2.Count]);
+
+                    if (player1HitCounter > 0) player1HitCounter--;
+                    if (player2HitCounter > 0) player2HitCounter--;
+
                     var combinedFrame = animationHandler.CombinePlayerSprites(framePlayer1, framePlayer2);
-                    Console.WriteLine("Adding");
+
                     allFrames.Add(combinedFrame);
                 }
+            }
+
+            List<Image<Rgba32>> GetActionFrames(string action, bool isPlayer2)
+            {
+                var spriteName = assetManager.GetEntitySprite(action);
+                return action switch
+                {
+                    "Attack" => animationHandler.CreateAttackAnimation(spriteName, 8, SPRITE_DIMENSION, SPRITE_DIMENSION, isPlayer2),
+                    "Defend" => animationHandler.CreateDefendAnimation(spriteName, 3, SPRITE_DIMENSION, SPRITE_DIMENSION, isPlayer2),
+                    "Ability" => animationHandler.CreateAbilityAnimation(spriteName, 8, SPRITE_DIMENSION, SPRITE_DIMENSION, isPlayer2),
+                    _ => animationHandler.CreateHitAnimation(spriteName, 8, SPRITE_DIMENSION, SPRITE_DIMENSION, isPlayer2),
+                };
             }
 
             try
             {
                 
-                using (Image<Rgba32> output = new Image<Rgba32>(CANVAS_WIDTH, CANVAS_HEIGHT))
+                using (Image<Rgba32> output = new Image<Rgba32>(200, 200))
                 {
                     var gifMeta = output.Metadata.GetGifMetadata();
                     gifMeta.RepeatCount = 0;
 
                     foreach (var frame in allFrames)
                     {
-                        // Resize the frame to match the output image dimensions before adding it
-                        var resizedFrame = frame.Clone(ctx => ctx.Resize(CANVAS_WIDTH, CANVAS_HEIGHT));
+                        var resizedFrame = frame.Clone(ctx => ctx.Resize(200, 200));
                         output.Frames.AddFrame(resizedFrame.Frames.RootFrame);
                     }
 
@@ -128,20 +134,18 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
                         frameMetadata.DisposalMethod = GifDisposalMethod.RestoreToBackground;
                     }
 
+                    newFileName = Path.GetRandomFileName() + ".gif";
+                    output.SaveAsGif(newFileName);
                     Console.WriteLine("Saved");
-                    output.SaveAsGif(BATTLE_FILE);
                 }
 
-                return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"An error occurred: {ex.Message}");
-                return false;
             }
-            
 
-            
+            return new TurnMessage(player1Strikes, player2Strikes, newFileName);            
         }
 
         public bool CreateInitialAnimation(Player player1, Player player2)
@@ -150,7 +154,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             {
                 var frames = animationHandler.CreateInitialAnimation(player1.CurrentSprite, player2.CurrentSprite, ANIMATION_OFFSET, FRAME_COUNT, SPRITE_DIMENSION, SPRITE_DIMENSION);
 
-                using (Image<Rgba32> output = new Image<Rgba32>(CANVAS_WIDTH, CANVAS_HEIGHT))
+                using (Image<Rgba32> output = new Image<Rgba32>(200,200))
                 {
                     var gifMeta = output.Metadata.GetGifMetadata();
                     gifMeta.RepeatCount = 0;
@@ -183,8 +187,12 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
         private string DetermineWinner(string player1action, string player2action)
         {
-
-            if (player1action == "Attack" && player2action == "Defend")
+            // Check if both players have the same action
+            if (player1action == player2action)
+            {
+                return "tie";
+            }
+            else if (player1action == "Attack" && player2action == "Defend")
             {
                 return "player2";
             }

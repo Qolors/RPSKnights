@@ -29,7 +29,7 @@ public class ButtonSelection<T> : BaseSelection<ButtonOption<T>>
                     .WithCustomId(emote?.ToString() ?? label)
                     .WithStyle(option.Style) // Use the style of the option
                     .WithEmote(emote)
-                    .WithDisabled(disableAll);
+                    .WithDisabled(option.disable);
 
                 if (label is not null)
                     button.Label = label;

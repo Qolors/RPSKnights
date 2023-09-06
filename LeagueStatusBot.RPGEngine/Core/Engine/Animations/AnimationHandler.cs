@@ -9,21 +9,6 @@
             this.spriteHandler = spriteHandler ?? throw new ArgumentNullException(nameof(spriteHandler));
         }
 
-        private Image<Rgba32> ExtractSprite(Image<Rgba32> image, int x, int y, int width, int height)
-        {
-            spriteHandler.LoadSpriteSheet(image);
-            return spriteHandler.ExtractSprite(x, y, width, height);
-        }
-
-        private IEnumerable<Image<Rgba32>> ExtractSprites(Image<Rgba32> image, int startIdx, int count, int spriteWidth, int spriteHeight) 
-        { 
-            spriteHandler.LoadSpriteSheet(image); 
-            for (int i = 0; i < count; i++) 
-            { 
-                yield return spriteHandler.ExtractSprite(startIdx + i * spriteWidth, 0, spriteWidth, spriteHeight); 
-            } 
-        }
-
         public List<Image<Rgba32>> CreateInitialAnimation(
             Image<Rgba32> player1SpriteSheet,
             Image<Rgba32> player2SpriteSheet,
@@ -40,7 +25,7 @@
 
             for (int i = 0; i < frameCount; i++)
             {
-                frames.Add(spriteHandler.CreateAnimationFrame(player1Sprites[i], new Point(15, 25), player2Sprites[i], new Point(15 + offset, 25)));
+                frames.Add(spriteHandler.CreateAnimationFrame(player1Sprites[i], new Point(45, 75), player2Sprites[i], new Point(45 + offset, 75)));
             }
 
             return frames;
@@ -70,14 +55,12 @@
 
         public Image<Rgba32> CombinePlayerSprites(Image<Rgba32> player1Sprite, Image<Rgba32> player2Sprite)
         {
-            // Create a new image with the combined width of both sprites
-            var combinedImage = new Image<Rgba32>(player1Sprite.Width + player2Sprite.Width, Math.Max(player1Sprite.Height, player2Sprite.Height));
-
-            // Draw player1's sprite on the left side of the combined image
-            combinedImage.Mutate(ctx => ctx.DrawImage(player1Sprite, new Point(0, 0), 1));
-
-            // Draw player2's sprite on the right side of the combined image
-            combinedImage.Mutate(ctx => ctx.DrawImage(player2Sprite, new Point(player1Sprite.Width, 0), 1));
+            //var combinedImage = new Image<Rgba32>(player1Sprite.Width + player2Sprite.Width, Math.Max(player1Sprite.Height, player2Sprite.Height));
+            var combinedImage = new Image<Rgba32>(200, 200);
+            //combinedImage.Mutate(ctx => ctx.DrawImage(player1Sprite, new Point(0, 0), 1));
+            combinedImage.Mutate(ctx => ctx.DrawImage(player1Sprite, new Point(45, 75), 1));
+            //combinedImage.Mutate(ctx => ctx.DrawImage(player2Sprite, new Point(player1Sprite.Width, 0), 1));
+            combinedImage.Mutate(ctx => ctx.DrawImage(player2Sprite, new Point(45 + 35, 75), 1));
 
             return combinedImage;
         }
@@ -113,6 +96,18 @@
         }
 
         public List<Image<Rgba32>> CreateHitAnimation(
+            Image<Rgba32> playerSpriteSheet,
+            int frameCount,
+            int spriteWidth,
+            int spriteHeight,
+            bool flip)
+        {
+            var hitFrames = GetPlayerSpriteFrames(playerSpriteSheet, frameCount, spriteWidth, spriteHeight, flip);
+            hitFrames[0].Mutate(x => x.Brightness(100));
+            return hitFrames;
+        }
+
+        public List<Image<Rgba32>> CreateIdleAnimation(
             Image<Rgba32> playerSpriteSheet,
             int frameCount,
             int spriteWidth,
