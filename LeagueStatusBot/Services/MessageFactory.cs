@@ -28,11 +28,13 @@ public static class MessageFactory
         return attachmentMessage;
     }
 
-    public static PageBuilder CreatePageBuilder(SocketInteractionContext context, List<string> player1Choices, SocketUser otherUser, List<string> player2Choices, int[] hitpoints, string status)
+    public static PageBuilder CreatePageBuilder(SocketUser context, Color color, List<string> playerChoices, SocketUser otherUser, int[] hitpoints, string status, int round)
     {
         return new PageBuilder()
-            .WithTitle("Turn Phase")
-            .WithDescription($"{status ?? ""}\n**{context.User.GlobalName}** - [{hitpoints[0]}/3 HP]: {player1Choices.Count}/3\n**{otherUser.GlobalName}** - [{hitpoints[1]}/3 HP]: {player2Choices.Count}/3");
+            .WithTitle($"Round #{round}")
+            .WithThumbnailUrl(context.GetAvatarUrl())
+            .WithColor(color)
+            .WithDescription($"{status ?? ""}\n**{context.GlobalName}** - [{hitpoints[0]}/3 HP]\n**{otherUser.GlobalName}** - [{hitpoints[1]}/3 HP]\n\n*{context.Mention} you need to make **{3 - playerChoices.Count}** more Actions*");
     }
 
     public static PageBuilder CreateChallengeMessage(string challenger, string avatarUrl, string mention)
@@ -53,7 +55,7 @@ public static class MessageFactory
     {
         var embed = new EmbedBuilder()
                 .WithTitle("A Battle Begins!")
-                .WithDescription($"**{firstMention}** VS **{secondMention}**")
+                .WithDescription($"**\uD83D\uDD35{firstMention}** VS **\uD83D\uDD34{secondMention}**")
                 .WithUrl("https://google.com")
                 .WithImageUrl(firstAvatar)
                 .Build();

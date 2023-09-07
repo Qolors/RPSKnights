@@ -9,9 +9,11 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
     public class AssetManager
     {
         // Use dictionaries to load and manage assets for quick look-up.
-        private Dictionary<string, Image<Rgba32>> entitySprites = new();
+        private Dictionary<string, Image<Rgba32>> entitySpritesBlue = new();
+        private Dictionary<string, Image<Rgba32>> entitySpritesRed = new();
         private Dictionary<string, Image<Rgba32>> abilitySprites = new();
-        private Image tilesetImage;
+        private Image<Rgba32> tilesetImage;
+        private Image<Rgba32> backgroundImage;
 
         public AssetManager()
         {
@@ -23,16 +25,22 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         private void LoadTileset()
         {
             // Load your tileset image
-            tilesetImage = Image.Load("./Assets/Maps/floor_1.png");
+            tilesetImage = Image.Load<Rgba32>("./Assets/Maps/Floor.png");
+            backgroundImage = Image.Load<Rgba32>("./Assets/Maps/Sky.png");
         }
 
         private void LoadEntitySprites()
         {
             // Load all entity sprites. This is simplified; consider error-checking and other concerns.
-            foreach (var file in Directory.GetFiles("./Assets/Sprites"))
+            foreach (var file in Directory.GetFiles("./Assets/Sprites/Blue"))
             {
                 var spriteName = Path.GetFileNameWithoutExtension(file);
-                entitySprites[spriteName] = (Image<Rgba32>)Image.Load(file);
+                entitySpritesBlue[spriteName] = (Image<Rgba32>)Image.Load(file);
+            }
+            foreach (var file in Directory.GetFiles("./Assets/Sprites/Red"))
+            {
+                var spriteName = Path.GetFileNameWithoutExtension(file);
+                entitySpritesRed[spriteName] = (Image<Rgba32>)Image.Load(file);
             }
         }
 
@@ -47,19 +55,26 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         }
 
         // Getters to access loaded assets
-        public Image<Rgba32>? GetEntitySprite(string spriteName)
+        public Image<Rgba32> GetEntitySprite(string spriteName, bool red)
         {
-            return entitySprites.TryGetValue(spriteName, out var sprite) ? sprite : null;
+            return red 
+            ? entitySpritesRed.TryGetValue(spriteName, out var bluesprite) ? bluesprite : new Image<Rgba32>(56, 56)
+            : entitySpritesBlue.TryGetValue(spriteName, out var redsprite) ? redsprite : new Image<Rgba32>(56, 56);
         }
 
-        public Image? GetAbilitySprite(string spriteName)
+        public Image GetAbilitySprite(string spriteName)
         {
-            return abilitySprites.TryGetValue(spriteName, out var sprite) ? sprite : null;
+            return abilitySprites.TryGetValue(spriteName, out var sprite) ? sprite : new Image<Rgba32>(200, 200);
         }
 
-        public Image GetTileset()
+        public Image<Rgba32> GetTileset()
         {
             return tilesetImage;
+        }
+
+        public Image<Rgba32> GetBackground()
+        {
+            return backgroundImage;
         }
     }
 

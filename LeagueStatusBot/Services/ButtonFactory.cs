@@ -38,14 +38,13 @@ public static class ButtonFactory
             };
     }
 
-    public static ButtonSelection<string> CreateButtonSelection(ButtonOption<string>[] options, PageBuilder pageBuilder, SocketUser otherUser, SocketInteractionContext context)
+    public static ButtonSelection<string> CreateButtonSelection(ButtonOption<string>[] options, PageBuilder pageBuilder, SocketUser currentUser)
     {
         return new ButtonSelectionBuilder<string>()
             .WithOptions(options)
             .WithStringConverter(x => x.Option)
             .WithSelectionPage(pageBuilder)
-            .AddUser(otherUser)
-            .AddUser(context.User)
+            .AddUser(currentUser) // Only the current user can make selections
             .Build();
     }
 

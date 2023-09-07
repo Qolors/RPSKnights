@@ -19,6 +19,7 @@ namespace LeagueStatusBot.Modules
     {
         private GameManager gameManager;
         private readonly InteractiveService interactiveService;
+        private IUserMessage message = null;
         public RPGModule(GameManager gameManager, InteractiveService interactiveService)
         {
             this.interactiveService = interactiveService;
@@ -30,7 +31,7 @@ namespace LeagueStatusBot.Modules
         {
             await DeferAsync();
             
-            if (!gameManager.StartGame(Context.User.Id, user.Id))
+            if (!gameManager.StartGame(Context.User.Id, user.Id, Context.User.GlobalName, user.GlobalName))
             {
                 await FollowupAsync("I don't currently support multiple game instances yet :( - please wait for current match to finish", ephemeral: true);
                 return;
@@ -79,97 +80,63 @@ namespace LeagueStatusBot.Modules
 
         private async Task SendBattleRequest(SocketInteractionContext context, SocketUser otherUser)
         {
-            Console.WriteLine("SendBattleRequest started"); // Debugging line
-            IUserMessage message = null;
-            InteractiveMessageResult<ButtonOption<string>> result = null;
-            string status = null;
+            Console.WriteLine("SendBattleRequest started");
+            RestUserMessage attachmentMessage = null;
+            int round = 1;
             while (true)
             {
                 List<string> player1Choices = new();
                 List<string> player2Choices = new();
                 
-                RestUserMessage attachmentMessage = null;
                 using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
 
                 await Task.Delay(1000);
 
-                Console.WriteLine("Initializing Attachment Message"); // Debugging line
                 attachmentMessage = await MessageFactory.InitializeAttachmentMessage(context, attachmentMessage, new FileAttachment("initial.gif") , new FileAttachment("initial.gif"));
-                Console.WriteLine("Attachment Message Initialized"); // Debugging line
 
                 var options = ButtonFactory.CreateButtonOptions();
                 var optionsDisplayOnly = ButtonFactory.CreateDisplayOnlyButtonOptions();
-                var pageBuilder = MessageFactory.CreatePageBuilder(context, player1Choices, otherUser, player2Choices, gameManager.GetCurrentHitPoints(), status);
-                var buttonSelection = ButtonFactory.CreateButtonSelection(options, pageBuilder, otherUser, context);
+                var pageBuilder = MessageFactory.CreatePageBuilder(context.User, Color.Blue, player1Choices, otherUser, gameManager.GetCurrentHitPoints(), gameManager.CurrentWinner, round);
+                var buttonSelection = ButtonFactory.CreateButtonSelection(options, pageBuilder, otherUser);
 
-                Console.WriteLine("Processing Player Choices"); // Debugging line
-                await ProcessPlayerChoices(context, otherUser, player1Choices, player2Choices, buttonSelection, message, cts);
-                Console.WriteLine("Player Choices Processed"); // Debugging line
-                buttonSelection = ButtonFactory.CreateButtonSelection(optionsDisplayOnly, pageBuilder, otherUser, context);
-                Console.WriteLine("Button Factory Processed");
+                await ProcessPlayerChoices(context, otherUser, player1Choices, player2Choices, buttonSelection, cts, round);
 
-                Console.WriteLine("Processing Turn"); // Debugging line
+                var nobuttonSelection = ButtonFactory.CreateButtonSelection(optionsDisplayOnly, pageBuilder, otherUser);
+
                 if (gameManager.ProcessTurn(player1Choices, player2Choices))
                 {
                     await MessageFactory.UpdateAttachmentMessage(attachmentMessage, new FileAttachment(gameManager.MostRecentFile));
-                    await Task.Delay(3000);
+                    using var disabledCts = new CancellationTokenSource(TimeSpan.FromSeconds(6));
+                    round++;
+                    await interactiveService.SendSelectionAsync(nobuttonSelection, message, TimeSpan.FromSeconds(6), cancellationToken: disabledCts.Token);
                 }
                 else
                 {
                     await MessageFactory.UpdateAttachmentMessage(attachmentMessage, new FileAttachment(gameManager.MostRecentFile));
-                    Console.WriteLine("Breaking from loop"); // Debugging line
                     break;
                 }
             }
 
             await context.Channel.SendMessageAsync("Haha wow nice man u did the win");
             gameManager.EndGame();
-            Console.WriteLine("SendBattleRequest ended"); // Debugging line
+            Console.WriteLine("SendBattleRequest ended");
         }        
 
         
 
-        private async Task ProcessPlayerChoices(SocketInteractionContext context, SocketUser otherUser, List<string> player1Choices, List<string> player2Choices, ButtonSelection<string> buttonSelection, IUserMessage message, CancellationTokenSource cts)
-        {
-            Console.WriteLine($"context: {context == null}");
-            Console.WriteLine($"otherUser: {otherUser == null}");
-            Console.WriteLine($"player1Choices: {player1Choices == null}");
-            Console.WriteLine($"player2Choices: {player2Choices == null}");
-            Console.WriteLine($"buttonSelection: {buttonSelection == null}");
-            Console.WriteLine($"message: {message == null}");
-            Console.WriteLine($"cts: {cts == null}");
-
-            Console.WriteLine($"context: {context}");
-            Console.WriteLine($"otherUser: {otherUser}");
-            Console.WriteLine($"player1Choices: {string.Join(", ", player1Choices)}");
-            Console.WriteLine($"player2Choices: {string.Join(", ", player2Choices)}");
-            Console.WriteLine($"buttonSelection: {buttonSelection}");
-            Console.WriteLine($"message: {message}");
-            Console.WriteLine($"cts: {cts}");
-            
-            
-            while (player1Choices.Count < 3 || player2Choices.Count < 3)
+        private async Task ProcessPlayerChoices(SocketInteractionContext context, SocketUser otherUser, List<string> player1Choices, List<string> player2Choices, ButtonSelection<string> buttonSelection, CancellationTokenSource cts, int round)
+        {            
+            while (player1Choices.Count < 3)
             {
+                var updatedBuilder = MessageFactory.CreatePageBuilder(context.User, Color.Blue, player1Choices, otherUser, gameManager.GetCurrentHitPoints(), gameManager.CurrentWinner, round);
+
+                buttonSelection = ButtonFactory.CreateButtonSelection(buttonSelection.Options.ToArray(), updatedBuilder, context.User);
+
                 var result = message is null
                 ? await interactiveService.SendSelectionAsync(buttonSelection, Context.Channel, TimeSpan.FromMinutes(2), cancellationToken: cts.Token)
                 : await interactiveService.SendSelectionAsync(buttonSelection, message, TimeSpan.FromMinutes(2), cancellationToken: cts.Token);
 
-                // Check if result or message is null
-                if (result == null)
-                {
-                    Console.WriteLine("Result is null");
-                    return;
-                }
-
                 message = result.Message;
-
-                Console.WriteLine(message);
-
-                if (message == null)
-                {
-                    Console.WriteLine("Message is null");
-                    return;
-                }
 
                 if (!result.IsSuccess)
                 {
@@ -177,29 +144,43 @@ namespace LeagueStatusBot.Modules
                     return;
                 }
 
-                Console.WriteLine(1);
+                UpdatePlayerChoices(context, otherUser, player1Choices, player2Choices, result);
+
+                updatedBuilder = MessageFactory.CreatePageBuilder(context.User, Color.Blue, player1Choices, otherUser, gameManager.GetCurrentHitPoints(), gameManager.CurrentWinner, round);
+
+                buttonSelection = ButtonFactory.CreateButtonSelection(buttonSelection.Options.ToArray(), updatedBuilder, context.User);
+
+                if (buttonSelection == null)
+                {
+                    Console.WriteLine("ButtonSelection is null");
+                    return;
+                }
+            }
+
+            while (player2Choices.Count < 3)
+            {
+                var updatedBuilder = MessageFactory.CreatePageBuilder(otherUser, Color.Red, player2Choices, context.User, gameManager.GetCurrentHitPoints(), gameManager.CurrentWinner, round);
+
+                buttonSelection = ButtonFactory.CreateButtonSelection(buttonSelection.Options.ToArray(), updatedBuilder, otherUser);
+
+                var result = message is null
+                ? await interactiveService.SendSelectionAsync(buttonSelection, Context.Channel, TimeSpan.FromMinutes(2), cancellationToken: cts.Token)
+                : await interactiveService.SendSelectionAsync(buttonSelection, message, TimeSpan.FromMinutes(2), cancellationToken: cts.Token);
+
+                message = result.Message;
+
+                if (!result.IsSuccess)
+                {
+                    gameManager.EndGame();
+                    return;
+                }
 
                 UpdatePlayerChoices(context, otherUser, player1Choices, player2Choices, result);
 
-                // Check if any of the player choices are null
-                if (player1Choices == null || player2Choices == null)
-                {
-                    Console.WriteLine("Player choices are null");
-                    return;
-                }
+                updatedBuilder = MessageFactory.CreatePageBuilder(otherUser, Color.Red, player1Choices, context.User, gameManager.GetCurrentHitPoints(), gameManager.CurrentWinner, round);
 
-                var updatedBuilder = MessageFactory.CreatePageBuilder(context, player1Choices, otherUser, player2Choices, gameManager.GetCurrentHitPoints(), gameManager.CurrentWinner);
+                buttonSelection = ButtonFactory.CreateButtonSelection(buttonSelection.Options.ToArray(), updatedBuilder, otherUser);
 
-                // Check if updatedBuilder is null
-                if (updatedBuilder == null)
-                {
-                    Console.WriteLine("UpdatedBuilder is null");
-                    return;
-                }
-
-                buttonSelection = ButtonFactory.CreateButtonSelection(buttonSelection.Options.ToArray(), updatedBuilder, otherUser, context);
-
-                // Check if buttonSelection is null
                 if (buttonSelection == null)
                 {
                     Console.WriteLine("ButtonSelection is null");

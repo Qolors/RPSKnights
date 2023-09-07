@@ -9,12 +9,9 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
     public class AnimationManager
     {
         private const int SPRITE_DIMENSION = 56;
-        private const int CANVAS_WIDTH = 150;
-        private const int CANVAS_HEIGHT = 150;
         private const int FRAME_COUNT = 6;
-        private const int ANIMATION_OFFSET = 35;
+        private const int ANIMATION_OFFSET = 15;
         private const string INITIAL_FILE = "initial.gif";
-        private const string BATTLE_FILE = "battle.gif";
         private readonly AnimationHandler animationHandler;
         private readonly AssetManager assetManager;
 
@@ -54,10 +51,10 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
                 int hitFrameCount = 3;
                 int idleFrameCount = 6;
 
-                var hitFrames1 = animationHandler.CreateHitAnimation(assetManager.GetEntitySprite("Hit"), hitFrameCount, SPRITE_DIMENSION, SPRITE_DIMENSION, false);
-                var hitFrames2 = animationHandler.CreateHitAnimation(assetManager.GetEntitySprite("Hit"), hitFrameCount, SPRITE_DIMENSION, SPRITE_DIMENSION, true);
-                var idleFrames1 = animationHandler.CreateIdleAnimation(assetManager.GetEntitySprite("Idle"), idleFrameCount, SPRITE_DIMENSION, SPRITE_DIMENSION, false);
-                var idleFrames2 = animationHandler.CreateIdleAnimation(assetManager.GetEntitySprite("Idle"), idleFrameCount, SPRITE_DIMENSION, SPRITE_DIMENSION, true);
+                var hitFrames1 = animationHandler.CreateHitAnimation(assetManager.GetEntitySprite("Hit", false), hitFrameCount, SPRITE_DIMENSION, SPRITE_DIMENSION, false);
+                var hitFrames2 = animationHandler.CreateHitAnimation(assetManager.GetEntitySprite("Hit", true), hitFrameCount, SPRITE_DIMENSION, SPRITE_DIMENSION, true);
+                var idleFrames1 = animationHandler.CreateIdleAnimation(assetManager.GetEntitySprite("Idle", false), idleFrameCount, SPRITE_DIMENSION, SPRITE_DIMENSION, false);
+                var idleFrames2 = animationHandler.CreateIdleAnimation(assetManager.GetEntitySprite("Idle", true), idleFrameCount, SPRITE_DIMENSION, SPRITE_DIMENSION, true);
 
                 int player1HitCounter = 0;
                 int player2HitCounter = 0;
@@ -100,7 +97,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
             List<Image<Rgba32>> GetActionFrames(string action, bool isPlayer2)
             {
-                var spriteName = assetManager.GetEntitySprite(action);
+                var spriteName = assetManager.GetEntitySprite(action, isPlayer2);
                 return action switch
                 {
                     "Attack" => animationHandler.CreateAttackAnimation(spriteName, 8, SPRITE_DIMENSION, SPRITE_DIMENSION, isPlayer2),
@@ -111,16 +108,15 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             }
 
             try
-            {
-                
-                using (Image<Rgba32> output = new Image<Rgba32>(200, 200))
+            {   
+                using (Image<Rgba32> output = new(250, 200))
                 {
                     var gifMeta = output.Metadata.GetGifMetadata();
                     gifMeta.RepeatCount = 0;
 
                     foreach (var frame in allFrames)
                     {
-                        var resizedFrame = frame.Clone(ctx => ctx.Resize(200, 200));
+                        var resizedFrame = frame.Clone(ctx => ctx.Resize(250, 200));
                         output.Frames.AddFrame(resizedFrame.Frames.RootFrame);
                     }
 
@@ -154,7 +150,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             {
                 var frames = animationHandler.CreateInitialAnimation(player1.CurrentSprite, player2.CurrentSprite, ANIMATION_OFFSET, FRAME_COUNT, SPRITE_DIMENSION, SPRITE_DIMENSION);
 
-                using (Image<Rgba32> output = new Image<Rgba32>(200,200))
+                using (Image<Rgba32> output = new(250, 200))
                 {
                     var gifMeta = output.Metadata.GetGifMetadata();
                     gifMeta.RepeatCount = 0;

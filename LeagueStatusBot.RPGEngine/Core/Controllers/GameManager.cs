@@ -23,12 +23,12 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             this.animationManager = animationManager;
         }
 
-        public bool StartGame(ulong player1Id, ulong player2Id)
+        public bool StartGame(ulong player1Id, ulong player2Id, string player1name, string player2name)
         {
             if (!IsOff) return false;
 
-            player1 = new Player(assetManager.GetEntitySprite(DEFAULT_TILE), player1Id);
-            player2 = new Player(assetManager.GetEntitySprite(DEFAULT_TILE), player2Id);
+            player1 = new Player(assetManager.GetEntitySprite(DEFAULT_TILE, false), player1Id, player1name);
+            player2 = new Player(assetManager.GetEntitySprite(DEFAULT_TILE, true), player2Id, player2name);
 
             IsOff = true;
 
@@ -45,18 +45,19 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             //TODO --> CHANGE RECORD TO BE PLAYER1HITS & PLAYER2HITS
             if (turnMessage.Player1Health == turnMessage.Player2Health)
             {
+                CurrentWinner = $"*Tied last round*\n";
                 return player1!.IsAlive;
             }
             else if (turnMessage.Player1Health < turnMessage.Player2Health)
             {
                 player1!.Health--;
-                CurrentWinner = "player2";
+                CurrentWinner = $"*{player2!.Name} won {turnMessage.Player2Health} hits to {turnMessage.Player1Health} hits last round*\n";
                 return player1.IsAlive;
             }
             else
             {
                 player2!.Health--;
-                CurrentWinner = "player1";
+                CurrentWinner = $"*{player1!.Name} won *{turnMessage.Player1Health} hits* to *{turnMessage.Player2Health} hits* last round*\n";
                 return player2.IsAlive;
             }
         }

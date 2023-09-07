@@ -25,7 +25,7 @@
 
             for (int i = 0; i < frameCount; i++)
             {
-                frames.Add(spriteHandler.CreateAnimationFrame(player1Sprites[i], new Point(45, 75), player2Sprites[i], new Point(45 + offset, 75)));
+                frames.Add(spriteHandler.CreateAnimationFrame(player1Sprites[i], new Point((250 / 2) - player1Sprites[i].Width - offset, 200-(player1Sprites[i].Height + 16)), player2Sprites[i], new Point((250 / 2) - player2Sprites[i].Width + offset, 200-(player2Sprites[i].Height + 16))));
             }
 
             return frames;
@@ -55,14 +55,7 @@
 
         public Image<Rgba32> CombinePlayerSprites(Image<Rgba32> player1Sprite, Image<Rgba32> player2Sprite)
         {
-            //var combinedImage = new Image<Rgba32>(player1Sprite.Width + player2Sprite.Width, Math.Max(player1Sprite.Height, player2Sprite.Height));
-            var combinedImage = new Image<Rgba32>(200, 200);
-            //combinedImage.Mutate(ctx => ctx.DrawImage(player1Sprite, new Point(0, 0), 1));
-            combinedImage.Mutate(ctx => ctx.DrawImage(player1Sprite, new Point(45, 75), 1));
-            //combinedImage.Mutate(ctx => ctx.DrawImage(player2Sprite, new Point(player1Sprite.Width, 0), 1));
-            combinedImage.Mutate(ctx => ctx.DrawImage(player2Sprite, new Point(45 + 35, 75), 1));
-
-            return combinedImage;
+            return spriteHandler.CreateAnimationFrame(player1Sprite, new Point((250 / 2) - player1Sprite.Width - 15, 200-(player1Sprite.Height + 16)), player2Sprite, new Point((250 / 2) - player2Sprite.Width + 15, 200-(player2Sprite.Height + 16)));
         }
 
         public List<Image<Rgba32>> CreateAttackAnimation(
