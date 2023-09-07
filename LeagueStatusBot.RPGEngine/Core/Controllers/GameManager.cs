@@ -57,7 +57,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             else
             {
                 player2!.Health--;
-                CurrentWinner = $"*{player1!.Name} won *{turnMessage.Player1Health} hits* to *{turnMessage.Player2Health} hits* last round*\n";
+                CurrentWinner = $"*{player1!.Name} won {turnMessage.Player1Health} hits to {turnMessage.Player2Health} hits last round*\n";
                 return player2.IsAlive;
             }
         }
