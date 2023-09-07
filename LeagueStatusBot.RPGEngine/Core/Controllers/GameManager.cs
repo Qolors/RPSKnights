@@ -5,6 +5,8 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 {
     public class GameManager 
     {
+        public bool IsOff {get; set;} = true;
+        public string CurrentWinner {get;set;} = string.Empty;
         public string MostRecentFile {get; set;}
         private const string DEFAULT_TILE = "Idle";
         private TurnManager turnManager;
@@ -23,10 +25,12 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
         public bool StartGame(ulong player1Id, ulong player2Id)
         {
-            if (player1 != null && player2 != null) return false;
+            if (!IsOff) return false;
 
             player1 = new Player(assetManager.GetEntitySprite(DEFAULT_TILE), player1Id);
             player2 = new Player(assetManager.GetEntitySprite(DEFAULT_TILE), player2Id);
+
+            IsOff = true;
 
             return animationManager.CreateInitialAnimation(player1, player2);
         }
@@ -46,11 +50,13 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             else if (turnMessage.Player1Health < turnMessage.Player2Health)
             {
                 player1!.Health--;
+                CurrentWinner = "player2";
                 return player1.IsAlive;
             }
             else
             {
                 player2!.Health--;
+                CurrentWinner = "player1";
                 return player2.IsAlive;
             }
         }
@@ -62,8 +68,8 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
         public void EndGame()
         {
-            player1 = null;
-            player2 = null;
+            fileManager.AddToCache("initial.gif");
+            IsOff = true;
             Task.Run(() => fileManager.DeleteAllFiles());
         }
 

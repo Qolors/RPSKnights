@@ -28,11 +28,11 @@ public static class MessageFactory
         return attachmentMessage;
     }
 
-    public static PageBuilder CreatePageBuilder(SocketInteractionContext context, List<string> player1Choices, SocketUser otherUser, List<string> player2Choices, int[] hitpoints)
+    public static PageBuilder CreatePageBuilder(SocketInteractionContext context, List<string> player1Choices, SocketUser otherUser, List<string> player2Choices, int[] hitpoints, string status)
     {
         return new PageBuilder()
             .WithTitle("Turn Phase")
-            .WithDescription($"**{context.User.GlobalName}** - [{hitpoints[0]}/3 HP]: {player1Choices.Count}/3\n**{otherUser.GlobalName}** - [{hitpoints[1]}/3 HP]: {player2Choices.Count}/3");
+            .WithDescription($"{status ?? ""}\n**{context.User.GlobalName}** - [{hitpoints[0]}/3 HP]: {player1Choices.Count}/3\n**{otherUser.GlobalName}** - [{hitpoints[1]}/3 HP]: {player2Choices.Count}/3");
     }
 
     public static PageBuilder CreateChallengeMessage(string challenger, string avatarUrl, string mention)

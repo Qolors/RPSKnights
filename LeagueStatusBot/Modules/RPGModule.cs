@@ -80,15 +80,18 @@ namespace LeagueStatusBot.Modules
         private async Task SendBattleRequest(SocketInteractionContext context, SocketUser otherUser)
         {
             Console.WriteLine("SendBattleRequest started"); // Debugging line
+            IUserMessage message = null;
+            InteractiveMessageResult<ButtonOption<string>> result = null;
+            string status = null;
             while (true)
             {
                 List<string> player1Choices = new();
                 List<string> player2Choices = new();
-                IUserMessage message = null;
+                
                 RestUserMessage attachmentMessage = null;
                 using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
 
-                await Task.Delay(5000);
+                await Task.Delay(1000);
 
                 Console.WriteLine("Initializing Attachment Message"); // Debugging line
                 attachmentMessage = await MessageFactory.InitializeAttachmentMessage(context, attachmentMessage, new FileAttachment("initial.gif") , new FileAttachment("initial.gif"));
@@ -96,25 +99,14 @@ namespace LeagueStatusBot.Modules
 
                 var options = ButtonFactory.CreateButtonOptions();
                 var optionsDisplayOnly = ButtonFactory.CreateDisplayOnlyButtonOptions();
-                var pageBuilder = MessageFactory.CreatePageBuilder(context, player1Choices, otherUser, player2Choices, gameManager.GetCurrentHitPoints());
+                var pageBuilder = MessageFactory.CreatePageBuilder(context, player1Choices, otherUser, player2Choices, gameManager.GetCurrentHitPoints(), status);
                 var buttonSelection = ButtonFactory.CreateButtonSelection(options, pageBuilder, otherUser, context);
 
                 Console.WriteLine("Processing Player Choices"); // Debugging line
                 await ProcessPlayerChoices(context, otherUser, player1Choices, player2Choices, buttonSelection, message, cts);
                 Console.WriteLine("Player Choices Processed"); // Debugging line
-
                 buttonSelection = ButtonFactory.CreateButtonSelection(optionsDisplayOnly, pageBuilder, otherUser, context);
                 Console.WriteLine("Button Factory Processed");
-                Console.WriteLine(buttonSelection == null);
-                try
-                {
-                    await interactiveService.SendSelectionAsync(buttonSelection, Context.Channel, TimeSpan.FromSeconds(3), cancellationToken: cts.Token);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Exception occurred while sending selection: {ex.Message}");
-                    Console.WriteLine($"Stack Trace: {ex.StackTrace}");
-                }
 
                 Console.WriteLine("Processing Turn"); // Debugging line
                 if (gameManager.ProcessTurn(player1Choices, player2Choices))
@@ -196,7 +188,7 @@ namespace LeagueStatusBot.Modules
                     return;
                 }
 
-                var updatedBuilder = MessageFactory.CreatePageBuilder(context, player1Choices, otherUser, player2Choices, gameManager.GetCurrentHitPoints());
+                var updatedBuilder = MessageFactory.CreatePageBuilder(context, player1Choices, otherUser, player2Choices, gameManager.GetCurrentHitPoints(), gameManager.CurrentWinner);
 
                 // Check if updatedBuilder is null
                 if (updatedBuilder == null)
