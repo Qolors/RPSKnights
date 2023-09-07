@@ -2,7 +2,6 @@
 using Discord.Interactions;
 using Discord.WebSocket;
 using LeagueStatusBot.Modules;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
 
@@ -12,7 +11,6 @@ namespace LeagueStatusBot.Services
     {
         private readonly DiscordSocketClient _client;
         private readonly InteractionService _handler;
-        private GameControllerService gameControllerService;
         private readonly IServiceProvider _services;
 
         public InteractionHandlerService(DiscordSocketClient client, InteractionService handler, IServiceProvider services)
@@ -20,7 +18,6 @@ namespace LeagueStatusBot.Services
             _client = client;
             _handler = handler;
             _services = services;
-            gameControllerService = _services.GetRequiredService<GameControllerService>();
         }
 
         public async Task InitializeAsync()

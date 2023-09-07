@@ -83,7 +83,6 @@ public class Startup
             .AddSingleton<InteractiveService>()
             .AddSingleton<InteractionHandlerService>()
             .AddSingleton<HttpClient>()
-            .AddSingleton<GameControllerService>()
             .AddSingleton<SpriteHandler>()
             .AddSingleton<AnimationHandler>()
             .AddSingleton<AnimationManager>()
