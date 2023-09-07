@@ -129,6 +129,9 @@ namespace LeagueStatusBot.Modules
                     break;
                 }
             }
+
+            await context.Channel.SendMessageAsync("Haha wow nice man u did the win");
+            gameManager.EndGame();
             Console.WriteLine("SendBattleRequest ended"); // Debugging line
         }        
 
@@ -167,6 +170,8 @@ namespace LeagueStatusBot.Modules
                 }
 
                 message = result.Message;
+
+                Console.WriteLine(message);
 
                 if (message == null)
                 {
