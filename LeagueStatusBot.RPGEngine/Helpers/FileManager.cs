@@ -32,9 +32,23 @@ public class FileManager
             }
             
         }
+
         files.Clear();
 
         Console.WriteLine("Successfully Cleared GIFs");
+    }
+
+    public List<Image> LoadAllGifs()
+    {
+        List<Image> gifs = new();
+
+        foreach (var file in files)
+        {
+            Image image = Image.Load<Rgba32>(file);
+            gifs.Add(image);
+        }
+
+        return gifs;
     }
     
 }

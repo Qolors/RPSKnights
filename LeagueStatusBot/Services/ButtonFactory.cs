@@ -43,8 +43,9 @@ public static class ButtonFactory
         return new ButtonSelectionBuilder<string>()
             .WithOptions(options)
             .WithStringConverter(x => x.Option)
+            .WithActionOnCancellation(ActionOnStop.DisableInput)
             .WithSelectionPage(pageBuilder)
-            .AddUser(currentUser) // Only the current user can make selections
+            .AddUser(currentUser)
             .Build();
     }
 

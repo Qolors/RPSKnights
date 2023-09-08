@@ -132,6 +132,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
                     newFileName = Path.GetRandomFileName() + ".gif";
                     output.SaveAsGif(newFileName);
+                    output.Dispose();
                     Console.WriteLine("Saved");
                 }
 
@@ -171,6 +172,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
                     }
 
                     output.SaveAsGif(INITIAL_FILE);
+                    output.Dispose();
                 }
 
                 return true;
@@ -180,6 +182,11 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
                 Console.WriteLine(ex.Message);
                 return false;
             }
+        }
+
+        public bool CreateGifFromGifs(List<Image> gifs)
+        {
+            return animationHandler.CreateGifFromGifs(gifs, "FinalBattle.gif");
         }
 
         private string DetermineWinner(string player1action, string player2action)

@@ -34,7 +34,7 @@ public static class MessageFactory
             .WithTitle($"Round #{round}")
             .WithThumbnailUrl(context.GetAvatarUrl())
             .WithColor(color)
-            .WithDescription($"{status ?? ""}\n**{context.GlobalName}** - [{hitpoints[0]}/3 HP]\n**{otherUser.GlobalName}** - [{hitpoints[1]}/3 HP]\n\n*{context.Mention} you need to make **{3 - playerChoices.Count}** more Actions*");
+            .WithDescription($"{status ?? ""}\n\u2665 {hitpoints[0]}/3 - **{context.GlobalName}**\n\u2665 {hitpoints[1]}/3 - **{otherUser.GlobalName}**\n\n*{context.Mention} you need to make **{3 - playerChoices.Count}** more Actions*");
     }
 
     public static PageBuilder CreateChallengeMessage(string challenger, string avatarUrl, string mention)
@@ -43,6 +43,12 @@ public static class MessageFactory
                 .WithTitle($"{challenger} challenges you to a duel")
                 .WithThumbnailUrl(avatarUrl)
                 .WithDescription($"*{mention}, What is your response?*");
+    }
+
+    public static PageBuilder CreateEndGameMessage(string winner)
+    {
+        return new PageBuilder()
+                .WithTitle($"**{winner} wins the duel.**");
     }
 
     public static PageBuilder CreateChallengeNeglectedMessage(string username)

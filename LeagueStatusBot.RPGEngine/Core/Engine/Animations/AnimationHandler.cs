@@ -1,4 +1,6 @@
-﻿namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
+﻿using SixLabors.ImageSharp.Formats.Gif;
+
+namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
 {
     public class AnimationHandler
     {
@@ -109,6 +111,44 @@
         {
             return GetPlayerSpriteFrames(playerSpriteSheet, frameCount, spriteWidth, spriteHeight, flip);
         }
+
+        public bool CreateGifFromGifs(List<Image> images, string filePath)
+        {
+            try
+            {
+                using (var gif = new Image<Rgba32>(images[0].Width, images[0].Height))
+                {
+                    foreach (var image in images)
+                    {
+                        foreach (var frame in image.Frames)
+                        {
+                            gif.Frames.AddFrame(frame);
+                        }
+                    }
+
+                    var gifEncoder = new GifEncoder();
+
+                    using (var output = File.OpenWrite(filePath))
+                    {
+                        gifEncoder.Encode(gif, output);
+                    }
+
+                    gif.SaveAsGif(filePath);
+                }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            foreach (var image in images)
+            {
+                image.Dispose();
+            }
+
+            return true;
+        }
+        
 
     }
 

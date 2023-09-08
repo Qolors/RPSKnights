@@ -7,6 +7,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
     {
         public bool IsOff {get; set;} = true;
         public string CurrentWinner {get;set;} = string.Empty;
+        public string FinalWinnerName { get; set; } = string.Empty;
         public string MostRecentFile {get; set;}
         private const string DEFAULT_TILE = "Idle";
         private TurnManager turnManager;
@@ -52,12 +53,14 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             {
                 player1!.Health--;
                 CurrentWinner = $"*{player2!.Name} won {turnMessage.Player2Health} hits to {turnMessage.Player1Health} hits last round*\n";
+                FinalWinnerName = player2!.Name;
                 return player1.IsAlive;
             }
             else
             {
                 player2!.Health--;
                 CurrentWinner = $"*{player1!.Name} won {turnMessage.Player1Health} hits to {turnMessage.Player2Health} hits last round*\n";
+                FinalWinnerName = player1.Name;
                 return player2.IsAlive;
             }
         }
@@ -69,8 +72,24 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
         public void EndGame()
         {
-            fileManager.AddToCache("initial.gif");
+            
             IsOff = true;
+
+            var gifs = fileManager.LoadAllGifs();
+
+            if (!animationManager.CreateGifFromGifs(gifs))
+            {
+                //TODO --> PROBABLY WON'T NEED THIS
+                Console.WriteLine("");
+            }
+
+            fileManager.AddToCache("initial.gif");
+            fileManager.AddToCache("FinalBattle.gif");
+
+        }
+
+        public void Dispose()
+        {
             Task.Run(() => fileManager.DeleteAllFiles());
         }
 

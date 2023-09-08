@@ -54,6 +54,7 @@ namespace LeagueStatusBot.Modules
             if (!result.IsSuccess)
             {
                 gameManager.EndGame();
+                gameManager.Dispose();
                 return;
             }
 
@@ -117,9 +118,15 @@ namespace LeagueStatusBot.Modules
                 }
             }
 
-            await context.Channel.SendMessageAsync("Haha wow nice man u did the win");
             gameManager.EndGame();
-            Console.WriteLine("SendBattleRequest ended");
+            await MessageFactory.UpdateAttachmentMessage(attachmentMessage, new FileAttachment("FinalBattle.gif"));
+            var optionsDisplay = ButtonFactory.CreateDisplayOnlyButtonOptions();
+            var endPage = MessageFactory.CreateEndGameMessage(gameManager.FinalWinnerName);
+            var finalSelection = ButtonFactory.CreateButtonSelection(optionsDisplay, endPage, otherUser);
+            await interactiveService.SendSelectionAsync(finalSelection, message, TimeSpan.FromSeconds(6));
+
+            message = null;
+            gameManager.Dispose();
         }        
 
         
