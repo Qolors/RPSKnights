@@ -1,6 +1,7 @@
 ﻿
 using System.Drawing;
 using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using Image = SixLabors.ImageSharp.Image;
 
@@ -8,17 +9,24 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 {
     public class AssetManager
     {
-        // Use dictionaries to load and manage assets for quick look-up.
+        private Dictionary<string, Image<Rgba32>> uiSprites = new();
         private Dictionary<string, Image<Rgba32>> entitySpritesBlue = new();
         private Dictionary<string, Image<Rgba32>> entitySpritesRed = new();
         private Dictionary<string, Image<Rgba32>> abilitySprites = new();
         private Image<Rgba32> tilesetImage;
         private Image<Rgba32> backgroundImage;
 
+        private Image player1Avatar;
+        private Image player2Avatar;
+
+        private HttpClient httpClient;
+
         public AssetManager()
         {
             LoadTileset();
             LoadEntitySprites();
+            LoadInterfaceSprites();
+            httpClient = new ();
             //LoadAbilitySprites();
         }
 
@@ -31,7 +39,6 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
         private void LoadEntitySprites()
         {
-            // Load all entity sprites. This is simplified; consider error-checking and other concerns.
             foreach (var file in Directory.GetFiles("./Assets/Sprites/Blue"))
             {
                 var spriteName = Path.GetFileNameWithoutExtension(file);
@@ -41,6 +48,15 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             {
                 var spriteName = Path.GetFileNameWithoutExtension(file);
                 entitySpritesRed[spriteName] = (Image<Rgba32>)Image.Load(file);
+            }
+        }
+
+        private void LoadInterfaceSprites()
+        {
+            foreach (var file in Directory.GetFiles("./Assets/Sprites/UI"))
+            {
+                var spriteName = Path.GetFileNameWithoutExtension(file);
+                uiSprites[spriteName] = (Image<Rgba32>)Image.Load(file);
             }
         }
 
@@ -67,6 +83,11 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             return abilitySprites.TryGetValue(spriteName, out var sprite) ? sprite : new Image<Rgba32>(200, 200);
         }
 
+        public Image<Rgba32> GetInterfaceSprite(string spriteName)
+        {
+            return uiSprites.TryGetValue(spriteName, out var sprite) ? sprite : new Image<Rgba32>(200, 200);
+        }
+
         public Image<Rgba32> GetTileset()
         {
             return tilesetImage;
@@ -75,6 +96,29 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         public Image<Rgba32> GetBackground()
         {
             return backgroundImage;
+        }
+
+        public async Task LoadPlayer1Avatar(string url)
+        {
+            using (var bytes = await httpClient.GetStreamAsync(url))
+            {
+                var image = Image.Load(bytes);
+                player1Avatar = image;
+            }
+        }
+
+        public async Task LoadPlayer2Avatar(string url)
+        {
+            using (var bytes = await httpClient.GetStreamAsync(url))
+            {
+                var image = Image.Load(bytes);
+                player2Avatar = image;
+            }
+        }
+
+        public (Image, Image) GetPlayerAvatars()
+        {
+            return (player1Avatar, player2Avatar);
         }
     }
 

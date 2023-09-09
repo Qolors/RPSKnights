@@ -5,7 +5,6 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
     public class AnimationHandler
     {
         private readonly SpriteHandler spriteHandler;
-
         public AnimationHandler(SpriteHandler spriteHandler)
         {
             this.spriteHandler = spriteHandler ?? throw new ArgumentNullException(nameof(spriteHandler));
@@ -17,7 +16,9 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
             int offset,
             int frameCount,
             int spriteWidth,
-            int spriteHeight)
+            int spriteHeight,
+            int health1,
+            int health2)
         {
 
             var player1Sprites = GetPlayerSpriteFrames(player1SpriteSheet, frameCount, spriteWidth, spriteHeight, false);
@@ -27,7 +28,12 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
 
             for (int i = 0; i < frameCount; i++)
             {
-                frames.Add(spriteHandler.CreateAnimationFrame(player1Sprites[i], new Point((250 / 2) - player1Sprites[i].Width - offset, 200-(player1Sprites[i].Height + 16)), player2Sprites[i], new Point((250 / 2) - player2Sprites[i].Width + offset, 200-(player2Sprites[i].Height + 16))));
+                frames.Add(spriteHandler.CreateAnimationFrame(
+                    player1Sprites[i], new Point((250 / 2) - 15, 200-(player1Sprites[i].Height + 16)), 
+                    player2Sprites[i], new Point((250 / 2) + 15, 200-(player2Sprites[i].Height + 16)), 
+                    health1, 
+                    health2)
+                );
             }
 
             return frames;
@@ -48,6 +54,8 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
                 {
                     sprite.Mutate(x => x.Flip(FlipMode.Horizontal));
                 }
+
+                sprite.Mutate(x => x.Resize(new Size(112, 112)));
                 
                 playerSprites.Add(sprite);
             }
@@ -55,9 +63,13 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
             return playerSprites;
         }
 
-        public Image<Rgba32> CombinePlayerSprites(Image<Rgba32> player1Sprite, Image<Rgba32> player2Sprite)
+        public Image<Rgba32> CombinePlayerSprites(
+            Image<Rgba32> player1Sprite, 
+            Image<Rgba32> player2Sprite, 
+            int health1, 
+            int health2)
         {
-            return spriteHandler.CreateAnimationFrame(player1Sprite, new Point((250 / 2) - player1Sprite.Width - 15, 200-(player1Sprite.Height + 16)), player2Sprite, new Point((250 / 2) - player2Sprite.Width + 15, 200-(player2Sprite.Height + 16)));
+            return spriteHandler.CreateAnimationFrame(player1Sprite, new Point((250 / 2) - 15, 200-(player1Sprite.Height + 16)), player2Sprite, new Point((250 / 2) + 15, 200-(player2Sprite.Height + 16)), health1, health2);
         }
 
         public List<Image<Rgba32>> CreateAttackAnimation(
@@ -98,6 +110,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
             bool flip)
         {
             var hitFrames = GetPlayerSpriteFrames(playerSpriteSheet, frameCount, spriteWidth, spriteHeight, flip);
+
             hitFrames[0].Mutate(x => x.Brightness(100));
             return hitFrames;
         }

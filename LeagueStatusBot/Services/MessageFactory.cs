@@ -61,17 +61,9 @@ public static class MessageFactory
     {
         var embed = new EmbedBuilder()
                 .WithTitle("A Battle Begins!")
-                .WithDescription($"**\uD83D\uDD35{firstMention}** VS **\uD83D\uDD34{secondMention}**")
-                .WithUrl("https://google.com")
-                .WithImageUrl(firstAvatar)
-                .Build();
+                .WithDescription($"**\uD83D\uDD35{firstMention}** VS **\uD83D\uDD34{secondMention}**");
 
-        var embed2 = new EmbedBuilder()
-        .WithUrl("https://google.com")
-        .WithImageUrl(secondAvatar)
-        .Build();
-
-        return new Embed[] { embed, embed2 };
+        return new Embed[] { embed.Build() };
     }
 
 

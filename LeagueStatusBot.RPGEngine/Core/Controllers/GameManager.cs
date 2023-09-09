@@ -24,16 +24,27 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             this.animationManager = animationManager;
         }
 
-        public bool StartGame(ulong player1Id, ulong player2Id, string player1name, string player2name)
+        public async Task<bool> StartGame(ulong player1Id, ulong player2Id, string player1name, string player2name, string player1url, string player2url)
         {
             if (!IsOff) return false;
 
-            player1 = new Player(assetManager.GetEntitySprite(DEFAULT_TILE, false), player1Id, player1name);
-            player2 = new Player(assetManager.GetEntitySprite(DEFAULT_TILE, true), player2Id, player2name);
+            player1 = new Player(assetManager.GetEntitySprite(DEFAULT_TILE, false), player1Id, player1name, player1url);
+            player2 = new Player(assetManager.GetEntitySprite(DEFAULT_TILE, true), player2Id, player2name, player2url);
 
+            await assetManager.LoadPlayer1Avatar(player1url);
+            await assetManager.LoadPlayer2Avatar(player2url);
+
+            Console.WriteLine("Loaded Avatars");
             IsOff = true;
 
             return animationManager.CreateInitialAnimation(player1, player2);
+        }
+
+        public bool ProcessDecisions()
+        {
+            fileManager.DeleteInitialFile("initial.gif");
+
+            return animationManager.CreateInitialAnimation(player1!, player2!);
         }
 
         public bool ProcessTurn(List<string> player1actions, List<string> player2actions)

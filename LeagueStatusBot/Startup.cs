@@ -10,6 +10,7 @@ using Fergun.Interactive;
 using LeagueStatusBot.Helpers;
 using LeagueStatusBot.RPGEngine.Core.Controllers;
 using LeagueStatusBot.RPGEngine.Core.Engine.Animations;
+using LeagueStatusBot.RPGEngine.Core.Engine.UI;
 using LeagueStatusBot.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -79,11 +80,12 @@ public class Startup
             //})
             .AddSingleton<CommandHandlingService>()
             .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
-            .AddSingleton(new InteractiveConfig { DefaultTimeout = TimeSpan.FromMinutes(5) }) // Optional config
+            .AddSingleton(new InteractiveConfig { DefaultTimeout = TimeSpan.FromMinutes(5) })
             .AddSingleton<InteractiveService>()
             .AddSingleton<InteractionHandlerService>()
             .AddSingleton<HttpClient>()
             .AddSingleton<SpriteHandler>()
+            .AddSingleton<UIHandler>()
             .AddSingleton<AnimationHandler>()
             .AddSingleton<AnimationManager>()
             .AddSingleton<AssetManager>()

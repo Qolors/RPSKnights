@@ -50,5 +50,13 @@ public class FileManager
 
         return gifs;
     }
+
+    public void DeleteInitialFile(string file)
+    {
+        if (File.Exists(file))
+        {
+            File.Delete(file);
+        }
+    }
     
 }

@@ -1,4 +1,5 @@
 ﻿using LeagueStatusBot.RPGEngine.Core.Controllers;
+using LeagueStatusBot.RPGEngine.Core.Engine.UI;
 
 namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
 {
@@ -6,10 +7,12 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
     {
         private Image<Rgba32> spriteSheet;
         private AssetManager assetManager;
+        private UIHandler interfacehandler;
 
-        public SpriteHandler(AssetManager assetManager)
+        public SpriteHandler(AssetManager assetManager, UIHandler interfaceHandler)
         {
             this.assetManager = assetManager;
+            this.interfacehandler = interfaceHandler;
         }
 
         public void LoadSpriteSheet(Image<Rgba32> image)
@@ -30,8 +33,17 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
             canvas.Mutate(ctx => ctx.DrawImage(sprite, new Point(x, y), 1));
         }
 
-        public Image<Rgba32> ResizeImage(Image<Rgba32> original, int width, int height)
+        public void PlaceHealthbarUIOnCanvas(Image<Rgba32> canvas, Image<Rgba32> sprite, Image<Rgba32> avatar, bool isPlayer1)
         {
+            Point side = isPlayer1 ? new Point(5, 60) : new Point(250 - 55, 60);
+            Point portrait = isPlayer1 ? new Point(5, 5) : new Point(250 - avatar.Width - 5, 5);
+            canvas.Mutate(ctx => ctx.DrawImage(sprite, side, 1));
+            canvas.Mutate(ctx => ctx.DrawImage(avatar, portrait, 1));
+        }
+
+        private Image<Rgba32> ResizeAvatar(Image<Rgba32> original, int width, int height)
+        {
+            original.Mutate(x => x.Pixelate());
             return original.Clone(ctx => ctx.Resize(width, height));
         }
 
@@ -39,6 +51,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
         {
             var floortile = assetManager.GetTileset();
             var background = assetManager.GetBackground();
+
             PlaceSpriteOnCanvas(canvas, background, 0, 0);
             for (int x = 0; x < canvas.Width; x += floortile.Width)
             {
@@ -46,13 +59,23 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
             }
         }
 
-        public Image<Rgba32> CreateAnimationFrame(Image<Rgba32> sprite1, Point position1, Image<Rgba32> sprite2, Point position2)
+        //TODO --> MAKE THIS INTAKE A MESSAGING MODEL
+        public Image<Rgba32> CreateAnimationFrame(Image<Rgba32> sprite1, Point position1, Image<Rgba32> sprite2, Point position2, int health1, int health2)
         {
+
+            var (avatar1, avatar2) = assetManager.GetPlayerAvatars();
+
+            var pixelAvatar1 = ResizeAvatar(avatar1.CloneAs<Rgba32>(), 50, 50);
+            var pixelAvatar2 = ResizeAvatar(avatar2.CloneAs<Rgba32>(), 50, 50);
+
+
             using (var frame = new Image<Rgba32>(250, 200))
             {
                 CreateBackground(frame);
-                PlaceSpriteOnCanvas(frame, sprite2, position2.X, position2.Y);
+                PlaceHealthbarUIOnCanvas(frame, interfacehandler.GenerateHealthbar(health1, true), pixelAvatar1, true);
+                PlaceHealthbarUIOnCanvas(frame, interfacehandler.GenerateHealthbar(health2, false), pixelAvatar2, false);
                 PlaceSpriteOnCanvas(frame, sprite1, position1.X, position1.Y);
+                PlaceSpriteOnCanvas(frame, sprite2, position2.X, position2.Y);
                 return frame.Clone();
             }
         }

@@ -89,7 +89,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
                     if (player1HitCounter > 0) player1HitCounter--;
                     if (player2HitCounter > 0) player2HitCounter--;
 
-                    var combinedFrame = animationHandler.CombinePlayerSprites(framePlayer1, framePlayer2);
+                    var combinedFrame = animationHandler.CombinePlayerSprites(framePlayer1, framePlayer2, player1.Health, player2.Health);
 
                     allFrames.Add(combinedFrame);
                 }
@@ -149,7 +149,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         {
             try
             {
-                var frames = animationHandler.CreateInitialAnimation(player1.CurrentSprite, player2.CurrentSprite, ANIMATION_OFFSET, FRAME_COUNT, SPRITE_DIMENSION, SPRITE_DIMENSION);
+                var frames = animationHandler.CreateInitialAnimation(player1.CurrentSprite, player2.CurrentSprite, ANIMATION_OFFSET, FRAME_COUNT, SPRITE_DIMENSION, SPRITE_DIMENSION, player1.Health, player2.Health);
 
                 using (Image<Rgba32> output = new(250, 200))
                 {

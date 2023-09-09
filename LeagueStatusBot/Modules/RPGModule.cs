@@ -31,7 +31,9 @@ namespace LeagueStatusBot.Modules
         {
             await DeferAsync();
             
-            if (!gameManager.StartGame(Context.User.Id, user.Id, Context.User.GlobalName, user.GlobalName))
+            var gameReady = await gameManager.StartGame(Context.User.Id, user.Id, Context.User.GlobalName, user.GlobalName, Context.User.GetAvatarUrl(), user.GetAvatarUrl());
+
+            if (!gameReady)
             {
                 await FollowupAsync("I don't currently support multiple game instances yet :( - please wait for current match to finish", ephemeral: true);
                 return;
@@ -110,6 +112,7 @@ namespace LeagueStatusBot.Modules
                     using var disabledCts = new CancellationTokenSource(TimeSpan.FromSeconds(6));
                     round++;
                     await interactiveService.SendSelectionAsync(nobuttonSelection, message, TimeSpan.FromSeconds(6), cancellationToken: disabledCts.Token);
+                    gameManager.ProcessDecisions();
                 }
                 else
                 {
