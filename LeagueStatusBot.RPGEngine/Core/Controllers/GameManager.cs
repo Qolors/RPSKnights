@@ -76,6 +76,13 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             }
         }
 
+        public void ProcessDeathScene()
+        {
+            var turnMessage = animationManager.CreateDeathAnimation(player1, player2);
+            MostRecentFile = turnMessage.FileName;
+            fileManager.AddToCache(turnMessage.FileName);
+        }
+
         public int[] GetCurrentHitPoints()
         {
             return new int[] { player1!.Health, player2!.Health };
@@ -83,7 +90,6 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
         public void EndGame()
         {
-            
             IsOff = true;
 
             var gifs = fileManager.LoadAllGifs();
@@ -96,7 +102,6 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
             fileManager.AddToCache("initial.gif");
             fileManager.AddToCache("FinalBattle.gif");
-
         }
 
         public void Dispose()

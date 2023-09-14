@@ -145,6 +145,69 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             return new TurnMessage(player1Strikes, player2Strikes, newFileName);            
         }
 
+        public TurnMessage CreateDeathAnimation(Player player1, Player player2)
+        {
+            int maxFrames = 12;
+            int deathFrameCount = 8;
+            int idleFrameCount = 6;
+
+            string newFileName = string.Empty;
+
+            bool player1win = player1.IsAlive ? true : false;
+
+            var deathFrames = animationHandler.CreateHitAnimation(assetManager.GetEntitySprite("Death", player1.IsAlive), deathFrameCount, SPRITE_DIMENSION, SPRITE_DIMENSION, player1win);
+            var idleFrames = animationHandler.CreateIdleAnimation(assetManager.GetEntitySprite("Idle", player1.IsAlive), idleFrameCount, SPRITE_DIMENSION, SPRITE_DIMENSION, !player1win);
+
+            var allFrames = new List<Image<Rgba32>>();
+
+            for (int j = 0; j < maxFrames; j++)
+            {
+                var frame1 = player1.IsAlive ? (j < idleFrames.Count ? idleFrames[j] : idleFrames[j % idleFrames.Count]) : (j < deathFrames.Count ? deathFrames[j] : deathFrames[7]);
+                var frame2 = player1.IsAlive ? (j < deathFrames.Count ? deathFrames[j] : deathFrames[7]) : (j < idleFrames.Count ? idleFrames[j] : idleFrames[j % idleFrames.Count]);
+
+                var combinedFrame = animationHandler.CombinePlayerSprites(frame1, frame2, player1.Health, player2.Health);
+
+                allFrames.Add(combinedFrame);
+            }
+
+            try
+            {   
+                using (Image<Rgba32> output = new(250, 200))
+                {
+                    var gifMeta = output.Metadata.GetGifMetadata();
+                    gifMeta.RepeatCount = 0;
+
+                    foreach (var frame in allFrames)
+                    {
+                        var resizedFrame = frame.Clone(ctx => ctx.Resize(250, 200));
+                        output.Frames.AddFrame(resizedFrame.Frames.RootFrame);
+                    }
+
+                    output.Frames.RemoveFrame(0);
+
+                    for (int i = 0; i < output.Frames.Count; i++)
+                    {
+                        var frame = output.Frames[i];
+                        var metadata = frame.Metadata;
+                        var frameMetadata = metadata.GetGifMetadata();
+                        frameMetadata.DisposalMethod = GifDisposalMethod.RestoreToBackground;
+                    }
+
+                    newFileName = Path.GetRandomFileName() + ".gif";
+                    output.SaveAsGif(newFileName);
+                    output.Dispose();
+                    Console.WriteLine("Saved");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred: {ex.Message}");
+            }
+
+            return new TurnMessage(0, 0, newFileName);   
+        }
+
         public bool CreateInitialAnimation(Player player1, Player player2)
         {
             try
@@ -169,6 +232,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
                         var metadata = frame.Metadata;
                         var frameMetadata = metadata.GetGifMetadata();
                         frameMetadata.DisposalMethod = GifDisposalMethod.RestoreToBackground;
+                        frameMetadata.FrameDelay = 50;
                     }
 
                     output.SaveAsGif(INITIAL_FILE);

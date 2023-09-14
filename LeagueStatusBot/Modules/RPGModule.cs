@@ -121,6 +121,8 @@ namespace LeagueStatusBot.Modules
                 }
             }
 
+            gameManager.ProcessDeathScene();
+
             gameManager.EndGame();
             await MessageFactory.UpdateAttachmentMessage(attachmentMessage, new FileAttachment("FinalBattle.gif"));
             var optionsDisplay = ButtonFactory.CreateDisplayOnlyButtonOptions();

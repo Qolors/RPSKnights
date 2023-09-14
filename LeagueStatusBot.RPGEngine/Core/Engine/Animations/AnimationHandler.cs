@@ -125,6 +125,16 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
             return GetPlayerSpriteFrames(playerSpriteSheet, frameCount, spriteWidth, spriteHeight, flip);
         }
 
+        public List<Image<Rgba32>> CreateDeathAnimation(
+            Image<Rgba32> playerSpriteSheet,
+            int frameCount,
+            int spriteWidth,
+            int spriteHeight,
+            bool flip)
+        {
+            return GetPlayerSpriteFrames(playerSpriteSheet, frameCount, spriteWidth, spriteHeight, flip);
+        }
+
         public bool CreateGifFromGifs(List<Image> images, string filePath)
         {
             try
