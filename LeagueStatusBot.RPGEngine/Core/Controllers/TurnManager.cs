@@ -6,15 +6,14 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
     public class TurnManager
     {
         private AnimationManager animationManager;
-        private AssetManager assetManager;
-        public TurnManager(AnimationManager animationManager, AssetManager assetManager)
+        public TurnManager(AnimationManager animationManager)
         {
             this.animationManager = animationManager;
-            this.assetManager = assetManager;
         }
-        public TurnMessage ProcessTurn(List<string> player1actions, List<string> player2actions, Player player1, Player player2)
+        public TurnMessage ProcessTurn(List<string> player1actions, List<string> player2actions, Player player1, Player player2, string basePath, AnimationManager animationManager)
         {
-            return animationManager.CreateBattleAnimation(player1, player2, player1actions, player2actions);
+            this.animationManager = animationManager;   
+            return this.animationManager.CreateBattleAnimation(player1, player2, player1actions, player2actions, basePath);
         }
     }
 }

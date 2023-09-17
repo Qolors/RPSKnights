@@ -4,38 +4,38 @@ namespace LeagueStatusBot.RPGEngine.Helpers;
 public class FileManager
 {
     private List<string> files;
+    private string folderName;
+    public string GetBasePath => folderName + "/";
 
-    public FileManager()
+    public FileManager(ulong folderName)
     {
+        this.folderName = folderName.ToString();
+
+        if (!Directory.Exists(this.folderName))
+        {
+            Directory.CreateDirectory(this.folderName);
+        }
+
         files = new();
     }
 
     public void AddToCache(string file)
     {
-        files.Add(file);
+        files.Add(folderName + "/" + file);
     }
 
     public void DeleteAllFiles()
     {
-        foreach (var file in files)
+        try
         {
-            try
-            {
-                if (File.Exists(file))
-                {
-                    File.Delete(file);
-                }
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            
+            Directory.Delete(folderName, true);
         }
-
-        files.Clear();
-
-        Console.WriteLine("Successfully Cleared GIFs");
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        
+        Console.WriteLine("Successfully Cleared GIFs and Folder");
     }
 
     public List<Image> LoadAllGifs()
@@ -53,9 +53,11 @@ public class FileManager
 
     public void DeleteInitialFile(string file)
     {
-        if (File.Exists(file))
+        string initialFilePath = $"{folderName}/{file}";
+
+        if (File.Exists(initialFilePath))
         {
-            File.Delete(file);
+            File.Delete(initialFilePath);
         }
     }
     

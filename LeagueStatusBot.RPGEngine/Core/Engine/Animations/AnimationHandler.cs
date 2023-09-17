@@ -1,4 +1,5 @@
-﻿using SixLabors.ImageSharp.Formats.Gif;
+﻿using LeagueStatusBot.RPGEngine.Core.Controllers;
+using SixLabors.ImageSharp.Formats.Gif;
 
 namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
 {
@@ -8,6 +9,11 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
         public AnimationHandler(SpriteHandler spriteHandler)
         {
             this.spriteHandler = spriteHandler ?? throw new ArgumentNullException(nameof(spriteHandler));
+        }
+
+        public void SetAssetManager(AssetManager assetManager)
+        {
+            spriteHandler.SetAssetManager(assetManager);
         }
 
         public List<Image<Rgba32>> CreateInitialAnimation(
@@ -20,9 +26,32 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
             int health1,
             int health2)
         {
+            if (player1SpriteSheet == null)
+            {
+                throw new ArgumentNullException(nameof(player1SpriteSheet), "player1SpriteSheet is not set to an instance of an object");
+            }
 
+            if (player2SpriteSheet == null)
+            {
+                throw new ArgumentNullException(nameof(player2SpriteSheet), "player2SpriteSheet is not set to an instance of an object");
+            }
+            // Check if spriteHandler is null
+            if (spriteHandler == null)
+            {
+                throw new ArgumentNullException(nameof(spriteHandler), "spriteHandler is not set to an instance of an object");
+            }
+
+            // Check if GetPlayerSpriteFrames method returns null
+            var testPlayerSprites = GetPlayerSpriteFrames(player1SpriteSheet, frameCount, spriteWidth, spriteHeight, false);
+            if (testPlayerSprites == null)
+            {
+                throw new ArgumentNullException(nameof(testPlayerSprites), "GetPlayerSpriteFrames method returned null");
+            }
+            
             var player1Sprites = GetPlayerSpriteFrames(player1SpriteSheet, frameCount, spriteWidth, spriteHeight, false);
             var player2Sprites = GetPlayerSpriteFrames(player2SpriteSheet, frameCount, spriteWidth, spriteHeight, true);
+
+            Console.WriteLine("Hello");
 
             var frames = new List<Image<Rgba32>>();
 
@@ -134,46 +163,5 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
         {
             return GetPlayerSpriteFrames(playerSpriteSheet, frameCount, spriteWidth, spriteHeight, flip);
         }
-
-        public bool CreateGifFromGifs(List<Image> images, string filePath)
-        {
-            try
-            {
-                using (var gif = new Image<Rgba32>(images[0].Width, images[0].Height))
-                {
-                    foreach (var image in images)
-                    {
-                        foreach (var frame in image.Frames)
-                        {
-                            gif.Frames.AddFrame(frame);
-                        }
-                    }
-
-                    var gifEncoder = new GifEncoder();
-
-                    using (var output = File.OpenWrite(filePath))
-                    {
-                        gifEncoder.Encode(gif, output);
-                    }
-
-                    gif.SaveAsGif(filePath);
-                }
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-
-            foreach (var image in images)
-            {
-                image.Dispose();
-            }
-
-            return true;
-        }
-        
-
     }
-
-
 }

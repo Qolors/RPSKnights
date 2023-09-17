@@ -84,13 +84,13 @@ public class Startup
             .AddSingleton<InteractiveService>()
             .AddSingleton<InteractionHandlerService>()
             .AddSingleton<HttpClient>()
-            .AddSingleton<SpriteHandler>()
-            .AddSingleton<UIHandler>()
-            .AddSingleton<AnimationHandler>()
-            .AddSingleton<AnimationManager>()
-            .AddSingleton<AssetManager>()
-            .AddSingleton<TurnManager>()
-            .AddSingleton<GameManager>()
+            .AddTransient<SpriteHandler>()
+            .AddTransient<UIHandler>()
+            .AddTransient<AnimationHandler>()
+            .AddTransient<AnimationManager>()
+            .AddTransient<AssetManager>()
+            .AddTransient<TurnManager>()
+            .AddTransient<GameFactory>()
             .BuildServiceProvider();
     }
 }

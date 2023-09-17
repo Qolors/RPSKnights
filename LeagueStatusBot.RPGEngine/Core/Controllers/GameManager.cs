@@ -9,6 +9,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         public string CurrentWinner {get;set;} = string.Empty;
         public string FinalWinnerName { get; set; } = string.Empty;
         public string MostRecentFile {get; set;}
+        public EventHandler OnGameEnded;
         private const string DEFAULT_TILE = "Idle";
         private TurnManager turnManager;
         private AssetManager assetManager;
@@ -16,17 +17,17 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         private FileManager fileManager;
         private Player? player1;
         private Player? player2;
-        public GameManager(TurnManager turnManager, AssetManager assetManager, AnimationManager animationManager)
+        public GameManager(TurnManager turnManager, AssetManager assetManager, AnimationManager animationManager, ulong gameKey)
         {
-            fileManager = new();
+            fileManager = new(gameKey);
             this.assetManager = assetManager;
             this.turnManager = turnManager;
             this.animationManager = animationManager;
         }
 
-        public async Task<bool> StartGame(ulong player1Id, ulong player2Id, string player1name, string player2name, string player1url, string player2url)
+        public async Task<string> StartGame(ulong player1Id, ulong player2Id, string player1name, string player2name, string player1url, string player2url)
         {
-            if (!IsOff) return false;
+            if (!IsOff) return string.Empty;
 
             player1 = new Player(assetManager.GetEntitySprite(DEFAULT_TILE, false), player1Id, player1name, player1url);
             player2 = new Player(assetManager.GetEntitySprite(DEFAULT_TILE, true), player2Id, player2name, player2url);
@@ -34,24 +35,31 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             await assetManager.LoadPlayer1Avatar(player1url);
             await assetManager.LoadPlayer2Avatar(player2url);
 
+            animationManager.SetAssetManager(assetManager);
+
             Console.WriteLine("Loaded Avatars");
             IsOff = true;
 
-            return animationManager.CreateInitialAnimation(player1, player2);
+            if (animationManager == null)
+            {
+                throw new ArgumentNullException(nameof(animationManager), "AnimationManager null");
+            }
+            return animationManager.CreateInitialAnimation(player1, player2, fileManager.GetBasePath);
         }
 
-        public bool ProcessDecisions()
+        public string ProcessDecisions()
         {
             fileManager.DeleteInitialFile("initial.gif");
 
-            return animationManager.CreateInitialAnimation(player1!, player2!);
+            return animationManager.CreateInitialAnimation(player1!, player2!, fileManager.GetBasePath);
         }
 
         public bool ProcessTurn(List<string> player1actions, List<string> player2actions)
         {
-            var turnMessage = turnManager.ProcessTurn(player1actions, player2actions, player1!, player2!);
+            var turnMessage = turnManager.ProcessTurn(player1actions, player2actions, player1!, player2!, fileManager.GetBasePath, animationManager);
 
             fileManager.AddToCache(turnMessage.FileName);
+
             MostRecentFile = turnMessage.FileName;
 
             //TODO --> CHANGE RECORD TO BE PLAYER1HITS & PLAYER2HITS
@@ -78,7 +86,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
         public void ProcessDeathScene()
         {
-            var turnMessage = animationManager.CreateDeathAnimation(player1, player2);
+            var turnMessage = animationManager.CreateDeathAnimation(player1, player2, fileManager.GetBasePath);
             MostRecentFile = turnMessage.FileName;
             fileManager.AddToCache(turnMessage.FileName);
         }
@@ -94,7 +102,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
             var gifs = fileManager.LoadAllGifs();
 
-            if (!animationManager.CreateGifFromGifs(gifs))
+            if (!animationManager.CreateGifFromGifs(gifs, fileManager.GetBasePath + "FinalBattle.gif"))
             {
                 //TODO --> PROBABLY WON'T NEED THIS
                 Console.WriteLine("");
@@ -107,6 +115,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         public void Dispose()
         {
             Task.Run(() => fileManager.DeleteAllFiles());
+            OnGameEnded?.Invoke(this, EventArgs.Empty);
         }
 
     }

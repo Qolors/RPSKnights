@@ -13,15 +13,20 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         private const int ANIMATION_OFFSET = 15;
         private const string INITIAL_FILE = "initial.gif";
         private readonly AnimationHandler animationHandler;
-        private readonly AssetManager assetManager;
+        private AssetManager assetManager;
 
-        public AnimationManager(AnimationHandler animationHandler, AssetManager assetManager)
+        public AnimationManager(AnimationHandler animationHandler)
         {
             this.animationHandler = animationHandler;
-            this.assetManager = assetManager;
         }
 
-        public TurnMessage CreateBattleAnimation(Player player1, Player player2, List<string> player1actions, List<string> player2actions)
+        public void SetAssetManager(AssetManager assetManager)
+        {
+            this.assetManager = assetManager;
+            animationHandler.SetAssetManager(assetManager);
+        }
+
+        public TurnMessage CreateBattleAnimation(Player player1, Player player2, List<string> player1actions, List<string> player2actions, string basePath)
         {
             Dictionary<string, List<int>> actionHitFrames = new Dictionary<string, List<int>>
             {
@@ -36,7 +41,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
             string newFileName = string.Empty;
             
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 1; i++)
             {
                 var player1Action = player1actions[i];
                 var player2Action = player2actions[i];
@@ -131,7 +136,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
                     }
 
                     newFileName = Path.GetRandomFileName() + ".gif";
-                    output.SaveAsGif(newFileName);
+                    output.SaveAsGif(basePath + newFileName);
                     output.Dispose();
                     Console.WriteLine("Saved");
                 }
@@ -142,13 +147,14 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
                 Console.WriteLine($"An error occurred: {ex.Message}");
             }
 
-            return new TurnMessage(player1Strikes, player2Strikes, newFileName);            
+            return new TurnMessage(player1Strikes, player2Strikes, basePath + newFileName);            
         }
 
-        public TurnMessage CreateDeathAnimation(Player player1, Player player2)
+        public TurnMessage CreateDeathAnimation(Player player1, Player player2, string basePath)
         {
             int maxFrames = 12;
             int deathFrameCount = 8;
+            int death2FrameCount = 4;
             int idleFrameCount = 6;
 
             string newFileName = string.Empty;
@@ -156,14 +162,15 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             bool player1win = player1.IsAlive ? true : false;
 
             var deathFrames = animationHandler.CreateHitAnimation(assetManager.GetEntitySprite("Death", player1.IsAlive), deathFrameCount, SPRITE_DIMENSION, SPRITE_DIMENSION, player1win);
-            var idleFrames = animationHandler.CreateIdleAnimation(assetManager.GetEntitySprite("Idle", player1.IsAlive), idleFrameCount, SPRITE_DIMENSION, SPRITE_DIMENSION, !player1win);
+            var death2Frames = animationHandler.CreateHitAnimation(assetManager.GetEntitySprite("Death2", player1.IsAlive), death2FrameCount, SPRITE_DIMENSION, SPRITE_DIMENSION, player1win);
+            var idleFrames = animationHandler.CreateIdleAnimation(assetManager.GetEntitySprite("Idle", !player1.IsAlive), idleFrameCount, SPRITE_DIMENSION, SPRITE_DIMENSION, !player1win);
 
             var allFrames = new List<Image<Rgba32>>();
 
             for (int j = 0; j < maxFrames; j++)
             {
-                var frame1 = player1.IsAlive ? (j < idleFrames.Count ? idleFrames[j] : idleFrames[j % idleFrames.Count]) : (j < deathFrames.Count ? deathFrames[j] : deathFrames[7]);
-                var frame2 = player1.IsAlive ? (j < deathFrames.Count ? deathFrames[j] : deathFrames[7]) : (j < idleFrames.Count ? idleFrames[j] : idleFrames[j % idleFrames.Count]);
+                var frame1 = player1.IsAlive ? (j < idleFrames.Count ? idleFrames[j] : idleFrames[j % idleFrames.Count]) : (j < deathFrames.Count ? deathFrames[j] : death2Frames[j % death2Frames.Count]);
+                var frame2 = player1.IsAlive ? (j < deathFrames.Count ? deathFrames[j] : death2Frames[j % death2Frames.Count]) : (j < idleFrames.Count ? idleFrames[j] : idleFrames[j % idleFrames.Count]);
 
                 var combinedFrame = animationHandler.CombinePlayerSprites(frame1, frame2, player1.Health, player2.Health);
 
@@ -194,7 +201,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
                     }
 
                     newFileName = Path.GetRandomFileName() + ".gif";
-                    output.SaveAsGif(newFileName);
+                    output.SaveAsGif(basePath + newFileName);
                     output.Dispose();
                     Console.WriteLine("Saved");
                 }
@@ -208,11 +215,35 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             return new TurnMessage(0, 0, newFileName);   
         }
 
-        public bool CreateInitialAnimation(Player player1, Player player2)
-        {
+        public string CreateInitialAnimation(Player player1, Player player2, string basePath)
+        {            
             try
             {
+                if (animationHandler == null)
+                {
+                    throw new ArgumentNullException(nameof(animationHandler), "animationHandler is not set to an instance of an object");
+                }
+
+                if (player1 == null)
+                {
+                    throw new ArgumentNullException(nameof(player1), "player1 is not set to an instance of an object");
+                }
+
+                if (player2 == null)
+                {
+                    throw new ArgumentNullException(nameof(player2), "player2 is not set to an instance of an object");
+                }
+
+                if (string.IsNullOrEmpty(basePath))
+                {
+                    throw new ArgumentNullException(nameof(basePath), "basePath is not set to an instance of an object");
+                }
+
+                Console.WriteLine("Hitting Animation Handler");
+
                 var frames = animationHandler.CreateInitialAnimation(player1.CurrentSprite, player2.CurrentSprite, ANIMATION_OFFSET, FRAME_COUNT, SPRITE_DIMENSION, SPRITE_DIMENSION, player1.Health, player2.Health);
+
+                Console.WriteLine("After Initial Animation");
 
                 using (Image<Rgba32> output = new(250, 200))
                 {
@@ -235,22 +266,18 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
                         frameMetadata.FrameDelay = 50;
                     }
 
-                    output.SaveAsGif(INITIAL_FILE);
+                    output.SaveAsGif(basePath + INITIAL_FILE);
                     output.Dispose();
                 }
 
-                return true;
+                return basePath + INITIAL_FILE;
             }
             catch(Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return false;
+                Console.WriteLine("Happened in CreateInitialAnimation");
+                return string.Empty;
             }
-        }
-
-        public bool CreateGifFromGifs(List<Image> gifs)
-        {
-            return animationHandler.CreateGifFromGifs(gifs, "FinalBattle.gif");
         }
 
         private string DetermineWinner(string player1action, string player2action)
@@ -277,6 +304,43 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
                 return "player1";
             }
             
+        }
+
+        public bool CreateGifFromGifs(List<Image> images, string filePath)
+        {
+            try
+            {
+                using (var gif = new Image<Rgba32>(images[0].Width, images[0].Height))
+                {
+                    foreach (var image in images)
+                    {
+                        foreach (var frame in image.Frames)
+                        {
+                            gif.Frames.AddFrame(frame);
+                        }
+                    }
+
+                    var gifEncoder = new GifEncoder();
+
+                    using (var output = File.OpenWrite(filePath))
+                    {
+                        gifEncoder.Encode(gif, output);
+                    }
+
+                    gif.SaveAsGif(filePath);
+                }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            foreach (var image in images)
+            {
+                image.Dispose();
+            }
+
+            return true;
         }
     }
 }

@@ -34,7 +34,7 @@ public static class MessageFactory
             .WithTitle($"Round #{round}")
             .WithThumbnailUrl(context.GetAvatarUrl())
             .WithColor(color)
-            .WithDescription($"{status ?? ""}\n\u2665 {hitpoints[0]}/3 - **{context.GlobalName}**\n\u2665 {hitpoints[1]}/3 - **{otherUser.GlobalName}**\n\n*{context.Mention} you need to make **{3 - playerChoices.Count}** more Actions*");
+            .WithDescription($"{status ?? ""}\n\u2665 {hitpoints[0]}/3 - **{context.GlobalName}**\n\u2665 {hitpoints[1]}/3 - **{otherUser.GlobalName}**\n\n*{context.Mention} you need to make **{1 - playerChoices.Count}** more Actions*");
     }
 
     public static PageBuilder CreateChallengeMessage(string challenger, string avatarUrl, string mention)
