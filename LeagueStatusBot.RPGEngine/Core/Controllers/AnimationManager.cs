@@ -136,6 +136,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
                     }
 
                     newFileName = Path.GetRandomFileName() + ".gif";
+                    Console.WriteLine($"{basePath} + {newFileName}");
                     output.SaveAsGif(basePath + newFileName);
                     output.Dispose();
                     Console.WriteLine("Saved");
@@ -209,10 +210,10 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred: {ex.Message}");
+                Console.WriteLine($"An error occurred: {ex.Message} hhh");
             }
 
-            return new TurnMessage(0, 0, newFileName);   
+            return new TurnMessage(0, 0, basePath + newFileName);   
         }
 
         public string CreateInitialAnimation(Player player1, Player player2, string basePath)
@@ -267,6 +268,9 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
                     }
 
                     output.SaveAsGif(basePath + INITIAL_FILE);
+
+                    Console.WriteLine("YAH");
+
                     output.Dispose();
                 }
 

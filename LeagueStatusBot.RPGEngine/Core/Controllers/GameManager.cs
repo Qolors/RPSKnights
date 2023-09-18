@@ -44,6 +44,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             {
                 throw new ArgumentNullException(nameof(animationManager), "AnimationManager null");
             }
+
             return animationManager.CreateInitialAnimation(player1, player2, fileManager.GetBasePath);
         }
 
@@ -102,14 +103,22 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
             var gifs = fileManager.LoadAllGifs();
 
+            Console.WriteLine("Loaded Gifs for FinalBatlle Gif");
+
             if (!animationManager.CreateGifFromGifs(gifs, fileManager.GetBasePath + "FinalBattle.gif"))
             {
                 //TODO --> PROBABLY WON'T NEED THIS
                 Console.WriteLine("");
             }
 
+            MostRecentFile = fileManager.GetBasePath + "FinalBattle.gif";
+
             fileManager.AddToCache("initial.gif");
             fileManager.AddToCache("FinalBattle.gif");
+
+            Console.WriteLine("Finished Ending Game");
+
+
         }
 
         public void Dispose()

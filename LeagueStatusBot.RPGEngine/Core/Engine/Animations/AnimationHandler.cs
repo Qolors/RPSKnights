@@ -58,8 +58,8 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
             for (int i = 0; i < frameCount; i++)
             {
                 frames.Add(spriteHandler.CreateAnimationFrame(
-                    player1Sprites[i], new Point((250 / 2) - 15, 200-(player1Sprites[i].Height + 16)), 
-                    player2Sprites[i], new Point((250 / 2) + 15, 200-(player2Sprites[i].Height + 16)), 
+                    player1Sprites[i], new Point((250 / 2) - 60, 200-(player1Sprites[i].Height + 16)), 
+                    player2Sprites[i], new Point((250 / 2) - 30, 200-(player2Sprites[i].Height + 16)), 
                     health1, 
                     health2)
                 );
@@ -98,7 +98,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
             int health1, 
             int health2)
         {
-            return spriteHandler.CreateAnimationFrame(player1Sprite, new Point((250 / 2) - 15, 200-(player1Sprite.Height + 16)), player2Sprite, new Point((250 / 2) + 15, 200-(player2Sprite.Height + 16)), health1, health2);
+            return spriteHandler.CreateAnimationFrame(player1Sprite, new Point((250 / 2) - 60, 200-(player1Sprite.Height + 16)), player2Sprite, new Point((250 / 2) - 30, 200-(player2Sprite.Height + 16)), health1, health2);
         }
 
         public List<Image<Rgba32>> CreateAttackAnimation(

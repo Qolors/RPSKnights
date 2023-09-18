@@ -90,9 +90,11 @@ namespace LeagueStatusBot.Modules
         private async Task SendBattleRequest(SocketInteractionContext context, SocketUser otherUser, GameManager gameManager, string filePath)
         {
             Console.WriteLine("SendBattleRequest started");
+
             RestUserMessage attachmentMessage = null;
             IUserMessage message = null;
             int round = 1;
+
             while (true)
             {
                 List<string> player1Choices = new();
@@ -109,16 +111,18 @@ namespace LeagueStatusBot.Modules
                 var pageBuilder = MessageFactory.CreatePageBuilder(context.User, Color.Blue, player1Choices, otherUser, gameManager.GetCurrentHitPoints(), gameManager.CurrentWinner, round);
                 var buttonSelection = ButtonFactory.CreateButtonSelection(options, pageBuilder, otherUser);
 
-                message = await ProcessPlayerChoices(context, otherUser, player1Choices, player2Choices, buttonSelection, cts, round, gameManager);
+                message = await ProcessPlayerChoices(context, otherUser, player1Choices, player2Choices, buttonSelection, cts, round, gameManager, message);
 
                 var nobuttonSelection = ButtonFactory.CreateButtonSelection(optionsDisplayOnly, pageBuilder, otherUser);
 
                 if (gameManager.ProcessTurn(player1Choices, player2Choices))
                 {
                     await MessageFactory.UpdateAttachmentMessage(attachmentMessage, new FileAttachment(gameManager.MostRecentFile));
-                    using var disabledCts = new CancellationTokenSource(TimeSpan.FromSeconds(6));
+                    using var disabledCts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
                     round++;
-                    await interactiveService.SendSelectionAsync(nobuttonSelection, message, TimeSpan.FromSeconds(6), cancellationToken: disabledCts.Token);
+
+                    await interactiveService.SendSelectionAsync(nobuttonSelection, message, TimeSpan.FromSeconds(1), cancellationToken: disabledCts.Token);
+
                     gameManager.ProcessDecisions();
                 }
                 else
@@ -131,10 +135,12 @@ namespace LeagueStatusBot.Modules
             gameManager.ProcessDeathScene();
             gameManager.EndGame();
 
-            await MessageFactory.UpdateAttachmentMessage(attachmentMessage, new FileAttachment("FinalBattle.gif"));
+            await MessageFactory.UpdateAttachmentMessage(attachmentMessage, new FileAttachment($"{Context.User.Id}/FinalBattle.gif"));
+
             var optionsDisplay = ButtonFactory.CreateDisplayOnlyButtonOptions();
             var endPage = MessageFactory.CreateEndGameMessage(gameManager.FinalWinnerName);
             var finalSelection = ButtonFactory.CreateButtonSelection(optionsDisplay, endPage, otherUser);
+
             await interactiveService.SendSelectionAsync(finalSelection, message, TimeSpan.FromSeconds(6));
 
             gameManager.Dispose();
@@ -146,17 +152,18 @@ namespace LeagueStatusBot.Modules
         ButtonSelection<string> buttonSelection, 
         CancellationTokenSource cts, 
         int round, 
-        GameManager gameManager)
+        GameManager gameManager,
+        IUserMessage message)
         {
-            IUserMessage message = null;     
+
             while (player1Choices.Count < 1)
             {
-                Console.WriteLine("First Loop");
                 var updatedBuilder = MessageFactory.CreatePageBuilder(context.User, Color.Blue, player1Choices, otherUser, gameManager.GetCurrentHitPoints(), gameManager.CurrentWinner, round);
-                Console.WriteLine("Creating Builder");
+
                 buttonSelection = ButtonFactory.CreateButtonSelection(buttonSelection.Options.ToArray(), updatedBuilder, context.User);
-                Console.WriteLine("Building Embed");
+
                 InteractiveMessageResult<ButtonOption<string>> result = null;
+
                 try
                 {
                     result = message is null
@@ -167,7 +174,7 @@ namespace LeagueStatusBot.Modules
                 {
                     Console.WriteLine($"Exception occurred: {ex}");
                 }
-                Console.WriteLine("Sent Message");
+
                 message = result.Message;
 
                 if (!result.IsSuccess)

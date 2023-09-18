@@ -21,7 +21,8 @@ public class FileManager
 
     public void AddToCache(string file)
     {
-        files.Add(folderName + "/" + file);
+        Console.WriteLine(file);
+        files.Add(file);
     }
 
     public void DeleteAllFiles()
@@ -42,10 +43,17 @@ public class FileManager
     {
         List<Image> gifs = new();
 
-        foreach (var file in files)
+        try
         {
-            Image image = Image.Load<Rgba32>(file);
-            gifs.Add(image);
+            foreach (var file in files)
+            {
+                Image image = Image.Load<Rgba32>(file);
+                gifs.Add(image);
+            }
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.Message);
         }
 
         return gifs;
