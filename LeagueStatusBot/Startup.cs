@@ -8,6 +8,7 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using Fergun.Interactive;
 using LeagueStatusBot.Helpers;
+using LeagueStatusBot.RPGEngine.Data;
 using LeagueStatusBot.RPGEngine.Core.Controllers;
 using LeagueStatusBot.RPGEngine.Core.Engine.Animations;
 using LeagueStatusBot.RPGEngine.Core.Engine.UI;
@@ -74,10 +75,10 @@ public class Startup
                 DefaultRunMode = Discord.Commands.RunMode.Async,
                 CaseSensitiveCommands = false,
             }))
-            //.AddDbContext<GameDbContext>(options =>
-            //{
-            //    options.UseSqlite("Data Source=/app/game.db");
-            //})
+            .AddDbContext<GameDbContext>(options =>
+            {
+                options.UseSqlite("Data Source=/app/game.db");
+            })
             .AddSingleton<CommandHandlingService>()
             .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
             .AddSingleton(new InteractiveConfig { DefaultTimeout = TimeSpan.FromMinutes(5) })
