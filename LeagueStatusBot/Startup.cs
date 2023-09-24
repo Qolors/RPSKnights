@@ -7,13 +7,14 @@ using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Fergun.Interactive;
-using LeagueStatusBot.Helpers;
-using LeagueStatusBot.RPGEngine.Data;
+using Microsoft.EntityFrameworkCore;
+using LeagueStatusBot.RPGEngine.Data.Contexts;
 using LeagueStatusBot.RPGEngine.Core.Controllers;
 using LeagueStatusBot.RPGEngine.Core.Engine.Animations;
 using LeagueStatusBot.RPGEngine.Core.Engine.UI;
 using LeagueStatusBot.Services;
 using Microsoft.Extensions.DependencyInjection;
+using LeagueStatusBot.RPGEngine.Data.Repository;
 
 namespace LeagueStatusBot;
 
@@ -79,6 +80,7 @@ public class Startup
             {
                 options.UseSqlite("Data Source=/app/game.db");
             })
+            .AddSingleton<PlayerRepository>()
             .AddSingleton<CommandHandlingService>()
             .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
             .AddSingleton(new InteractiveConfig { DefaultTimeout = TimeSpan.FromMinutes(5) })

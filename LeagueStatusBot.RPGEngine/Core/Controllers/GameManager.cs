@@ -6,6 +6,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
     public class GameManager 
     {
         public bool IsOff {get; set;} = true;
+        public bool Player1Won {get; set;}
         public string CurrentWinner {get;set;} = string.Empty;
         public string FinalWinnerName { get; set; } = string.Empty;
         public string MostRecentFile {get; set;}
@@ -118,7 +119,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
             Console.WriteLine("Finished Ending Game");
 
-
+            Player1Won = player1.IsAlive;
         }
 
         public void Dispose()

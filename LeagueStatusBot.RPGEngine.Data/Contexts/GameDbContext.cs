@@ -20,6 +20,8 @@ public class GameDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<ServerEntity>().HasKey(x => x.ServerId);
+
         modelBuilder.Entity<BeingEntity>()
             .HasKey(x => x.DiscordId);
         

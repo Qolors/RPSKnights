@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using LeagueStatusBot.Helpers;
 using LeagueStatusBot.Services;
+using LeagueStatusBot.RPGEngine.Data.Repository;
 
 namespace LeagueStatusBot.Modules
 {
@@ -18,12 +19,24 @@ namespace LeagueStatusBot.Modules
     {
         private GameFactory gameFactory;
         private readonly InteractiveService interactiveService;
+        private PlayerRepository playerRepository;
         private Dictionary<ulong, GameManager> activeGames;
-        public RPGModule(GameFactory gameFactory, InteractiveService interactiveService)
+        public RPGModule(GameFactory gameFactory, InteractiveService interactiveService, PlayerRepository playerRepository)
         {
             this.interactiveService = interactiveService;
+            this.playerRepository = playerRepository;
             this.gameFactory = gameFactory;
             activeGames = new();
+        }
+
+        [SlashCommand("leaderboard", "Get this Discord Server's Top Ranked Players")]
+        public async Task GetPlayerRanks()
+        {
+            await DeferAsync();
+
+            var playerList = await playerRepository.GetLeaderboard(Context.Guild.Id);
+
+            await FollowupAsync(string.Join("\n", playerList));
         }
 
         [SlashCommand("challenge", "Challenge another player to a duel")]
@@ -142,6 +155,22 @@ namespace LeagueStatusBot.Modules
             var finalSelection = ButtonFactory.CreateButtonSelection(optionsDisplay, endPage, otherUser);
 
             await interactiveService.SendSelectionAsync(finalSelection, message, TimeSpan.FromSeconds(6));
+
+            var player1 = await context.Channel.GetUserAsync(context.User.Id);
+            var player2 = await context.Channel.GetUserAsync(otherUser.Id);
+
+            var player1Rating = await playerRepository.GetPlayerElo(context.Guild.Id, player1.Id);
+            var player2Rating = await playerRepository.GetPlayerElo(context.Guild.Id, player2.Id);
+
+            double playerARating = player1Rating?? 1200;
+            double playerBRating = player2Rating?? 1200;
+
+            int winner = gameManager.Player1Won ? 1 : 0;
+        // Let's assume Player A won (1 for win, 0.5 for draw, 0 for loss)
+            EloRating.UpdateRatings(ref playerARating, ref playerBRating, winner);
+
+            await playerRepository.UpdateOrAddPlayer(context.Guild.Id, player1.Id, player1.Username, (int)playerARating, gameManager.Player1Won);
+            await playerRepository.UpdateOrAddPlayer(context.Guild.Id, player2.Id, player2.Username, (int)playerBRating, !gameManager.Player1Won);
 
             gameManager.Dispose();
         }
