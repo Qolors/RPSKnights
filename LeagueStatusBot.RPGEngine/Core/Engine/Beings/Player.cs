@@ -12,6 +12,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Beings
         }
         public string Name { get; set; }
         public int Health { get; set; } = 3;
+        public int Energy { get; set; } = 5;
         public bool IsAlive => Health > 0;
         private readonly ulong userId;
         private readonly string url;

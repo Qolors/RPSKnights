@@ -78,7 +78,7 @@ namespace LeagueStatusBot.RPGEngine.Data.Repository
                 .ToListAsync();
 
             // If there are not 10 or more players, get as many as there are
-            var playerNames = topPlayers.Select(p => p.Name + "-" + p.EloRating + "W/L -" + p.Wins + "/" + p.Losses).ToList();
+            var playerNames = topPlayers.Select(p => p.Name + "-" + p.EloRating + "&" + "W/L -" + p.Wins + "/" + p.Losses).ToList();
 
             return playerNames;
             

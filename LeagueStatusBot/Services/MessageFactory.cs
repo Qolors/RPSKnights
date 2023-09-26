@@ -34,7 +34,16 @@ public static class MessageFactory
             .WithTitle($"Round #{round}")
             .WithThumbnailUrl(context.GetAvatarUrl())
             .WithColor(color)
-            .WithDescription($"{status ?? ""}\n\u2665 {hitpoints[0]}/3 - **{context.GlobalName}**\n\u2665 {hitpoints[1]}/3 - **{otherUser.GlobalName}**\n\n*{context.Mention} you need to make **{1 - playerChoices.Count}** more Actions*");
+            .WithDescription($"{status ?? ""}\n**{context.Username}**\n\u2665 {hitpoints[0]}/3\n**{otherUser.Username}**\n\u2665 {hitpoints[1]}/3\n*{context.Mention} you need to make **{1 - playerChoices.Count}** more Actions*");
+    }
+
+    public static PageBuilder CreatePageBuilder(SocketUser context, Color color, List<string> playerChoices, SocketUser otherUser, int[] hitpoints, int player1Energy, int player2Energy, string status, int round)
+    {
+        return new PageBuilder()
+            .WithTitle($"Round #{round}")
+            .WithThumbnailUrl(context.GetAvatarUrl())
+            .WithColor(color)
+            .WithDescription($"{status ?? ""}\n**{context.Username}**\n\u2665 {hitpoints[0]}/3\n\u25AA {player1Energy}/5\n**{otherUser.Username}**\n\u2665 {hitpoints[1]}/3\n\u25AA {player2Energy}/5\n*{context.Mention} you need to make **{1 - playerChoices.Count}** more Actions*");
     }
 
     public static PageBuilder CreateChallengeMessage(string challenger, string avatarUrl, string mention)
@@ -61,7 +70,22 @@ public static class MessageFactory
     {
         var embed = new EmbedBuilder()
                 .WithTitle("A Battle Begins!")
-                .WithDescription($"**\uD83D\uDD35{firstMention}** VS **\uD83D\uDD34{secondMention}**");
+                .WithDescription($"**\uD83D\uDD35 {firstMention}** VS **\uD83D\uDD34 {secondMention}**");
+
+        return new Embed[] { embed.Build() };
+    }
+
+    public static Embed[] BuildLeaderboard(List<string> players)
+    {
+        var embed = new EmbedBuilder()
+            .WithTitle("Top Player Ranking");
+
+        for (int i = 0; i < players.Count; i++)
+        {
+            var split = players[i].Split("&");
+
+            embed.AddField($"#{i + 1} - {split[0]}", split[1]);
+        }
 
         return new Embed[] { embed.Build() };
     }

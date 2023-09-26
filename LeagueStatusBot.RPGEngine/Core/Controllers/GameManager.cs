@@ -60,6 +60,10 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         {
             var turnMessage = turnManager.ProcessTurn(player1actions, player2actions, player1!, player2!, fileManager.GetBasePath, animationManager);
 
+            ProcessEnergy(player1actions[0], player1!);
+            ProcessEnergy(player2actions[0], player2!);
+
+
             fileManager.AddToCache(turnMessage.FileName);
 
             MostRecentFile = turnMessage.FileName;
@@ -68,18 +72,22 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             if (turnMessage.Player1Health == turnMessage.Player2Health)
             {
                 CurrentWinner = $"*Tied last round*\n";
-                return player1!.IsAlive;
+                return true;
             }
             else if (turnMessage.Player1Health < turnMessage.Player2Health)
             {
-                player1!.Health--;
+                ProcessSpecialEffects(player2actions[0], player2!);
+                int damage = (player1actions[0] == "Ability" && player2actions[0] == "Defend") ? 2 : 1;
+                player1!.Health -= damage;
                 CurrentWinner = $"*{player2!.Name} won {turnMessage.Player2Health} hits to {turnMessage.Player1Health} hits last round*\n";
                 FinalWinnerName = player2!.Name;
                 return player1.IsAlive;
             }
             else
             {
-                player2!.Health--;
+                ProcessSpecialEffects(player1actions[0], player1!);
+                int damage = (player2actions[0] == "Ability" && player1actions[0] == "Defend") ? 2 : 1;
+                player2!.Health -= damage;
                 CurrentWinner = $"*{player1!.Name} won {turnMessage.Player1Health} hits to {turnMessage.Player2Health} hits last round*\n";
                 FinalWinnerName = player1.Name;
                 return player2.IsAlive;
@@ -96,6 +104,43 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         public int[] GetCurrentHitPoints()
         {
             return new int[] { player1!.Health, player2!.Health };
+        }
+
+        public int GetPlayer1Energy => player1.Energy;
+        public int GetPlayer2Energy => player2.Energy;
+
+        private void ProcessEnergy(string action, Player player)
+        {
+            switch (action)
+            {
+                case "Attack":
+                    player.Energy -= 2;
+                    break;
+                case "Defend":
+                    player.Energy -= 1;
+                    break;
+                case "Ability":
+                    player.Energy -= 4;
+                    break;
+                case "Overcharge":
+                    player.Energy = Math.Min(player.Energy + 3, 5);
+                    break;
+            }
+
+            player.Energy = Math.Min(player.Energy + 1, 5);
+        }
+
+        private void ProcessSpecialEffects(string winningAction, Player winner)
+        {
+            switch (winningAction)
+            {
+                case "Attack":
+                    winner.Energy = Math.Min(winner.Energy + 1, 5);
+                    break;
+                case "Defend":
+                    winner.Energy = Math.Min(winner.Energy + 2, 5);
+                    break;
+            }
         }
 
         public void EndGame()

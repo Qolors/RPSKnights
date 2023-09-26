@@ -19,6 +19,16 @@ public static class ButtonFactory
         };
     }
 
+    public static ButtonOption<string>[] CreateButtonOptions(int availableEnergy)
+    {
+        return new ButtonOption<string>[]
+        {
+                new("Attack", ButtonStyle.Primary, availableEnergy < 2),
+                new("Defend", ButtonStyle.Secondary, availableEnergy < 1),
+                new("Ability", ButtonStyle.Success, availableEnergy < 4)
+        };
+    }
+
     public static ButtonOption<string>[] CreateDisplayOnlyButtonOptions()
     {
         return new ButtonOption<string>[]

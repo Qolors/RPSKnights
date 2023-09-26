@@ -16,8 +16,7 @@ public class GameFactory
         var turnManager = serviceProvider.GetRequiredService<TurnManager>();
         var assetManager = serviceProvider.GetRequiredService<AssetManager>();
         var animationManager = serviceProvider.GetRequiredService<AnimationManager>();
-
-        Console.WriteLine("When Is This");
+        
         return new GameManager(turnManager, assetManager, animationManager, gameKey);
     }
 }
