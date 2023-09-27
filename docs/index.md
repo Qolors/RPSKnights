@@ -1,18 +1,30 @@
-<div style="color: #faf9f6; background-color: #1d1d39">
+---
+layout: default
+---
+
+<style>
+    body {
+        color: #faf9f6;
+    }
+
+    .subtitle {
+        color: #ff3131;
+    }
+</style>
 
 # RPS Knights
 
-<div style="color: #ff3131;">Welcome to **RPS Knights**</div>, an exhilarating twist on the timeless game of Rock, Paper, Scissors! Whether you're playing with friends or competing against a broader community, the ranked ladder system ensures every match is an electrifying contest.
+<div class="subtitle">Welcome to **RPS Knights**</div>, a competitive twist on the timeless game of Rock, Paper, Scissors. RPS Knights also has a ranked ladder to add a competitive scene to it.
 
-<div style="color: #ff3131;">**RPS Knights** retains the core principles</div> of the original RPS but layers on a novel energy system that necessitates strategic planning and foresight.
+<div class="subtitle">**RPS Knights** retains the core principles</div> of the original RPS but layers on a novel energy system that necessitates strategic planning and foresight.
 
-## <span style="color: #ff3131;">Game Overview</span>
+## <span class="subtitle">Game Overview</span>
 
 1. **Health System**: At the onset of the battle, each player starts with 3 Hitpoints.
 2. **Round Dynamics**: During each round, players pick their actions. The player who loses the round will lose 1 Hitpoint.
 3. **Endgame Condition**: The bout persists until one player's Hitpoints drops to 0.
 
-## <span style="color: #ff3131;">Gameplay Guide</span>
+## <span class="subtitle">Gameplay Guide</span>
 
 To kick-start your journey in **RPS Knights**, here's a concise guide:
 
@@ -28,9 +40,10 @@ To kick-start your journey in **RPS Knights**, here's a concise guide:
   - After each round concludes, players receive 1 Energy.
   - Successful actions can grant players bonus energy regeneration.
 
+Good luck
+
 ---
 
-*Currently in early devlopment, but worked on daily.*
+*RPS Knights is still in early development with features being tested & removed/added*
 
-</div>
 
