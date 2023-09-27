@@ -1,6 +1,0 @@
-Implement Default targeting when only 1 target is available
-implement enemy power scaling
-implement monster abilities/new player abilities
-install James' item/weapon list
-proper Max Health scaling with Endurance
-add bug venom strike effect applying twice instead of stacking values
