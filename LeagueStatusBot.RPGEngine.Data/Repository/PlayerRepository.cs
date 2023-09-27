@@ -14,10 +14,8 @@ namespace LeagueStatusBot.RPGEngine.Data.Repository
 
         public async Task UpdateOrAddPlayer(ulong serverId, ulong playerId, string playerName, int eloChange, bool isWin)
         {
-            Console.WriteLine($"UpdateOrAddPlayer method called with parameters: serverId={serverId}, playerId={playerId}, playerName={playerName}, eloChange={eloChange}, isWin={isWin}");
-            
-            // Check if the server exists
             var server = await dbContext.Servers.FindAsync(serverId);
+            
             if (server == null)
             {
                 server = new ServerEntity { ServerId = serverId };
@@ -37,11 +35,12 @@ namespace LeagueStatusBot.RPGEngine.Data.Repository
                     Losses = isWin ? 0 : 1,
                     ServerId = serverId
                 };
+
                 dbContext.Beings.Add(player);
             }
             else
             {
-                player.EloRating += eloChange;
+                player.EloRating = eloChange;
                 if (isWin) player.Wins += 1;
                 else player.Losses += 1;
             }

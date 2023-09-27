@@ -68,7 +68,6 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
             MostRecentFile = turnMessage.FileName;
 
-            //TODO --> CHANGE RECORD TO BE PLAYER1HITS & PLAYER2HITS
             if (turnMessage.Player1Health == turnMessage.Player2Health)
             {
                 CurrentWinner = $"*Tied last round*\n";
@@ -96,7 +95,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
         public void ProcessDeathScene()
         {
-            var turnMessage = animationManager.CreateDeathAnimation(player1, player2, fileManager.GetBasePath);
+            var turnMessage = animationManager.CreateDeathAnimation(player1!, player2!, fileManager.GetBasePath);
             MostRecentFile = turnMessage.FileName;
             fileManager.AddToCache(turnMessage.FileName);
         }
@@ -106,8 +105,8 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             return new int[] { player1!.Health, player2!.Health };
         }
 
-        public int GetPlayer1Energy => player1.Energy;
-        public int GetPlayer2Energy => player2.Energy;
+        public int GetPlayer1Energy => player1!.Energy;
+        public int GetPlayer2Energy => player2!.Energy;
 
         private void ProcessEnergy(string action, Player player)
         {
@@ -164,7 +163,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
             Console.WriteLine("Finished Ending Game");
 
-            Player1Won = player1.IsAlive;
+            Player1Won = player1!.IsAlive;
         }
 
         public void Dispose()
