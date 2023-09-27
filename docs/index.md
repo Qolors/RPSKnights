@@ -32,4 +32,4 @@ May the odds be ever in your favor, and may you ascend the ranks of **RPS Knight
 
 ---
 
-*Thank you for being a part of our gaming community! Dive in, strategize, and compete!*
+*RPS Knights is still in an early development*
