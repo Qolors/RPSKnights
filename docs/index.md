@@ -7,17 +7,13 @@ layout: default
         color: #faf9f6;
         background-color: #1d1d39
     }
-
-    .subtitle {
-        color: #ff3131;
-    }
 </style>
 
 # RPS Knights
 
-<div class="subtitle">Welcome to **RPS Knights**</div>, a competitive twist on the timeless game of Rock, Paper, Scissors. RPS Knights also has a ranked ladder to add a competitive scene to it.
+<div class="subtitle">Welcome to <strong>RPS Knights</strong></div>, a competitive twist on the timeless game of Rock, Paper, Scissors. RPS Knights also has a ranked ladder to add a competitive scene to it.
 
-<div class="subtitle">**RPS Knights** retains the core principles</div> of the original RPS but layers on a novel energy system that necessitates strategic planning and foresight.
+<div class="subtitle"><strong>RPS Knights retains the core principles</strong></div> of the original RPS but layers on a novel energy system that necessitates strategic planning and foresight.
 
 ## <span class="subtitle">Game Overview</span>
 
