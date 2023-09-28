@@ -5,6 +5,7 @@ layout: default
 <style>
     body {
         color: #faf9f6;
+        background-color: #1d1d39
     }
 
     .subtitle {
@@ -45,5 +46,3 @@ Good luck
 ---
 
 *RPS Knights is still in early development with features being tested & removed/added*
-
-
