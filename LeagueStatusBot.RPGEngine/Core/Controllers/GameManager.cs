@@ -147,14 +147,14 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
                     player.Energy -= 1;
                     break;
                 case "Ability":
-                    player.Energy -= 4;
+                    player.Energy -= 3;
                     break;
                 case "Overcharge":
                     player.Energy = Math.Min(player.Energy + 3, 5);
                     break;
             }
 
-            player.Energy = Math.Min(player.Energy + 2, 5);
+            player.Energy = Math.Min(player.Energy + 1, 5);
         }
 
         private void ProcessSpecialEffects(string winningAction, Player winner)
