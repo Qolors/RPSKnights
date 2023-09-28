@@ -76,7 +76,21 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             else if (turnMessage.Player1Health < turnMessage.Player2Health)
             {
                 ProcessSpecialEffects(player2actions[0], player2!);
-                int damage = (player1actions[0] == "Ability" && player2actions[0] == "Defend") ? 2 : 1;
+                int damage;
+                if (player2actions[0] == "Ability" && player1actions[0] == "Defend")
+                {
+                    damage = 2;
+                    player1!.Energy -= 1;
+                }
+                else if (player2actions[0] == "Attack" && player1actions[0] == "Ability")
+                {
+                    damage = 1;
+                    player1!.Energy -= 1;
+                }
+                else
+                {
+                    damage = 1;
+                }
                 player1!.Health -= damage;
                 CurrentWinner = $"*{player2!.Name} won {turnMessage.Player2Health} hits to {turnMessage.Player1Health} hits last round*\n";
                 FinalWinnerName = player2!.Name;
@@ -85,7 +99,21 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             else
             {
                 ProcessSpecialEffects(player1actions[0], player1!);
-                int damage = (player2actions[0] == "Ability" && player1actions[0] == "Defend") ? 2 : 1;
+                int damage;
+                if (player1actions[0] == "Ability" && player2actions[0] == "Defend")
+                {
+                    damage = 2;
+                    player2!.Energy -= 1;
+                }
+                else if (player1actions[0] == "Attack" && player2actions[0] == "Ability")
+                {
+                    damage = 1;
+                    player2!.Energy -= 1;
+                }
+                else
+                {
+                    damage = 1;
+                }
                 player2!.Health -= damage;
                 CurrentWinner = $"*{player1!.Name} won {turnMessage.Player1Health} hits to {turnMessage.Player2Health} hits last round*\n";
                 FinalWinnerName = player1.Name;
@@ -126,7 +154,7 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
                     break;
             }
 
-            player.Energy = Math.Min(player.Energy + 1, 5);
+            player.Energy = Math.Min(player.Energy + 2, 5);
         }
 
         private void ProcessSpecialEffects(string winningAction, Player winner)
