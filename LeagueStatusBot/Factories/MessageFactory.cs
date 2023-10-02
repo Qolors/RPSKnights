@@ -46,7 +46,7 @@ public static class MessageFactory
             .WithTitle($"Round #{round}")
             .WithThumbnailUrl(context.GetAvatarUrl())
             .WithColor(color)
-            .WithDescription($"{status ?? ""}\n**{context.Username}**\n\u2665 {hitpoints[0]}/3\n\u25AA {player1Energy}/5\n**{otherUser.Username}**\n\u2665 {hitpoints[1]}/3\n\u25AA {player2Energy}/5\n*{context.Mention} you need to make **{1 - playerChoices.Count}** more Actions*");
+            .WithDescription($"{status ?? ""}\n**{context.Username}**\n\u2665 {hitpoints[0]}/3\n\u25AA {player1Energy}/5 Energy\n**{otherUser.Username}**\n\u2665 {hitpoints[1]}/3\n\u25AA {player2Energy}/5 Energy\n*{context.Mention} you need to make **{1 - playerChoices.Count}** more Actions*");
     }
 
     public static PageBuilder CreateChallengeMessage(string challenger, string avatarUrl, string mention)

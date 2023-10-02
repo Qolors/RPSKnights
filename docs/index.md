@@ -11,7 +11,7 @@ layout: default
 
 # RPS Knights
 
-<div class="subtitle">Welcome to <strong>RPS Knights</strong></div>, a competitive twist on the timeless game of Rock, Paper, Scissors. RPS Knights also has a ranked ladder to add a competitive scene to it.
+<div class="subtitle">Welcome to <strong>RPS Knights</strong></div> a competitive twist on the timeless game of Rock, Paper, Scissors. RPS Knights also has a ranked ladder to add a competitive scene to it.
 
 <div class="subtitle"><strong>RPS Knights retains the core principles</strong></div> of the original RPS but layers on a novel energy system that necessitates strategic planning and foresight.
 
