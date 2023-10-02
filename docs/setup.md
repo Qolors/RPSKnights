@@ -17,6 +17,7 @@ To swiftly get RPS Knights up and running on your machine, adhere to these steps
 
 1. Create a `docker-compose.yaml` file with the following configurations in your **root** folder (ensure to replace your Bot Token):
 
+    ```
     version: "3.9"
 
     services:
@@ -30,11 +31,13 @@ To swiftly get RPS Knights up and running on your machine, adhere to these steps
         - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN:-**YOUR BOT TOKEN HERE**}
         volumes:
         - ./game.db:/app/game.db
+    ```
 
 2. If you are proficient with EF Core, you can create a new SQLite Database in the `LeagueStatusBot.RPGEngine.Data` directory, or you can simply use the one included in the root folder.
 
 3. Create a `Dockerfile` file with the following configurations inside the **LeagueStatusBot** Folder:
 
+    ```
     # Use SDK for building
     FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
     WORKDIR /source
@@ -60,6 +63,7 @@ To swiftly get RPS Knights up and running on your machine, adhere to these steps
     COPY ["./LeagueStatusBot.RPGEngine/Core/Assets/Maps/", "/app/Assets/Maps"]
     COPY ["./LeagueStatusBot.RPGEngine/Core/Assets/Sprites/", "/app/Assets/Sprites"]
     ENTRYPOINT ["dotnet", "LeagueStatusBot.dll"]
+    ```
 
 
 4. Once all files are correctly positioned, you can initiate the application by navigating to your **root** folder and executing the following CLI Command -> `docker-compose up -d`
