@@ -159,7 +159,7 @@ public class AnimationManager
 
     public async Task<string> CreateInitialAnimation(Player player1, Player player2, string basePath)
     {
-        var frames = animationHandler.CreateInitialAnimation(player1.CurrentSprite, player2.CurrentSprite, ANIMATION_OFFSET, FRAME_COUNT, SPRITE_DIMENSION, SPRITE_DIMENSION, player1.Health, player2.Health);
+        var frames = animationHandler.CreateInitialAnimation(player1.CurrentSprite, player2.CurrentSprite, FRAME_COUNT, SPRITE_DIMENSION, SPRITE_DIMENSION, player1.Health, player2.Health);
 
         return await SaveGif(frames, basePath, INITIAL_FILE);
     }
