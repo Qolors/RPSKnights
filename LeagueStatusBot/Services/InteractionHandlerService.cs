@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace LeagueStatusBot.Services
 {
+    /// <summary>
+    /// Slash Command Handler
+    /// </summary>
     public class InteractionHandlerService
     {
         private readonly DiscordSocketClient _client;
@@ -25,6 +28,7 @@ namespace LeagueStatusBot.Services
             _client.Ready += ReadyAsync;
 
             await _handler.AddModuleAsync<RPGModule>(_services);
+            await _handler.AddModuleAsync<HelpModule>(_services);
 
             _client.InteractionCreated += HandleInteractionAsync;
         }

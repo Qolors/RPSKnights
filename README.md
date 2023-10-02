@@ -1,14 +1,17 @@
-# RPS Knights - A more competitive take on the classic Rock Paper Scissors Game we all know.
+# Welcome to RPS Knights - A Competitive Twist on the Classic Rock, Paper, Scissors Game
 
 ![RPS Knights](https://github.com/Qolors/RPSKnights/blob/master/docs/Images/RPSKnights.gif)
 
-## RPS Knights is a Game Engine/Simulator utilizing Discord as the UI
+## What is RPS Knights?
+RPS Knights is a unique game engine and simulator that uses Discord as its user interface. It brings a competitive edge to the timeless game of Rock, Paper, Scissors.
 
-- Includes Gif Rendering of actions to provide visual feedback
-- Local Database Storage for leaderboards
+- It features GIF rendering of actions for engaging visual feedback.
+- It utilizes local database storage for maintaining leaderboards.
 
+## Interested in Self Hosting?
+RPS Knights is deployed using Docker. If you're interested in hosting your own RPS Knights Bot, you can find all the necessary files and a comprehensive guide [here](https://github.com/Qolors/RPSKnights/blob/master/docs/setup.md) to get it up and running on your machine.
 
-## Libraries & Asset Packs
+## Libraries & Asset Packs Utilized
 
 ### Libraries
 - [Discord.Net](https://github.com/discord-net/Discord.Net)
@@ -18,4 +21,3 @@
 
 ### Asset Packs
 - [Character Sprites](https://brullov.itch.io/generic-char-asset)
-

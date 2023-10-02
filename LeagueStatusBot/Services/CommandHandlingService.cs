@@ -10,6 +10,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LeagueStatusBot.Services;
 
+/// <summary>
+/// This is to handle text commands - was originally being used but no longer is. Will be removed once 100% certain we don't need it anymore
+/// </summary>
 public class CommandHandlingService
 {
     private readonly CommandService _commands;
@@ -24,7 +27,7 @@ public class CommandHandlingService
 
     public async Task InitializeAsync()
     {
-        await _commands.AddModuleAsync<HelpHandler>(_services);
+        await _commands.AddModuleAsync<HelpModule>(_services);
     }
 
     private static async Task CommandExecutedAsync(Optional<CommandInfo> command, ICommandContext context, IResult result)

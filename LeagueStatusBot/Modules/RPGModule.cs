@@ -3,7 +3,6 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using Discord.Rest;
 using Fergun.Interactive;
-using LeagueStatusBot.RPGEngine.Core.Controllers;
 using System;
 using System.Linq;
 using System.Threading;
@@ -13,6 +12,11 @@ using LeagueStatusBot.Helpers;
 using LeagueStatusBot.Services;
 using LeagueStatusBot.Factories;
 using LeagueStatusBot.RPGEngine.Data.Repository;
+using LeagueStatusBot.RPGEngine.Core.Controllers;
+
+/// <summary>
+/// The RPGModule class is responsible for handling RPG related commands and interactions.
+/// </summary>
 
 namespace LeagueStatusBot.Modules
 {

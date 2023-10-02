@@ -5,6 +5,9 @@ using LeagueStatusBot.Helpers;
 
 namespace LeagueStatusBot.Factories;
 
+/// <summary>
+/// ButtonFactory is a Builder class for all message buttons
+/// </summary>
 public static class ButtonFactory
 {
     public static ButtonOption<string>[] CreateButtonOptions()

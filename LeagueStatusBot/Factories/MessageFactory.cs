@@ -8,6 +8,9 @@ using Fergun.Interactive;
 
 namespace LeagueStatusBot.Factories;
 
+/// <summary>
+/// MessageFactory is a static builder for all repeating messages
+/// </summary>
 public static class MessageFactory
 {
     public async static Task UpdateAttachmentMessage(RestUserMessage attachmentMessage, FileAttachment file)

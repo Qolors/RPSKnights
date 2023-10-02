@@ -4,6 +4,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LeagueStatusBot.Services;
 
+/// <summary>
+/// Factory class to instantiate instances of a GameManager
+/// </summary>
 public class GameFactory
 {
     private readonly IServiceProvider serviceProvider;

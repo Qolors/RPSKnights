@@ -1,203 +1,206 @@
 ﻿using LeagueStatusBot.RPGEngine.Core.Engine.Beings;
 using LeagueStatusBot.RPGEngine.Helpers;
 
-namespace LeagueStatusBot.RPGEngine.Core.Controllers 
+namespace LeagueStatusBot.RPGEngine.Core.Controllers;
+
+
+/// <summary>
+/// Every game is created in this class. GameManager manages the states of the overall gameplay from StartGame to EndGame
+/// </summary>
+public class GameManager
 {
-    public class GameManager 
+    public bool IsOff { get; set; } = true;
+    public bool Player1Won { get; set; }
+    public string CurrentWinner { get; set; } = string.Empty;
+    public string FinalWinnerName { get; set; } = string.Empty;
+    public string MostRecentFile { get; set; }
+    public EventHandler OnGameEnded;
+    private const string DEFAULT_TILE = "Idle";
+    private TurnManager turnManager;
+    private AssetManager assetManager;
+    private AnimationManager animationManager;
+    private FileManager fileManager;
+    private Player? player1;
+    private Player? player2;
+    public GameManager(TurnManager turnManager, AssetManager assetManager, AnimationManager animationManager, ulong gameKey)
     {
-        public bool IsOff {get; set;} = true;
-        public bool Player1Won {get; set;}
-        public string CurrentWinner {get;set;} = string.Empty;
-        public string FinalWinnerName { get; set; } = string.Empty;
-        public string MostRecentFile {get; set;}
-        public EventHandler OnGameEnded;
-        private const string DEFAULT_TILE = "Idle";
-        private TurnManager turnManager;
-        private AssetManager assetManager;
-        private AnimationManager animationManager;
-        private FileManager fileManager;
-        private Player? player1;
-        private Player? player2;
-        public GameManager(TurnManager turnManager, AssetManager assetManager, AnimationManager animationManager, ulong gameKey)
+        fileManager = new(gameKey);
+        this.assetManager = assetManager;
+        this.turnManager = turnManager;
+        this.animationManager = animationManager;
+    }
+
+    public async Task<string> StartGame(ulong player1Id, ulong player2Id, string player1name, string player2name, string player1url, string player2url)
+    {
+        if (!IsOff) return string.Empty;
+
+        player1 = new Player(assetManager.GetEntitySprite(DEFAULT_TILE, false), player1Id, player1name, player1url);
+        player2 = new Player(assetManager.GetEntitySprite(DEFAULT_TILE, true), player2Id, player2name, player2url);
+
+        await assetManager.LoadPlayer1Avatar(player1url);
+        await assetManager.LoadPlayer2Avatar(player2url);
+
+        animationManager.SetAssetManager(assetManager);
+
+        Console.WriteLine("Loaded Avatars");
+        IsOff = true;
+
+        if (animationManager == null)
         {
-            fileManager = new(gameKey);
-            this.assetManager = assetManager;
-            this.turnManager = turnManager;
-            this.animationManager = animationManager;
+            throw new ArgumentNullException(nameof(animationManager), "AnimationManager null");
         }
 
-        public async Task<string> StartGame(ulong player1Id, ulong player2Id, string player1name, string player2name, string player1url, string player2url)
+        return await animationManager.CreateInitialAnimation(player1, player2, fileManager.GetBasePath);
+    }
+
+    public async Task<string> ProcessDecisions()
+    {
+        fileManager.DeleteInitialFile("initial.gif");
+
+        return await animationManager.CreateInitialAnimation(player1!, player2!, fileManager.GetBasePath);
+    }
+
+    public async Task<bool> ProcessTurn(List<string> player1actions, List<string> player2actions)
+    {
+        var turnMessage = await turnManager.ProcessTurn(player1actions, player2actions, player1!, player2!, fileManager.GetBasePath, animationManager);
+
+        ProcessEnergy(player1actions[0], player1!);
+        ProcessEnergy(player2actions[0], player2!);
+
+
+        fileManager.AddToCache(turnMessage.FileName);
+
+        MostRecentFile = turnMessage.FileName;
+
+        if (turnMessage.Player1Health == turnMessage.Player2Health)
         {
-            if (!IsOff) return string.Empty;
-
-            player1 = new Player(assetManager.GetEntitySprite(DEFAULT_TILE, false), player1Id, player1name, player1url);
-            player2 = new Player(assetManager.GetEntitySprite(DEFAULT_TILE, true), player2Id, player2name, player2url);
-
-            await assetManager.LoadPlayer1Avatar(player1url);
-            await assetManager.LoadPlayer2Avatar(player2url);
-
-            animationManager.SetAssetManager(assetManager);
-
-            Console.WriteLine("Loaded Avatars");
-            IsOff = true;
-
-            if (animationManager == null)
+            CurrentWinner = $"*Tied last round*\n";
+            return true;
+        }
+        else if (turnMessage.Player1Health < turnMessage.Player2Health)
+        {
+            ProcessSpecialEffects(player2actions[0], player2!);
+            int damage;
+            if (player2actions[0] == "Ability" && player1actions[0] == "Defend")
             {
-                throw new ArgumentNullException(nameof(animationManager), "AnimationManager null");
+                damage = 2;
+                player1!.Energy -= 1;
             }
-
-            return await animationManager.CreateInitialAnimation(player1, player2, fileManager.GetBasePath);
-        }
-
-        public async Task<string> ProcessDecisions()
-        {
-            fileManager.DeleteInitialFile("initial.gif");
-
-            return await animationManager.CreateInitialAnimation(player1!, player2!, fileManager.GetBasePath);
-        }
-
-        public async Task<bool> ProcessTurn(List<string> player1actions, List<string> player2actions)
-        {
-            var turnMessage = await turnManager.ProcessTurn(player1actions, player2actions, player1!, player2!, fileManager.GetBasePath, animationManager);
-
-            ProcessEnergy(player1actions[0], player1!);
-            ProcessEnergy(player2actions[0], player2!);
-
-
-            fileManager.AddToCache(turnMessage.FileName);
-
-            MostRecentFile = turnMessage.FileName;
-
-            if (turnMessage.Player1Health == turnMessage.Player2Health)
+            else if (player2actions[0] == "Attack" && player1actions[0] == "Ability")
             {
-                CurrentWinner = $"*Tied last round*\n";
-                return true;
-            }
-            else if (turnMessage.Player1Health < turnMessage.Player2Health)
-            {
-                ProcessSpecialEffects(player2actions[0], player2!);
-                int damage;
-                if (player2actions[0] == "Ability" && player1actions[0] == "Defend")
-                {
-                    damage = 2;
-                    player1!.Energy -= 1;
-                }
-                else if (player2actions[0] == "Attack" && player1actions[0] == "Ability")
-                {
-                    damage = 1;
-                    player1!.Energy -= 1;
-                }
-                else
-                {
-                    damage = 1;
-                }
-                player1!.Health -= damage;
-                CurrentWinner = $"*{player2!.Name} won {turnMessage.Player2Health} hits to {turnMessage.Player1Health} hits last round*\n";
-                FinalWinnerName = player2!.Name;
-                return player1.IsAlive;
+                damage = 1;
+                player1!.Energy -= 1;
             }
             else
             {
-                ProcessSpecialEffects(player1actions[0], player1!);
-                int damage;
-                if (player1actions[0] == "Ability" && player2actions[0] == "Defend")
-                {
-                    damage = 2;
-                    player2!.Energy -= 1;
-                }
-                else if (player1actions[0] == "Attack" && player2actions[0] == "Ability")
-                {
-                    damage = 1;
-                    player2!.Energy -= 1;
-                }
-                else
-                {
-                    damage = 1;
-                }
-                player2!.Health -= damage;
-                CurrentWinner = $"*{player1!.Name} won {turnMessage.Player1Health} hits to {turnMessage.Player2Health} hits last round*\n";
-                FinalWinnerName = player1.Name;
-                return player2.IsAlive;
+                damage = 1;
             }
+            player1!.Health -= damage;
+            CurrentWinner = $"*{player2!.Name} won {turnMessage.Player2Health} hits to {turnMessage.Player1Health} hits last round*\n";
+            FinalWinnerName = player2!.Name;
+            return player1.IsAlive;
         }
-
-        public async void ProcessDeathScene()
+        else
         {
-            var turnMessage = await animationManager.CreateDeathAnimation(player1!, player2!, fileManager.GetBasePath);
-            MostRecentFile = turnMessage.FileName;
-            fileManager.AddToCache(turnMessage.FileName);
-        }
-
-        public int[] GetCurrentHitPoints()
-        {
-            return new int[] { player1!.Health, player2!.Health };
-        }
-
-        public int GetPlayer1Energy => player1!.Energy;
-        public int GetPlayer2Energy => player2!.Energy;
-
-        private void ProcessEnergy(string action, Player player)
-        {
-            switch (action)
+            ProcessSpecialEffects(player1actions[0], player1!);
+            int damage;
+            if (player1actions[0] == "Ability" && player2actions[0] == "Defend")
             {
-                case "Attack":
-                    player.Energy -= 2;
-                    break;
-                case "Defend":
-                    player.Energy -= 1;
-                    break;
-                case "Ability":
-                    player.Energy -= 3;
-                    break;
-                case "Overcharge":
-                    player.Energy = Math.Min(player.Energy + 3, 5);
-                    break;
+                damage = 2;
+                player2!.Energy -= 1;
             }
-
-            player.Energy = Math.Min(player.Energy + 1, 5);
-        }
-
-        private void ProcessSpecialEffects(string winningAction, Player winner)
-        {
-            switch (winningAction)
+            else if (player1actions[0] == "Attack" && player2actions[0] == "Ability")
             {
-                case "Attack":
-                    winner.Energy = Math.Min(winner.Energy + 1, 5);
-                    break;
-                case "Defend":
-                    winner.Energy = Math.Min(winner.Energy + 2, 5);
-                    break;
+                damage = 1;
+                player2!.Energy -= 1;
             }
-        }
-
-        public void EndGame()
-        {
-            IsOff = true;
-
-            var gifs = fileManager.LoadAllGifs();
-
-            Console.WriteLine("Loaded Gifs for FinalBatlle Gif");
-
-            if (!animationManager.CreateGifFromGifs(gifs, fileManager.GetBasePath + "FinalBattle.gif"))
+            else
             {
-                //TODO --> PROBABLY WON'T NEED THIS
-                Console.WriteLine("");
+                damage = 1;
             }
-
-            MostRecentFile = fileManager.GetBasePath + "FinalBattle.gif";
-
-            fileManager.AddToCache("initial.gif");
-            fileManager.AddToCache("FinalBattle.gif");
-
-            Player1Won = player1!.IsAlive;
+            player2!.Health -= damage;
+            CurrentWinner = $"*{player1!.Name} won {turnMessage.Player1Health} hits to {turnMessage.Player2Health} hits last round*\n";
+            FinalWinnerName = player1.Name;
+            return player2.IsAlive;
         }
-
-        public void Dispose()
-        {
-            Task.Run(() => fileManager.DeleteAllFiles());
-            OnGameEnded?.Invoke(this, EventArgs.Empty);
-        }
-
     }
+
+    public async void ProcessDeathScene()
+    {
+        var turnMessage = await animationManager.CreateDeathAnimation(player1!, player2!, fileManager.GetBasePath);
+        MostRecentFile = turnMessage.FileName;
+        fileManager.AddToCache(turnMessage.FileName);
+    }
+
+    public int[] GetCurrentHitPoints()
+    {
+        return new int[] { player1!.Health, player2!.Health };
+    }
+
+    public int GetPlayer1Energy => player1!.Energy;
+    public int GetPlayer2Energy => player2!.Energy;
+
+    private void ProcessEnergy(string action, Player player)
+    {
+        switch (action)
+        {
+            case "Attack":
+                player.Energy -= 2;
+                break;
+            case "Defend":
+                player.Energy -= 1;
+                break;
+            case "Ability":
+                player.Energy -= 3;
+                break;
+            case "Overcharge":
+                player.Energy = Math.Min(player.Energy + 3, 5);
+                break;
+        }
+
+        player.Energy = Math.Min(player.Energy + 1, 5);
+    }
+
+    private void ProcessSpecialEffects(string winningAction, Player winner)
+    {
+        switch (winningAction)
+        {
+            case "Attack":
+                winner.Energy = Math.Min(winner.Energy + 1, 5);
+                break;
+            case "Defend":
+                winner.Energy = Math.Min(winner.Energy + 2, 5);
+                break;
+        }
+    }
+
+    public void EndGame()
+    {
+        IsOff = true;
+
+        var gifs = fileManager.LoadAllGifs();
+
+        Console.WriteLine("Loaded Gifs for FinalBatlle Gif");
+
+        if (!animationManager.CreateGifFromGifs(gifs, fileManager.GetBasePath + "FinalBattle.gif"))
+        {
+            //TODO --> PROBABLY WON'T NEED THIS
+            Console.WriteLine("");
+        }
+
+        MostRecentFile = fileManager.GetBasePath + "FinalBattle.gif";
+
+        fileManager.AddToCache("initial.gif");
+        fileManager.AddToCache("FinalBattle.gif");
+
+        Player1Won = player1!.IsAlive;
+    }
+
+    public void Dispose()
+    {
+        Task.Run(() => fileManager.DeleteAllFiles());
+        OnGameEnded?.Invoke(this, EventArgs.Empty);
+    }
+
 }
 

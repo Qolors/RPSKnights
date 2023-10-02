@@ -1,6 +1,8 @@
 namespace LeagueStatusBot.RPGEngine.Helpers;
 
-
+/// <summary>
+/// FileManager is instantiated with GameManager, it handles all local folder/file operations
+/// </summary>
 public class FileManager
 {
     private List<string> files;

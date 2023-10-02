@@ -2,20 +2,20 @@
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Discord.Interactions;
 
 namespace LeagueStatusBot.Modules;
 
-public class HelpHandler : ModuleBase<SocketCommandContext>
+public class HelpModule : ModuleBase<SocketCommandContext>
 {
     private readonly CommandService _service;
 
-    public HelpHandler(CommandService service)
+    public HelpModule(CommandService service)
     {
         _service = service;
     }
 
-    [Command("Help")]
-    [Summary("Lists all commands")]
+    [SlashCommand("Help", "Show a brief description of all available commands")]
     public async Task HelpAsync()
     {
         var commands = _service.Commands.ToList();

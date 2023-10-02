@@ -5,6 +5,15 @@ using LeagueStatusBot.RPGEngine.Helpers;
 using SixLabors.ImageSharp.Formats.Gif;
 
 namespace LeagueStatusBot.RPGEngine.Core.Controllers;
+
+/// <summary>
+/// AnimationManager manages the creation of a gif file after each round.
+/// It runs in order like so:
+/// - CreateInitialAnimation
+/// - CreateBattleAnimation (until someone wins)
+/// - CreateDeathAnimation
+/// - CreateGifFromGifs (Does a full replay of the entire fight)
+/// </summary>
 public class AnimationManager
 {
     private const int SPRITE_DIMENSION = 56;

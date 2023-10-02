@@ -2,6 +2,9 @@ using System;
 
 namespace LeagueStatusBot.Services;
 
+/// <summary>
+/// Helper class to adjust rating of the two players
+/// </summary>
 public class EloRating
 {
     private const int KFactor = 32; // The maximum change in rating. Adjust this as needed.
