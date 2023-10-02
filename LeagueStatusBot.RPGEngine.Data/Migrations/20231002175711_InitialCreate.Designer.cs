@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LeagueStatusBot.RPGEngine.Data.Migrations
 {
     [DbContext(typeof(GameDbContext))]
-    [Migration("20230924182346_PlayerRanks")]
-    partial class PlayerRanks
+    [Migration("20231002175711_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

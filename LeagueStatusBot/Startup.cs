@@ -47,10 +47,6 @@ public class Startup
         foreach (var guild in _client.Guilds) 
             Console.WriteLine($"- {guild.Name}");
 
-        _client.SetGameAsync(Environment.GetEnvironmentVariable("DISCORD_BOT_ACTIVITY") ?? "I'm alive!", 
-            type: ActivityType.CustomStatus);
-        Console.WriteLine($"Activity set to '{_client.Activity.Name}'");
-
         return Task.CompletedTask;
     }
 

@@ -46,19 +46,19 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
                 throw new ArgumentNullException(nameof(animationManager), "AnimationManager null");
             }
 
-            return animationManager.CreateInitialAnimation(player1, player2, fileManager.GetBasePath);
+            return await animationManager.CreateInitialAnimation(player1, player2, fileManager.GetBasePath);
         }
 
-        public string ProcessDecisions()
+        public async Task<string> ProcessDecisions()
         {
             fileManager.DeleteInitialFile("initial.gif");
 
-            return animationManager.CreateInitialAnimation(player1!, player2!, fileManager.GetBasePath);
+            return await animationManager.CreateInitialAnimation(player1!, player2!, fileManager.GetBasePath);
         }
 
-        public bool ProcessTurn(List<string> player1actions, List<string> player2actions)
+        public async Task<bool> ProcessTurn(List<string> player1actions, List<string> player2actions)
         {
-            var turnMessage = turnManager.ProcessTurn(player1actions, player2actions, player1!, player2!, fileManager.GetBasePath, animationManager);
+            var turnMessage = await turnManager.ProcessTurn(player1actions, player2actions, player1!, player2!, fileManager.GetBasePath, animationManager);
 
             ProcessEnergy(player1actions[0], player1!);
             ProcessEnergy(player2actions[0], player2!);
@@ -121,9 +121,9 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
             }
         }
 
-        public void ProcessDeathScene()
+        public async void ProcessDeathScene()
         {
-            var turnMessage = animationManager.CreateDeathAnimation(player1!, player2!, fileManager.GetBasePath);
+            var turnMessage = await animationManager.CreateDeathAnimation(player1!, player2!, fileManager.GetBasePath);
             MostRecentFile = turnMessage.FileName;
             fileManager.AddToCache(turnMessage.FileName);
         }
@@ -188,8 +188,6 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
 
             fileManager.AddToCache("initial.gif");
             fileManager.AddToCache("FinalBattle.gif");
-
-            Console.WriteLine("Finished Ending Game");
 
             Player1Won = player1!.IsAlive;
         }

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using LeagueStatusBot.Helpers;
 using LeagueStatusBot.Services;
+using LeagueStatusBot.Factories;
 using LeagueStatusBot.RPGEngine.Data.Repository;
 
 namespace LeagueStatusBot.Modules
@@ -117,8 +118,6 @@ namespace LeagueStatusBot.Modules
                 
                 using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
 
-                await Task.Delay(1000);
-
                 attachmentMessage = await MessageFactory.InitializeAttachmentMessage(context, attachmentMessage, new FileAttachment(filePath) , new FileAttachment(filePath));
 
                 var options = ButtonFactory.CreateButtonOptions();
@@ -131,7 +130,7 @@ namespace LeagueStatusBot.Modules
 
                 var nobuttonSelection = ButtonFactory.CreateButtonSelection(optionsDisplayOnly, pageBuilder, otherUser);
 
-                if (gameManager.ProcessTurn(player1Choices, player2Choices))
+                if (await gameManager.ProcessTurn(player1Choices, player2Choices))
                 {
                     await MessageFactory.UpdateAttachmentMessage(attachmentMessage, new FileAttachment(gameManager.MostRecentFile));
                     using var disabledCts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
@@ -139,7 +138,7 @@ namespace LeagueStatusBot.Modules
 
                     await interactiveService.SendSelectionAsync(nobuttonSelection, message, TimeSpan.FromSeconds(1), cancellationToken: disabledCts.Token);
 
-                    gameManager.ProcessDecisions();
+                    await gameManager.ProcessDecisions();
                 }
                 else
                 {
@@ -237,17 +236,9 @@ namespace LeagueStatusBot.Modules
 
         private async Task<InteractiveMessageResult<ButtonOption<string>>> SendSelectionAsync(ButtonSelection<string> buttonSelection, IUserMessage message, CancellationTokenSource cts)
         {
-            try
-            {
-                return message is null
+            return message is null
                     ? await interactiveService.SendSelectionAsync(buttonSelection, Context.Channel, TimeSpan.FromMinutes(1), cancellationToken: cts.Token)
                     : await interactiveService.SendSelectionAsync(buttonSelection, message, TimeSpan.FromMinutes(1), cancellationToken: cts.Token);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Exception occurred: {ex}");
-                return null;
-            }
         }
 
         private void UpdatePlayerChoices(SocketUser player, List<string> playerChoices, InteractiveMessageResult<ButtonOption<string>> result)

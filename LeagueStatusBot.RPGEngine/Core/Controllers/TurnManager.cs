@@ -10,10 +10,10 @@ namespace LeagueStatusBot.RPGEngine.Core.Controllers
         {
             this.animationManager = animationManager;
         }
-        public TurnMessage ProcessTurn(List<string> player1actions, List<string> player2actions, Player player1, Player player2, string basePath, AnimationManager animationManager)
+        public async Task<TurnMessage> ProcessTurn(List<string> player1actions, List<string> player2actions, Player player1, Player player2, string basePath, AnimationManager animationManager)
         {
             this.animationManager = animationManager;
-            return this.animationManager.CreateBattleAnimation(player1, player2, player1actions, player2actions, basePath);
+            return await this.animationManager.CreateBattleAnimation(player1, player2, player1actions, player2actions, basePath);
         }
     }
 }

@@ -66,21 +66,10 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
         //TODO --> MAKE THIS INTAKE A MESSAGING MODEL
         public Image<Rgba32> CreateAnimationFrame(Image<Rgba32> sprite1, Point position1, Image<Rgba32> sprite2, Point position2, int health1, int health2)
         {
-
             var (avatar1, avatar2) = assetManager.GetPlayerAvatars();
 
             var pixelAvatar1 = ResizeAvatar(avatar1.CloneAs<Rgba32>(), 50, 50);
             var pixelAvatar2 = ResizeAvatar(avatar2.CloneAs<Rgba32>(), 50, 50);
-
-            if (assetManager == null)
-                throw new InvalidOperationException("AssetManager not set to an instance of an object.");
-            if (interfacehandler == null)
-                throw new InvalidOperationException("InterfaceHandler not set to an instance of an object.");
-            if (sprite1 == null)
-                throw new InvalidOperationException("Sprite1 not set to an instance of an object.");
-            if (sprite2 == null)
-                throw new InvalidOperationException("Sprite2 not set to an instance of an object.");
-
 
             using (var frame = new Image<Rgba32>(250, 200))
             {
@@ -91,8 +80,6 @@ namespace LeagueStatusBot.RPGEngine.Core.Engine.Animations
                 PlaceSpriteOnCanvas(frame, sprite2, position2.X, position2.Y);
                 return frame.Clone();
             }
-            
-            
         }
     }
 }

@@ -1,11 +1,9 @@
 using Discord;
-using Discord.Interactions;
 using Discord.WebSocket;
 using Fergun.Interactive;
 using LeagueStatusBot.Helpers;
 
-namespace LeagueStatusBot.Services;
-
+namespace LeagueStatusBot.Factories;
 
 public static class ButtonFactory
 {

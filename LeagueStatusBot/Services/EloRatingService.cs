@@ -4,7 +4,6 @@ namespace LeagueStatusBot.Services;
 
 public class EloRating
 {
-    private const int StartRating = 1200; // Initial rating for every new player
     private const int KFactor = 32; // The maximum change in rating. Adjust this as needed.
 
     public static double CalculateExpectedOutcome(double ratingA, double ratingB)

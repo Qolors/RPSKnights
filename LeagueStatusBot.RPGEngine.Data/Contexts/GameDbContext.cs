@@ -5,7 +5,8 @@ namespace LeagueStatusBot.RPGEngine.Data.Contexts;
 
 public class GameDbContext : DbContext
 {
-    public GameDbContext(DbContextOptions<GameDbContext> options) : base(options) { }
+    //public GameDbContext(DbContextOptions<GameDbContext> options) : base(options) { }
+    public GameDbContext() : base (GetOptions()) { }
 
     public DbSet<ServerEntity> Servers { get; set; }
     public DbSet<BeingEntity> Beings { get; set; }
@@ -28,7 +29,7 @@ public class GameDbContext : DbContext
         modelBuilder.Entity<BeingEntity>()
             .HasOne(b => b.Server)
             .WithMany(s => s.Beings)
-            .HasForeignKey(b => b.ServerId); // Setting up the foreign key relationship
+            .HasForeignKey(b => b.ServerId);
     }
 }
 

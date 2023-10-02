@@ -6,7 +6,7 @@ using Discord.Rest;
 using Discord.WebSocket;
 using Fergun.Interactive;
 
-namespace LeagueStatusBot.Services;
+namespace LeagueStatusBot.Factories;
 
 public static class MessageFactory
 {

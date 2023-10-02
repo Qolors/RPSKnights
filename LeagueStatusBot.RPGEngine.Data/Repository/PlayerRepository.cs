@@ -22,15 +22,15 @@ namespace LeagueStatusBot.RPGEngine.Data.Repository
                 dbContext.Servers.Add(server);
             }
 
-            // Check if the player exists
             var player = await dbContext.Beings.FindAsync(playerId);
+
             if (player == null)
             {
                 player = new BeingEntity
                 {
                     DiscordId = playerId,
                     Name = playerName,
-                    EloRating = 1200 + eloChange, // Assuming 1200 as the default starting ELO rating
+                    EloRating = 1200 + eloChange,
                     Wins = isWin ? 1 : 0,
                     Losses = isWin ? 0 : 1,
                     ServerId = serverId
@@ -50,37 +50,31 @@ namespace LeagueStatusBot.RPGEngine.Data.Repository
 
         public async Task<int?> GetPlayerElo(ulong serverId, ulong userId)
         {
-            
-            // Attempt to find the player in the current server
+
             var player = await dbContext.Beings
                 .Where(b => b.ServerId == serverId && b.DiscordId == userId)
                 .FirstOrDefaultAsync();
 
-            // If the player doesn't exist, return null
             if (player == null)
             {
                 return null;
             }
 
-            // Return the player's current ELO rating
             return player.EloRating;
 
         }
 
         public async Task<List<string>> GetLeaderboard(ulong serverId)
         {
-            // Retrieve the top 10 players with the highest EloRating score
             var topPlayers = await dbContext.Beings
                 .Where(b => b.ServerId == serverId)
                 .OrderByDescending(b => b.EloRating)
                 .Take(10)
                 .ToListAsync();
 
-            // If there are not 10 or more players, get as many as there are
             var playerNames = topPlayers.Select(p => p.Name + "-" + p.EloRating + "&" + "W/L -" + p.Wins + "/" + p.Losses).ToList();
 
             return playerNames;
-            
         }
     }
 }
