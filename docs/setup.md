@@ -11,9 +11,11 @@ Before you begin, ensure Docker is installed on your machine. If not, follow the
 
 2. Validate the installation by opening a terminal and executing the command `docker --version`. The Docker version should be displayed in the output.
 
+3. If you're not sure how to create a new Discord application, follow the instructions [here](https://discord.com/developers/applications) to get your Discord Bot Token.
+
 ## File Setup & Configuration
 
-To swiftly get RPS Knights up and running on your machine, adhere to these steps:
+To quickly get RPS Knights up and running on your machine, adhere to these steps:
 
 1. Create a `docker-compose.yaml` file with the following configurations in your **root** folder (ensure to replace your Bot Token):
 
@@ -29,9 +31,11 @@ To swiftly get RPS Knights up and running on your machine, adhere to these steps
         restart: unless-stopped
         environment:
         - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN:-**YOUR BOT TOKEN HERE**}
+        - DISCORD_MAIN_GUILD=${DISCORD_MAIN_GUILD:-**DISCORD SERVER ID HERE**}
         volumes:
         - ./game.db:/app/game.db
     ```
+    *The DISCORD_MAIN_GUILD is particularly useful if you're extending this project and need to test new commands. Server Commands are registered instantly, whereas Global Commands may take up to an hour to become active.*
 
 2. If you are proficient with EF Core, you can create a new SQLite Database in the `LeagueStatusBot.RPGEngine.Data` directory, or you can simply use the one included in the root folder.
 
@@ -66,8 +70,8 @@ To swiftly get RPS Knights up and running on your machine, adhere to these steps
     ```
 
 
-4. Once all files are correctly positioned, you can initiate the application by navigating to your **root** folder and executing the following CLI Command -> `docker-compose up -d`
+4. Once all files are correctly positioned, you can initiate the application by navigating to your **root** folder and executing the following CLI Command: `docker-compose up -d`
 
-Congratulations! You have successfully set up RPS Knights.
+Congratulations! You have successfully set up RPS Knights. At this point, you should only need to add your Bot to your server if you have not already.
 
 *This guide is intended to facilitate a swift setup of a self-hosted instance on your local machine. However, if you intend to host this application in a different environment, we strongly recommend not using Docker environment variables for security reasons.*

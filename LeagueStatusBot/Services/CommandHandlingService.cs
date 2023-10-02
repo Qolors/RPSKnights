@@ -27,7 +27,6 @@ public class CommandHandlingService
 
     public async Task InitializeAsync()
     {
-        await _commands.AddModuleAsync<HelpModule>(_services);
     }
 
     private static async Task CommandExecutedAsync(Optional<CommandInfo> command, ICommandContext context, IResult result)

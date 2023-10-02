@@ -5,13 +5,11 @@ namespace LeagueStatusBot.RPGEngine.Data.Contexts;
 
 public class GameDbContext : DbContext
 {
-    //public GameDbContext(DbContextOptions<GameDbContext> options) : base(options) { }
-    public GameDbContext() : base (GetOptions()) { }
-
+    public GameDbContext(DbContextOptions<GameDbContext> options) : base(options) { }
     public DbSet<ServerEntity> Servers { get; set; }
     public DbSet<BeingEntity> Beings { get; set; }
 
-    // Use when performing a migration through CLI
+    // Use when wanting to perform a manual migration through CLI with a parameterless constructor
     private static DbContextOptions GetOptions()
     {
         var optionsBuilder = new DbContextOptionsBuilder<GameDbContext>();

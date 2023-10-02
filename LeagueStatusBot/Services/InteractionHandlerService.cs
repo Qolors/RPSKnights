@@ -44,6 +44,8 @@ namespace LeagueStatusBot.Services
                 // Handle the error: the environment variable value wasn't a valid ulong.
                 Console.WriteLine("Invalid DISCORD_MAIN_GUILD environment variable value.");
             }
+
+            await _handler.RegisterCommandsGloballyAsync();
         }
 
         private async Task HandleInteractionAsync(SocketInteraction interaction)

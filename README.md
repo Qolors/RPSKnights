@@ -1,4 +1,4 @@
-# Welcome to RPS Knights - A Competitive Twist on the Classic Rock, Paper, Scissors Game
+# Welcome to RPS Knights
 
 ![RPS Knights](https://github.com/Qolors/RPSKnights/blob/master/docs/Images/RPSKnights.gif)
 

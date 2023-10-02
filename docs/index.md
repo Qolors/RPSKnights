@@ -37,7 +37,7 @@ To kick-start your journey in **RPS Knights**, here's a concise guide:
   - After each round concludes, players receive 1 Energy.
   - Successful actions can grant players bonus energy regeneration.
 
-Good luck
+Good luck!
 
 ---
 

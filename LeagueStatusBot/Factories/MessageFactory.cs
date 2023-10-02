@@ -86,8 +86,9 @@ public static class MessageFactory
         for (int i = 0; i < players.Count; i++)
         {
             var split = players[i].Split("&");
+            var subsplit = split[0].Split("-");
 
-            embed.AddField($"#{i + 1} - {split[0]}", split[1]);
+            embed.AddField($"#{i + 1} - {subsplit[0]}", "Elo Rating: " + subsplit[1] + " - " + split[1]);
         }
 
         return new Embed[] { embed.Build() };
