@@ -31,7 +31,14 @@ To kick-start your journey in **RPS Knights**, here's a concise guide:
   
 - **Action Selection**: Each player selects an action, and the outcome depends on the trinity system (Rock, Paper, Scissors). The player with the superior action wins the round.
 
-  ![Trinity System Image](./Images/Trinity.png)
+  - **Attack**: Costs 2 Energy - Deals 1 Damage On Winning.
+  - **Defend**: Costs 1 Energy - Deals 1 Damage On Winning.
+  - **Ability**: Costs 3 Energy - Deals 2 Damage On Winning.
+
+- **Trinity System**: Like traditional RPS, we have a Trinity System:
+  - **Attack** beats **Ability**
+  - **Ability** beats **Defend**
+  - **Defend** beats **Attack**
 
 - **Post-Round Energy Mechanics**: 
   - After each round concludes, players receive 1 Energy.
