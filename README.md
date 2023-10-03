@@ -11,6 +11,9 @@ RPS Knights is a unique game engine and simulator that uses Discord as its user 
 ## Interested in Self Hosting?
 RPS Knights is deployed using Docker. If you're interested in hosting your own RPS Knights Bot, you can find all the necessary files and a comprehensive guide [here](https://github.com/Qolors/RPSKnights/blob/master/docs/setup.md) to get it up and running on your machine.
 
+## Looking to try out?
+I have a temporary instance of the bot deployed. You can invite the bot with this url [here](https://discord.com/api/oauth2/authorize?client_id=950229954468126790&permissions=0&scope=applications.commands%20bot). I am not sure how long I will keep this instance up.
+
 ## Libraries & Asset Packs Utilized
 
 ### Libraries
