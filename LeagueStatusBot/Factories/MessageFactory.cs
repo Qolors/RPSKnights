@@ -46,7 +46,7 @@ public static class MessageFactory
             .WithTitle($"Round #{round}")
             .WithThumbnailUrl(context.GetAvatarUrl())
             .WithColor(color)
-            .WithDescription($"{status ?? ""}\n**{context.Username}**\n\u2665 {hitpoints[0]}/3\n\u25AA {player1Energy}/5 Energy\n**{otherUser.Username}**\n\u2665 {hitpoints[1]}/3\n\u25AA {player2Energy}/5 Energy\n*{context.Mention} you need to make **{1 - playerChoices.Count}** more Actions*");
+            .WithDescription($"{status ?? ""}\n**{context.Username}**\n\u2665 {hitpoints[0]}/3\n\u25AA {player1Energy}/5 Energy\n\n**{otherUser.Username}**\n\u2665 {hitpoints[1]}/3\n\u25AA {player2Energy}/5 Energy\n\n{context.Mention} you need to make **{1 - playerChoices.Count}** more Actions");
     }
 
     public static PageBuilder CreateChallengeMessage(string challenger, string avatarUrl, string mention)
@@ -57,16 +57,27 @@ public static class MessageFactory
                 .WithDescription($"*{mention}, What is your response?*");
     }
 
-    public static PageBuilder CreateEndGameMessage(string winner)
+    public static PageBuilder CreateEndGameMessage(string winner, bool forfeit, int player1Before, int player1After, int player2Before, int player2After, string player1name, string player2name)
     {
+        string finalmessage = forfeit ? $"**{winner} wins the duel due to forfeit**" : $"**{winner} wins the duel.**";
+
         return new PageBuilder()
-                .WithTitle($"**{winner} wins the duel.**");
+                .WithTitle(finalmessage)
+                .WithThumbnailUrl("https://i.imgur.com/GDzyNhE.png")
+                .AddField($"{player1name}'s Elo adjustment", $"{player1Before} --> {player1After}")
+                .AddField($"{player2name}'s Elo adjustment", $"{player2Before} --> {player2After}");
     }
 
     public static PageBuilder CreateChallengeNeglectedMessage(string username)
     {
         return new PageBuilder()
                 .WithDescription($"*{username}'s duel expired..*");
+    }
+
+    public static PageBuilder CreateForfeitMessage(string username)
+    {
+        return new PageBuilder()
+            .WithDescription($"{username} forfeited the match due to inactivity");
     }
 
     public static Embed[] BuildIntroMessage(string firstMention, string secondMention, string firstAvatar, string secondAvatar)
@@ -78,10 +89,12 @@ public static class MessageFactory
         return new Embed[] { embed.Build() };
     }
 
-    public static Embed[] BuildLeaderboard(List<string> players)
+    public static Embed[] BuildLeaderboard(List<string> players, string splashUrl, string guildName)
     {
         var embed = new EmbedBuilder()
-            .WithTitle("Top Player Ranking");
+            .WithTitle($"Top Player Ranking for {guildName}")
+            .WithThumbnailUrl("https://i.imgur.com/GDzyNhE.png")
+            .WithImageUrl(splashUrl ?? );
 
         for (int i = 0; i < players.Count; i++)
         {

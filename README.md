@@ -2,6 +2,23 @@
 
 ![RPS Knights](https://github.com/Qolors/RPSKnights/blob/master/docs/Images/RPSKnights.gif)
 
+## Patch Notes 10/19/2023
+**The following changes have been made to the codebase**:
+
+### Bug Fixes
+- Fixed an issue where players could get stuck in an infinite match having only 1 energy each
+- Fixed a bug where if a match never finished the player could not join or start any other matches
+
+### UI
+- Added more info on the end game message showing Elo adjustments
+- Slightly changed the perform action message to be better spaced
+
+### Combat Changes
+- Attack now costs 1 Energy
+- Defend now costs 0 Energy
+- Players regenerate 1 Energy per turn
+- Players have 1 minute to make their action, or will result in a forfeit
+
 ## What is RPS Knights?
 RPS Knights is a unique game engine and simulator that uses Discord as its user interface. It brings a competitive edge to the timeless game of Rock, Paper, Scissors.
 

@@ -39,9 +39,12 @@ namespace LeagueStatusBot.Modules
         {
             await DeferAsync();
 
+            var splashScreen = Context.Guild.DiscoverySplashUrl;
+            var guildName = Context.Guild.Name;
+
             var playerList = await playerRepository.GetLeaderboard(Context.Guild.Id);
 
-            var embeds = MessageFactory.BuildLeaderboard(playerList);
+            var embeds = MessageFactory.BuildLeaderboard(playerList, splashScreen, guildName);
 
             await FollowupAsync(embeds: embeds);
         }
@@ -56,6 +59,12 @@ namespace LeagueStatusBot.Modules
             if (activeGames.ContainsKey(gameKey))
             {
                 await FollowupAsync("You already have an active game!", ephemeral: true);
+                return;
+            }
+
+            if (Context.User.Id == user.Id)
+            {
+                await FollowupAsync("You cannot verse yourself!", ephemeral: true);
                 return;
             }
 
@@ -104,7 +113,7 @@ namespace LeagueStatusBot.Modules
             else
             {
                 await message.DeleteAsync();
-                await FollowupAsync($"{user.Mention} declined the challenge.. Yikes.");
+                await FollowupAsync($"{user.Mention} declined the challenge..");
             }
         }
 
@@ -132,6 +141,9 @@ namespace LeagueStatusBot.Modules
 
                 message = await ProcessPlayerChoices(context, otherUser, player1Choices, player2Choices, buttonSelection, cts, round, gameManager, message);
 
+                if (gameManager.Forfeit)
+                    break;
+
                 var nobuttonSelection = ButtonFactory.CreateButtonSelection(optionsDisplayOnly, pageBuilder, otherUser);
 
                 if (await gameManager.ProcessTurn(player1Choices, player2Choices))
@@ -157,10 +169,7 @@ namespace LeagueStatusBot.Modules
             await MessageFactory.UpdateAttachmentMessage(attachmentMessage, new FileAttachment($"{Context.User.Id}/FinalBattle.gif"));
 
             var optionsDisplay = ButtonFactory.CreateDisplayOnlyButtonOptions();
-            var endPage = MessageFactory.CreateEndGameMessage(gameManager.FinalWinnerName);
-            var finalSelection = ButtonFactory.CreateButtonSelection(optionsDisplay, endPage, otherUser);
-
-            await interactiveService.SendSelectionAsync(finalSelection, message, TimeSpan.FromSeconds(6));
+            
 
             var player1 = await context.Channel.GetUserAsync(context.User.Id);
             var player2 = await context.Channel.GetUserAsync(otherUser.Id);
@@ -171,9 +180,17 @@ namespace LeagueStatusBot.Modules
             double playerARating = player1Rating?? 1200;
             double playerBRating = player2Rating?? 1200;
 
+            double playerABefore = playerARating;
+            double playerBBefore = playerBRating;
+
             int winner = gameManager.Player1Won ? 1 : 0;
 
             EloRating.UpdateRatings(ref playerARating, ref playerBRating, winner);
+
+            var endPage = MessageFactory.CreateEndGameMessage(gameManager.FinalWinnerName, gameManager.Forfeit, (int)playerABefore, (int)playerARating, (int)playerBBefore, (int)playerBRating, player1.Username, player2.Username);
+            var finalSelection = ButtonFactory.CreateButtonSelection(optionsDisplay, endPage, otherUser);
+
+            await interactiveService.SendSelectionAsync(finalSelection, message, TimeSpan.FromSeconds(6));
 
             await playerRepository.UpdateOrAddPlayer(context.Guild.Id, player1.Id, player1.Username, (int)playerARating, gameManager.Player1Won);
             await playerRepository.UpdateOrAddPlayer(context.Guild.Id, player2.Id, player2.Username, (int)playerBRating, !gameManager.Player1Won);
@@ -191,6 +208,10 @@ namespace LeagueStatusBot.Modules
             IUserMessage message)
         {
             message = await ProcessChoicesForPlayer(context, otherUser, player1Choices, buttonSelection, cts, round, gameManager, message, context.User, gameManager.GetPlayer1Energy);
+
+            if (gameManager.Forfeit)
+                return message;
+
             message = await ProcessChoicesForPlayer(context, otherUser, player2Choices, buttonSelection, cts, round, gameManager, message, otherUser, gameManager.GetPlayer2Energy);
             return message;
         }
@@ -208,7 +229,7 @@ namespace LeagueStatusBot.Modules
         {
 
             Color color = context.User.Id == player.Id ? Color.Blue : Color.Red;
-
+            
             var updatedButtons = ButtonFactory.CreateButtonOptions(energyAvailable);
 
             while (playerChoices.Count < 1)
@@ -219,20 +240,22 @@ namespace LeagueStatusBot.Modules
 
                 var result = await SendSelectionAsync(buttonSelection, message, cts);
 
-                message = result.Message;
-
-                if (!result.IsSuccess)
+                if (result.IsCanceled)
                 {
-                    gameManager.EndGame();
-                    gameManager.Dispose();
-                    return message;
+                    gameManager.PlayerForfeit(player.Id);
+                    message = result.Message;
+                    Console.WriteLine("Forfeited Match due to inactivity");
+                    break;
                 }
+
+                message = result.Message;
 
                 UpdatePlayerChoices(player, playerChoices, result);
 
                 updatedBuilder = MessageFactory.CreatePageBuilder(player, color, playerChoices, otherUser, gameManager.GetCurrentHitPoints(), gameManager.CurrentWinner, round);
 
                 buttonSelection = ButtonFactory.CreateButtonSelection(buttonSelection.Options.ToArray(), updatedBuilder, player);
+
             }
 
             return message;

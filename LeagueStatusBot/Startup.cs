@@ -15,6 +15,7 @@ using LeagueStatusBot.RPGEngine.Core.Engine.UI;
 using LeagueStatusBot.Services;
 using Microsoft.Extensions.DependencyInjection;
 using LeagueStatusBot.RPGEngine.Data.Repository;
+using LeagueStatusBot.Factories;
 
 namespace LeagueStatusBot;
 

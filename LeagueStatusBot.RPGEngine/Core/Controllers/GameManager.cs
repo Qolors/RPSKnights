@@ -11,6 +11,7 @@ public class GameManager
 {
     public bool IsOff { get; set; } = true;
     public bool Player1Won { get; set; }
+    public bool Forfeit { get; set; } = false;
     public string CurrentWinner { get; set; } = string.Empty;
     public string FinalWinnerName { get; set; } = string.Empty;
     public string MostRecentFile { get; set; }
@@ -25,8 +26,8 @@ public class GameManager
     public GameManager(TurnManager turnManager, AssetManager assetManager, AnimationManager animationManager, ulong gameKey)
     {
         fileManager = new(gameKey);
-        this.assetManager = assetManager;
         this.turnManager = turnManager;
+        this.assetManager = assetManager;
         this.animationManager = animationManager;
     }
 
@@ -79,47 +80,33 @@ public class GameManager
         }
         else if (turnMessage.Player1Health < turnMessage.Player2Health)
         {
-            ProcessSpecialEffects(player2actions[0], player2!);
             int damage;
             if (player2actions[0] == "Ability" && player1actions[0] == "Defend")
             {
                 damage = 2;
-                player1!.Energy -= 1;
-            }
-            else if (player2actions[0] == "Attack" && player1actions[0] == "Ability")
-            {
-                damage = 1;
-                player1!.Energy -= 1;
             }
             else
             {
                 damage = 1;
             }
             player1!.Health -= damage;
-            CurrentWinner = $"*{player2!.Name} won {turnMessage.Player2Health} hits to {turnMessage.Player1Health} hits last round*\n";
+            CurrentWinner = $"*{player2!.Name} won  last round*\n";
             FinalWinnerName = player2!.Name;
             return player1.IsAlive;
         }
         else
         {
-            ProcessSpecialEffects(player1actions[0], player1!);
             int damage;
             if (player1actions[0] == "Ability" && player2actions[0] == "Defend")
             {
                 damage = 2;
-                player2!.Energy -= 1;
-            }
-            else if (player1actions[0] == "Attack" && player2actions[0] == "Ability")
-            {
-                damage = 1;
-                player2!.Energy -= 1;
             }
             else
             {
                 damage = 1;
             }
             player2!.Health -= damage;
-            CurrentWinner = $"*{player1!.Name} won {turnMessage.Player1Health} hits to {turnMessage.Player2Health} hits last round*\n";
+            CurrentWinner = $"*{player1!.Name} won last round*\n";
             FinalWinnerName = player1.Name;
             return player2.IsAlive;
         }
@@ -145,33 +132,16 @@ public class GameManager
         switch (action)
         {
             case "Attack":
-                player.Energy -= 2;
+                player.Energy -= 1;
                 break;
             case "Defend":
-                player.Energy -= 1;
                 break;
             case "Ability":
                 player.Energy -= 3;
                 break;
-            case "Overcharge":
-                player.Energy = Math.Min(player.Energy + 3, 5);
-                break;
         }
 
         player.Energy = Math.Min(player.Energy + 1, 5);
-    }
-
-    private void ProcessSpecialEffects(string winningAction, Player winner)
-    {
-        switch (winningAction)
-        {
-            case "Attack":
-                winner.Energy = Math.Min(winner.Energy + 1, 5);
-                break;
-            case "Defend":
-                winner.Energy = Math.Min(winner.Energy + 2, 5);
-                break;
-        }
     }
 
     public void EndGame()
@@ -180,7 +150,7 @@ public class GameManager
 
         var gifs = fileManager.LoadAllGifs();
 
-        Console.WriteLine("Loaded Gifs for FinalBatlle Gif");
+        Console.WriteLine("Loaded Gifs for FinalBattle Gif");
 
         if (!animationManager.CreateGifFromGifs(gifs, fileManager.GetBasePath + "FinalBattle.gif"))
         {
@@ -194,6 +164,20 @@ public class GameManager
         fileManager.AddToCache("FinalBattle.gif");
 
         Player1Won = player1!.IsAlive;
+    }
+
+    public void PlayerForfeit(ulong forfeitPlayer)
+    {
+        if (forfeitPlayer == player1!.GetUserId)
+        {
+            player1.Health = 0;
+        }
+        else if (forfeitPlayer == player2!.GetUserId)
+        {
+            player2.Health = 0;
+        }
+
+        Forfeit = true;
     }
 
     public void Dispose()

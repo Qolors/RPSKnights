@@ -24,9 +24,9 @@ public static class ButtonFactory
     {
         return new ButtonOption<string>[]
         {
-                new("Attack", ButtonStyle.Primary, availableEnergy < 2),
-                new("Defend", ButtonStyle.Secondary, availableEnergy < 1),
-                new("Ability", ButtonStyle.Success, availableEnergy < 4)
+                new("Attack", ButtonStyle.Primary, availableEnergy < 1),
+                new("Defend", ButtonStyle.Secondary, availableEnergy < 0),
+                new("Ability", ButtonStyle.Success, availableEnergy < 3)
         };
     }
 
@@ -54,7 +54,8 @@ public static class ButtonFactory
         return new ButtonSelectionBuilder<string>()
             .WithOptions(options)
             .WithStringConverter(x => x.Option)
-            .WithActionOnCancellation(ActionOnStop.DisableInput)
+            .WithActionOnCancellation(ActionOnStop.ModifyMessage | ActionOnStop.DeleteInput)
+            .WithCanceledPage(MessageFactory.CreateForfeitMessage(currentUser.Username))
             .WithSelectionPage(pageBuilder)
             .AddUser(currentUser)
             .Build();

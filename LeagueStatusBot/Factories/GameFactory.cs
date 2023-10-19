@@ -2,7 +2,7 @@ using System;
 using LeagueStatusBot.RPGEngine.Core.Controllers;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace LeagueStatusBot.Services;
+namespace LeagueStatusBot.Factories;
 
 /// <summary>
 /// Factory class to instantiate instances of a GameManager
@@ -19,7 +19,7 @@ public class GameFactory
         var turnManager = serviceProvider.GetRequiredService<TurnManager>();
         var assetManager = serviceProvider.GetRequiredService<AssetManager>();
         var animationManager = serviceProvider.GetRequiredService<AnimationManager>();
-        
+
         return new GameManager(turnManager, assetManager, animationManager, gameKey);
     }
 }
