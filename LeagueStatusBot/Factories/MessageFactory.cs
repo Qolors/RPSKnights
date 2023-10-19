@@ -94,7 +94,7 @@ public static class MessageFactory
         var embed = new EmbedBuilder()
             .WithTitle($"Top Player Ranking for {guildName}")
             .WithThumbnailUrl("https://i.imgur.com/GDzyNhE.png")
-            .WithImageUrl(splashUrl ?? );
+            .WithImageUrl(splashUrl);
 
         for (int i = 0; i < players.Count; i++)
         {
